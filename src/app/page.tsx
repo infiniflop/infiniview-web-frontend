@@ -503,6 +503,98 @@ function SecurityArsenal() {
 }
 
 /* -------------------------------------------------------------------------- */
+/*  Interaction Testing                                                       */
+/* -------------------------------------------------------------------------- */
+
+const INTERACTION_TESTS = [
+  {
+    title: "Form & Input Fuzzing",
+    desc: "AI agents fill every form field with edge cases, unicode, overflows, and malicious payloads to find validation gaps.",
+    icon: FileCode,
+  },
+  {
+    title: "Click-Through Exploration",
+    desc: "Agents navigate every button, link, and interactive element to discover broken flows, dead ends, and unexpected states.",
+    icon: Eye,
+  },
+  {
+    title: "XSS Payload Injection",
+    desc: "Injects cross-site scripting payloads through the UI to test if your frontend sanitizes and escapes user input correctly.",
+    icon: Bug,
+  },
+  {
+    title: "Auth Flow Testing",
+    desc: "Tests login, signup, password reset, and session management flows for broken auth, privilege escalation, and token leaks.",
+    icon: Lock,
+  },
+  {
+    title: "Responsive & State Stress",
+    desc: "Rapid-fire interactions, back-button abuse, tab switching, and network interruptions to find race conditions and UI crashes.",
+    icon: Activity,
+  },
+  {
+    title: "Accessibility Probing",
+    desc: "Verifies keyboard navigation, screen reader compatibility, focus traps, and ARIA attribute correctness across all views.",
+    icon: Globe,
+  },
+];
+
+function InteractionTesting() {
+  return (
+    <section id="interaction-testing" className="relative px-6 py-32">
+      <GridBackground />
+      <div className="relative mx-auto max-w-6xl">
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-80px" }} variants={stagger} className="text-center mb-16">
+          <SectionLabel>Interaction Testing</SectionLabel>
+          <motion.h2 variants={fadeUp} custom={1} className="mt-5 text-4xl sm:text-5xl font-bold tracking-tight">
+            Agents that try to<br />
+            <span className="text-green">break your software</span>
+          </motion.h2>
+          <motion.p variants={fadeUp} custom={2} className="mt-4 text-text-secondary max-w-xl mx-auto text-lg">
+            AI-powered agents interact with your running application just like real users would, except they are specifically trying to break it. Every click, form submission, and navigation path is stress-tested.
+          </motion.p>
+        </motion.div>
+
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-40px" }}
+          variants={stagger}
+          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+        >
+          {INTERACTION_TESTS.map((test, i) => (
+            <motion.div
+              key={test.title}
+              variants={fadeUp}
+              custom={i}
+              className="group rounded-xl border border-border bg-bg-card p-6 transition hover:border-green/30 hover:bg-bg-card-hover"
+            >
+              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-green-glow">
+                <test.icon size={18} className="text-green" />
+              </div>
+              <h3 className="text-[14px] font-semibold mb-2">{test.title}</h3>
+              <p className="text-[13px] leading-relaxed text-text-muted">{test.desc}</p>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-40px" }}
+          variants={fadeUp}
+          className="mt-10 rounded-xl border border-green/20 bg-green-glow p-6 text-center"
+        >
+          <p className="text-[14px] text-text-secondary leading-relaxed max-w-2xl mx-auto">
+            Interaction testing runs inside a real browser in the cloud sandbox. Agents use computer vision and DOM introspection to interact with your app exactly as users do, finding bugs that static analysis never could.
+          </p>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
 /*  Code Graph & Language Support                                             */
 /* -------------------------------------------------------------------------- */
 
@@ -799,6 +891,7 @@ function Nav() {
             ["How It Works", "#how-it-works"],
             ["Agents", "#agents"],
             ["Security", "#security"],
+            ["Interaction Testing", "#interaction-testing"],
             ["Languages", "#languages"],
             ["Features", "#features"],
           ].map(([label, href]) => (
@@ -877,6 +970,7 @@ export default function LandingPage() {
         <Pipeline />
         <AgentSystem />
         <SecurityArsenal />
+        <InteractionTesting />
         <CodeGraph />
         <Features />
         <TechStack />
