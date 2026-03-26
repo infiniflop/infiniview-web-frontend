@@ -6,9 +6,9 @@ import { cn } from "@/lib/utils";
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
-  title: "Docksmith — AI-Powered Code Review, Security Testing & Interaction Testing",
+  title: "Docksmith | AI-Powered Code Review, Security Testing & Interaction Testing",
   description:
-    "Deep code review, autonomous security pentesting, and UX interaction testing in a single platform. AI agents review your code, attack your app, and stress-test your UI — all inside cloud sandboxes.",
+    "Deep code review, autonomous security pentesting, and UX interaction testing in a single platform. AI agents review your code, attack your app, and stress-test your UI, all inside cloud sandboxes.",
 };
 
 export default function RootLayout({

@@ -124,7 +124,7 @@ function Hero() {
           className="mx-auto mt-7 max-w-2xl text-lg sm:text-xl text-text-secondary leading-relaxed"
         >
           Docksmith deploys AI agents that review your code, pentest your app, and
-          stress-test your UI — all inside cloud sandboxes, triggered from a PR.
+          stress-test your UI, all inside cloud sandboxes, triggered from a PR.
         </motion.p>
 
         <motion.div variants={fadeUp} custom={3} className="mt-10 flex items-center justify-center gap-4 flex-wrap">
@@ -164,7 +164,7 @@ function Hero() {
               <p className="pl-3 text-accent-light">&#9656; 12 runtime attack agents probing</p>
               <p className="pl-3 text-accent-light">&#9656; Interaction testing agent stress-testing UI</p>
               <p className="text-text-muted mt-2">Building code graph (15 language parsers)...</p>
-              <p className="text-green mt-2">&#10003; Scan complete — 3 critical, 7 high, 12 medium findings</p>
+              <p className="text-green mt-2">&#10003; Scan complete: 3 critical, 7 high, 12 medium findings</p>
               <p className="text-text-muted">&#8594; Results posted to PR #247 and dashboard</p>
             </div>
           </div>
@@ -184,7 +184,7 @@ function Hero() {
 }
 
 /* -------------------------------------------------------------------------- */
-/*  How It Works — Pipeline                                                   */
+/*  How It Works - Pipeline                                                    */
 /* -------------------------------------------------------------------------- */
 
 const PIPELINE_STEPS = [
@@ -230,7 +230,7 @@ function Pipeline() {
             From PR to pentest in <span className="text-accent">seconds</span>
           </motion.h2>
           <motion.p variants={fadeUp} custom={2} className="mt-4 text-text-secondary max-w-xl mx-auto text-lg">
-            Every scan follows the same battle-tested pipeline — fully automated, fully sandboxed.
+            Every scan follows the same battle-tested pipeline. Fully automated, fully sandboxed.
           </motion.p>
         </motion.div>
 
@@ -285,7 +285,7 @@ const AGENTS = [
   {
     title: "Interaction Testing",
     model: "Claude Sonnet 4.6",
-    desc: "Stress-tests the running application via computer use — fills forms, clicks buttons, injects XSS payloads, and discovers broken interactions.",
+    desc: "Stress-tests the running application via computer use: fills forms, clicks buttons, injects XSS payloads, and discovers broken interactions.",
     icon: Eye,
     color: "green",
   },
@@ -331,7 +331,7 @@ function AgentSystem() {
             <span className="text-accent">working in parallel</span>
           </motion.h2>
           <motion.p variants={fadeUp} custom={2} className="mt-4 text-text-secondary max-w-xl mx-auto text-lg">
-            A coordinated team of specialized agents — each with distinct models, tools, and objectives — reviews, attacks, and stress-tests your code simultaneously.
+            A coordinated team of specialized agents, each with distinct models, tools, and objectives, that reviews, attacks, and stress-tests your code simultaneously.
           </motion.p>
         </motion.div>
 
@@ -524,7 +524,7 @@ function CodeGraph() {
             <span className="text-cyan">15 languages</span>
           </motion.h2>
           <motion.p variants={fadeUp} custom={2} className="mt-4 text-text-secondary max-w-xl mx-auto text-lg">
-            Tree-sitter parsers build a code knowledge graph — functions, classes, endpoints, data flows, and dependencies — enabling cross-file vulnerability detection.
+            Tree-sitter parsers build a code knowledge graph covering functions, classes, endpoints, data flows, and dependencies, enabling cross-file vulnerability detection.
           </motion.p>
         </motion.div>
 
@@ -597,7 +597,7 @@ const FEATURES = [
   {
     icon: Terminal,
     title: "CLI First",
-    desc: "docksmith scan, docksmith status, docksmith auth — trigger scans and check results without leaving the terminal.",
+    desc: "docksmith scan, docksmith status, docksmith auth: trigger scans and check results without leaving the terminal.",
   },
   {
     icon: Layers,
