@@ -822,6 +822,53 @@ function TechStack() {
 }
 
 /* -------------------------------------------------------------------------- */
+/*  Break My App                                                              */
+/* -------------------------------------------------------------------------- */
+
+function BreakMyApp() {
+  return (
+    <section className="relative px-6 py-32">
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[400px] w-[600px] rounded-full bg-red/[0.06] blur-[120px]" />
+      </div>
+
+      <motion.div
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-80px" }}
+        variants={stagger}
+        className="relative mx-auto max-w-3xl text-center"
+      >
+        <motion.div variants={fadeUp} custom={0} className="mb-6">
+          <Badge className="border-red/30 bg-red-glow text-red">
+            <Bug size={10} />
+            Challenge Mode
+          </Badge>
+        </motion.div>
+
+        <motion.h2 variants={fadeUp} custom={1} className="text-4xl sm:text-5xl font-bold tracking-tight">
+          Think your app is<br />
+          <span className="text-red">unbreakable?</span>
+        </motion.h2>
+        <motion.p variants={fadeUp} custom={2} className="mt-5 text-lg text-text-secondary max-w-xl mx-auto">
+          Put it to the test. Our AI agents will throw everything they have at your application. If there is a crack, they will find it.
+        </motion.p>
+        <motion.div variants={fadeUp} custom={3} className="mt-9">
+          <a
+            href="https://app.docksmith.dev/login"
+            className="group inline-flex items-center gap-3 rounded-xl border-2 border-red/40 bg-red-glow px-8 py-4 text-base font-bold text-red shadow-lg shadow-red/10 transition hover:border-red/60 hover:bg-red/20 hover:shadow-red/20"
+          >
+            <Bug size={18} />
+            Try to Break My Product
+            <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+          </a>
+        </motion.div>
+      </motion.div>
+    </section>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
 /*  CTA                                                                       */
 /* -------------------------------------------------------------------------- */
 
@@ -974,6 +1021,7 @@ export default function LandingPage() {
         <CodeGraph />
         <Features />
         <TechStack />
+        <BreakMyApp />
         <CTA />
       </main>
       <Footer />
