@@ -110,10 +110,10 @@ function Hero() {
         <motion.h1
           variants={fadeUp}
           custom={1}
-          className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tight leading-[0.92]"
+          className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tight leading-[1.1]"
         >
           <span className="block">Ship code that</span>
-          <span className="block mt-2 bg-gradient-to-r from-accent via-accent-light to-cyan bg-clip-text text-transparent">
+          <span className="block mt-2 bg-gradient-to-r from-accent via-accent-light to-cyan bg-clip-text text-transparent pb-2">
             fights back.
           </span>
         </motion.h1>
