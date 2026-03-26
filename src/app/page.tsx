@@ -159,9 +159,9 @@ function Hero() {
               <p className="text-green">&#10003; Sandbox ready (Daytona CDE)</p>
               <p className="text-green">&#10003; Repository cloned &amp; app deployed</p>
               <p className="text-text-muted mt-2">Dispatching agents...</p>
-              <p className="pl-3 text-accent-light">&#9656; 4 code review agents analyzing changes</p>
-              <p className="pl-3 text-accent-light">&#9656; 22 security scanners running</p>
-              <p className="pl-3 text-accent-light">&#9656; 12 runtime attack agents probing</p>
+              <p className="pl-3 text-accent-light">&#9656; Code review agents analyzing changes</p>
+              <p className="pl-3 text-accent-light">&#9656; Security scanners running</p>
+              <p className="pl-3 text-accent-light">&#9656; Runtime attack agents probing</p>
               <p className="pl-3 text-accent-light">&#9656; Interaction testing agent stress-testing UI</p>
               <p className="text-text-muted mt-2">Building code graph (15 language parsers)...</p>
               <p className="text-green mt-2">&#10003; Scan complete: 3 critical, 7 high, 12 medium findings</p>
@@ -277,8 +277,8 @@ const AGENTS = [
   },
   {
     title: "Code Review Agents",
-    model: "GPT 5.4 x 4",
-    desc: "Four parallel agents analyze code changes for logic bugs, performance issues, type safety violations, and style problems.",
+    model: "GPT 5.4",
+    desc: "Parallel agents analyze code changes for logic bugs, performance issues, type safety violations, and style problems.",
     icon: Code,
     color: "cyan",
   },
@@ -291,7 +291,7 @@ const AGENTS = [
   },
   {
     title: "Runtime Attack Agents",
-    model: "12 Agents",
+    model: "Multiple Agents",
     desc: "AI-driven agents for injection testing, auth attacks, API fuzzing, SSRF probing, session hijacking, prompt injection, and more.",
     icon: Bug,
     color: "red",
@@ -419,7 +419,7 @@ function SecurityArsenal() {
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-80px" }} variants={stagger} className="text-center mb-16">
           <SectionLabel>Security Arsenal</SectionLabel>
           <motion.h2 variants={fadeUp} custom={1} className="mt-5 text-4xl sm:text-5xl font-bold tracking-tight">
-            22 scanners. 12 attack agents.<br />
+            Dozens of scanners. Swarms of attack agents.<br />
             <span className="text-red">Zero mercy.</span>
           </motion.h2>
           <motion.p variants={fadeUp} custom={2} className="mt-4 text-text-secondary max-w-xl mx-auto text-lg">
