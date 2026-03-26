@@ -27,6 +27,14 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/cn";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -130,12 +138,14 @@ function Hero() {
         <motion.div variants={fadeUp} custom={3} className="mt-10 flex items-center justify-center gap-4 flex-wrap">
           <a
             href="https://app.docksmith.dev"
-            className="group inline-flex items-center gap-2 rounded-lg bg-accent px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-accent/20 transition hover:bg-accent-light hover:shadow-accent/30"
+            className={cn(
+              buttonVariants({ size: "lg" }),
+              "h-11 gap-2 px-6 bg-accent text-white font-semibold shadow-lg shadow-accent/20 hover:bg-accent-light hover:shadow-accent/30"
+            )}
           >
             Get Started
             <ArrowRight size={15} className="transition-transform group-hover:translate-x-0.5" />
           </a>
-
         </motion.div>
 
         {/* Terminal preview */}
@@ -343,25 +353,26 @@ function AgentSystem() {
           className="grid gap-5 sm:grid-cols-2"
         >
           {AGENTS.map((agent, i) => (
-            <motion.div
-              key={agent.title}
-              variants={fadeUp}
-              custom={i}
-              className={cn(
-                "group rounded-xl border bg-bg-card p-7 transition hover:bg-bg-card-hover",
-                COLOR_MAP[agent.color]
-              )}
-            >
-              <div className="flex items-start justify-between mb-5">
-                <div className={cn("flex h-10 w-10 items-center justify-center rounded-lg", GLOW_MAP[agent.color])}>
-                  <agent.icon size={18} className={ICON_COLOR_MAP[agent.color]} />
-                </div>
-                <span className="rounded-full border border-border bg-bg-elevated px-2.5 py-0.5 text-[10px] font-mono font-medium text-text-muted">
-                  {agent.model}
-                </span>
-              </div>
-              <h3 className="text-lg font-semibold mb-2">{agent.title}</h3>
-              <p className="text-[13px] leading-relaxed text-text-muted">{agent.desc}</p>
+            <motion.div key={agent.title} variants={fadeUp} custom={i}>
+              <Card
+                className={cn(
+                  "group bg-bg-card ring-0 border transition hover:bg-bg-card-hover",
+                  COLOR_MAP[agent.color]
+                )}
+              >
+                <CardHeader className="flex-row items-start justify-between">
+                  <div className={cn("flex h-10 w-10 items-center justify-center rounded-lg", GLOW_MAP[agent.color])}>
+                    <agent.icon size={18} className={ICON_COLOR_MAP[agent.color]} />
+                  </div>
+                  <span className="rounded-full border border-border bg-bg-elevated px-2.5 py-0.5 text-[10px] font-mono font-medium text-text-muted">
+                    {agent.model}
+                  </span>
+                </CardHeader>
+                <CardContent>
+                  <CardTitle className="text-lg mb-2">{agent.title}</CardTitle>
+                  <CardDescription className="text-[13px] leading-relaxed text-text-muted">{agent.desc}</CardDescription>
+                </CardContent>
+              </Card>
             </motion.div>
           ))}
         </motion.div>
@@ -748,17 +759,16 @@ function Features() {
           className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
         >
           {FEATURES.map((feat, i) => (
-            <motion.div
-              key={feat.title}
-              variants={fadeUp}
-              custom={i}
-              className="group rounded-xl border border-border bg-bg-card p-6 transition hover:border-border hover:bg-bg-card-hover"
-            >
-              <div className="mb-4 flex h-9 w-9 items-center justify-center rounded-lg bg-bg-elevated border border-border group-hover:border-accent/20 transition">
-                <feat.icon size={16} className="text-text-muted group-hover:text-accent transition" />
-              </div>
-              <h3 className="text-[14px] font-semibold mb-2">{feat.title}</h3>
-              <p className="text-[13px] leading-relaxed text-text-muted">{feat.desc}</p>
+            <motion.div key={feat.title} variants={fadeUp} custom={i}>
+              <Card className="group h-full bg-bg-card ring-0 border border-border transition hover:border-border hover:bg-bg-card-hover">
+                <CardContent className="pt-6">
+                  <div className="mb-4 flex h-9 w-9 items-center justify-center rounded-lg bg-bg-elevated border border-border group-hover:border-accent/20 transition">
+                    <feat.icon size={16} className="text-text-muted group-hover:text-accent transition" />
+                  </div>
+                  <CardTitle className="text-[14px] mb-2">{feat.title}</CardTitle>
+                  <CardDescription className="text-[13px] leading-relaxed text-text-muted">{feat.desc}</CardDescription>
+                </CardContent>
+              </Card>
             </motion.div>
           ))}
         </motion.div>
@@ -856,7 +866,10 @@ function BreakMyApp() {
         <motion.div variants={fadeUp} custom={3} className="mt-9">
           <a
             href="https://app.docksmith.dev/login"
-            className="group inline-flex items-center gap-3 rounded-xl border-2 border-red/40 bg-red-glow px-8 py-4 text-base font-bold text-red shadow-lg shadow-red/10 transition hover:border-red/60 hover:bg-red/20 hover:shadow-red/20"
+            className={cn(
+              buttonVariants({ size: "lg" }),
+              "h-12 gap-3 rounded-xl border-2 border-red/40 bg-red-glow px-8 text-base font-bold text-red shadow-lg shadow-red/10 hover:border-red/60 hover:bg-red/20 hover:shadow-red/20"
+            )}
           >
             <Bug size={18} />
             Try to Break My Product
@@ -896,14 +909,20 @@ function CTA() {
         <motion.div variants={fadeUp} custom={2} className="mt-9 flex items-center justify-center gap-4 flex-wrap">
           <a
             href="https://app.docksmith.dev"
-            className="group inline-flex items-center gap-2 rounded-lg bg-accent px-7 py-3.5 text-sm font-semibold text-white shadow-lg shadow-accent/20 transition hover:bg-accent-light hover:shadow-accent/30"
+            className={cn(
+              buttonVariants({ size: "lg" }),
+              "h-11 gap-2 px-7 bg-accent text-white font-semibold shadow-lg shadow-accent/20 hover:bg-accent-light hover:shadow-accent/30"
+            )}
           >
             Start Scanning
             <ArrowRight size={15} className="transition-transform group-hover:translate-x-0.5" />
           </a>
           <a
             href="https://docs.docksmith.dev"
-            className="inline-flex items-center gap-2 rounded-lg border border-border bg-bg-elevated px-7 py-3.5 text-sm font-medium text-text-secondary transition hover:border-accent/40 hover:text-text"
+            className={cn(
+              buttonVariants({ variant: "outline", size: "lg" }),
+              "h-11 gap-2 px-7 border-border bg-bg-elevated text-text-secondary hover:border-accent/40 hover:text-text hover:bg-bg-elevated"
+            )}
           >
             Read the Docs
           </a>
@@ -955,13 +974,19 @@ function Nav() {
         <div className="flex items-center gap-3">
           <a
             href="https://app.docksmith.dev/login"
-            className="text-[13px] font-medium text-text-muted transition hover:text-text"
+            className={cn(
+              buttonVariants({ variant: "ghost", size: "sm" }),
+              "text-[13px] text-text-muted hover:text-text hover:bg-transparent"
+            )}
           >
             Sign In
           </a>
           <a
             href="https://app.docksmith.dev"
-            className="rounded-lg bg-accent px-4 py-1.5 text-[13px] font-semibold text-white transition hover:bg-accent-light"
+            className={cn(
+              buttonVariants({ size: "sm" }),
+              "bg-accent px-4 text-[13px] font-semibold text-white hover:bg-accent-light"
+            )}
           >
             Get Started
           </a>
