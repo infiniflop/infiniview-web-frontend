@@ -135,13 +135,7 @@ function Hero() {
             Get Started
             <ArrowRight size={15} className="transition-transform group-hover:translate-x-0.5" />
           </a>
-          <a
-            href="https://github.com/docksmith"
-            className="inline-flex items-center gap-2 rounded-lg border border-border bg-bg-elevated px-6 py-3 text-sm font-medium text-text-secondary transition hover:border-accent/40 hover:text-text"
-          >
-            <GitBranch size={14} />
-            View on GitHub
-          </a>
+
         </motion.div>
 
         {/* Terminal preview */}
