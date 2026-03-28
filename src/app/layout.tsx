@@ -1,14 +1,24 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Geist } from "next/font/google";
+import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import { cn } from "@/lib/utils";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  variable: "--font-jakarta",
+  weight: ["400", "500", "600", "700", "800"],
+});
+
+const jetbrains = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-jetbrains",
+  weight: ["400", "500", "600"],
+});
 
 export const metadata: Metadata = {
   title: "Docksmith | AI-Powered Code Review, Security Testing & Interaction Testing",
   description:
-    "Deep code review, autonomous security pentesting, and UX interaction testing in a single platform. AI agents review your code, attack your app, and stress-test your UI, all inside cloud sandboxes.",
+    "Deep code review, autonomous security testing, and interaction testing in a single platform. AI agents review your code, attack your app, and stress-test your UI inside cloud sandboxes.",
 };
 
 export default function RootLayout({
@@ -17,13 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={cn("font-sans", geist.variable)}>
-      <head>
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap"
-          rel="stylesheet"
-        />
-      </head>
+    <html lang="en" className={cn(jakarta.variable, jetbrains.variable)}>
       <body>{children}</body>
     </html>
   );
