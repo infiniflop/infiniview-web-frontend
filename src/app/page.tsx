@@ -30,6 +30,8 @@ import {
 import { motion } from "framer-motion";
 import { cn } from "@/lib/cn";
 import { buttonVariants } from "@/components/ui/button";
+import { AgentBattleNetwork } from "@/components/agent-battle-network";
+import { PipelineTrack } from "@/components/circuit-pipeline";
 import {
   Card,
   CardContent,
@@ -191,6 +193,7 @@ function Hero() {
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[800px] rounded-full bg-accent/[0.04] blur-[150px]" />
       </div>
+      <AgentBattleNetwork />
 
       <motion.div
         initial="hidden"
@@ -335,30 +338,33 @@ function Pipeline() {
           </motion.p>
         </motion.div>
 
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-40px" }}
-          variants={stagger}
-          className="grid gap-4 md:grid-cols-5"
-        >
-          {PIPELINE_STEPS.map((step, i) => (
-            <motion.div
-              key={step.num}
-              variants={fadeUp}
-              custom={i}
-              className="group relative rounded-xl border border-border bg-bg-card p-6 transition hover:border-accent/30 hover:bg-bg-card-hover"
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <span className="font-mono text-[11px] font-bold text-accent">{step.num}</span>
-                <div className="h-px flex-1 bg-border group-hover:bg-accent/20 transition" />
-              </div>
-              <step.icon size={20} className="text-text-muted mb-3 group-hover:text-accent transition" />
-              <h3 className="text-sm font-semibold mb-2">{step.title}</h3>
-              <p className="text-[13px] leading-relaxed text-text-muted">{step.desc}</p>
-            </motion.div>
-          ))}
-        </motion.div>
+        <div className="relative">
+          <PipelineTrack stepCount={PIPELINE_STEPS.length} />
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-40px" }}
+            variants={stagger}
+            className="relative z-[2] grid gap-4 md:grid-cols-5 md:pt-6"
+          >
+            {PIPELINE_STEPS.map((step, i) => (
+              <motion.div
+                key={step.num}
+                variants={fadeUp}
+                custom={i}
+                className="group relative rounded-xl border border-border bg-bg-card p-6 transition hover:border-accent/30 hover:bg-bg-card-hover"
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="font-mono text-[11px] font-bold text-accent">{step.num}</span>
+                  <div className="h-px flex-1 bg-border group-hover:bg-accent/20 transition" />
+                </div>
+                <step.icon size={20} className="text-text-muted mb-3 group-hover:text-accent transition" />
+                <h3 className="text-sm font-semibold mb-2">{step.title}</h3>
+                <p className="text-[13px] leading-relaxed text-text-muted">{step.desc}</p>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
       </div>
     </section>
   );
