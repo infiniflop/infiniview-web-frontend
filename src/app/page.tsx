@@ -158,7 +158,34 @@ function Nav() {
 /*  Hero                                                                      */
 /* -------------------------------------------------------------------------- */
 
+function MarkerStrikethrough({ delay = 1.5 }: { delay?: number }) {
+  return (
+    <svg
+      className="absolute left-0 top-[55%] w-full h-[0.18em] overflow-visible"
+      viewBox="0 0 200 8"
+      preserveAspectRatio="none"
+      fill="none"
+    >
+      <motion.path
+        d="M0 4 Q 10 1, 25 5 Q 40 8, 55 3 Q 70 0, 90 5 Q 110 9, 130 3 Q 150 0, 170 5 Q 185 8, 200 4"
+        stroke="currentColor"
+        strokeWidth="4"
+        strokeLinecap="butt"
+        className="text-accent"
+        initial={{ pathLength: 0, opacity: 0 }}
+        animate={{ pathLength: 1, opacity: 1 }}
+        transition={{
+          pathLength: { delay, duration: 0.6, ease: "easeOut" },
+          opacity: { delay, duration: 0.01 },
+        }}
+      />
+    </svg>
+  );
+}
+
 function Hero() {
+  const ANIM_DELAY = 1.5;
+
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-24 pb-16 overflow-hidden grain-overlay">
       <div className="pointer-events-none absolute inset-0">
@@ -184,7 +211,32 @@ function Hero() {
           className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight leading-[1.08]"
         >
           <span className="block">Code that ships</span>
-          <span className="block mt-2 text-accent">battle-ready.</span>
+          <span className="relative mt-4 inline-block pt-[0.6em]">
+            <motion.span
+              className="absolute -top-[0.15em] left-1/2 -translate-x-1/2 whitespace-nowrap text-[0.6em] font-extrabold text-accent"
+              style={{ fontStyle: "italic" }}
+              initial={{ opacity: 0, y: 8, rotate: -2 }}
+              animate={{ opacity: 1, y: 0, rotate: -2 }}
+              transition={{
+                delay: ANIM_DELAY + 0.35,
+                duration: 0.5,
+                ease: [0.25, 0.4, 0.25, 1],
+              }}
+            >
+              battle-ready.
+            </motion.span>
+
+            <span className="relative inline-block">
+              <motion.span
+                initial={{ opacity: 1 }}
+                animate={{ opacity: 0.3 }}
+                transition={{ delay: ANIM_DELAY + 0.3, duration: 0.4 }}
+              >
+                broken.
+              </motion.span>
+              <MarkerStrikethrough delay={ANIM_DELAY} />
+            </span>
+          </span>
         </motion.h1>
 
         <motion.p
