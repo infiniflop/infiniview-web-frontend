@@ -216,29 +216,28 @@ export function AgentBattleNetwork() {
     draw();
 
     const onMove = (e: MouseEvent) => {
-      const r = canvas.getBoundingClientRect();
-      mouse.current = { x: e.clientX - r.left, y: e.clientY - r.top };
+      mouse.current = { x: e.clientX, y: e.clientY };
     };
     const onLeave = () => {
       mouse.current = { x: -1000, y: -1000 };
     };
 
-    canvas.addEventListener("mousemove", onMove);
-    canvas.addEventListener("mouseleave", onLeave);
+    window.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseleave", onLeave);
 
     return () => {
       cancelAnimationFrame(raf.current);
       window.removeEventListener("resize", resize);
-      canvas.removeEventListener("mousemove", onMove);
-      canvas.removeEventListener("mouseleave", onLeave);
+      window.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseleave", onLeave);
     };
   }, []);
 
   return (
     <canvas
       ref={canvasRef}
-      className="absolute inset-0 w-full h-full"
-      style={{ opacity: 0.55 }}
+      className="fixed inset-0 w-screen h-screen pointer-events-none"
+      style={{ opacity: 0.55, zIndex: 0 }}
     />
   );
 }

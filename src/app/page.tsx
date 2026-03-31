@@ -193,8 +193,6 @@ function Hero() {
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[800px] rounded-full bg-accent/[0.04] blur-[150px]" />
       </div>
-      <AgentBattleNetwork />
-
       <motion.div
         initial="hidden"
         animate="visible"
@@ -1059,6 +1057,7 @@ function Footer() {
 export default function LandingPage() {
   return (
     <>
+      <AgentBattleNetwork />
       <ChallengeBadge />
       <Nav />
       <main>
