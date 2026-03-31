@@ -55,7 +55,7 @@ function Badge({ children, className }: { children: React.ReactNode; className?:
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-[11px] font-medium tracking-wide uppercase text-text-muted",
+        "inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-[9px] min-[360px]:text-[11px] font-medium tracking-wide uppercase text-text-muted",
         className
       )}
     >
@@ -83,7 +83,7 @@ function ChallengeBadge() {
   return (
     <a
       href="#challenge"
-      className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-full border border-red/40 bg-bg-elevated/90 backdrop-blur-md px-4 py-2.5 text-[12px] font-bold text-red shadow-lg animate-pulse-glow transition-colors hover:border-red/60 hover:bg-red/10"
+      className="fixed bottom-6 right-6 z-50 hidden min-[360px]:flex items-center gap-2 rounded-full border border-red/40 bg-bg-elevated/90 backdrop-blur-md px-4 py-2.5 text-[12px] font-bold text-red shadow-lg animate-pulse-glow transition-colors hover:border-red/60 hover:bg-red/10"
     >
       <Bug size={14} />
       Challenge On
