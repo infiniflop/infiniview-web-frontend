@@ -67,15 +67,31 @@ function JunctionDot({ delay }: { delay: number }) {
   );
 }
 
-function Connector({
+function SmallDot({ delay }: { delay: number }) {
+  return (
+    <motion.div
+      className="shrink-0"
+      initial={{ scale: 0, opacity: 0 }}
+      whileInView={{ scale: 1, opacity: 0.6 }}
+      viewport={{ once: true, margin: "-50px" }}
+      transition={{ delay, duration: 0.4 }}
+    >
+      <div className="h-1.5 w-1.5 rounded-full bg-accent/60" />
+    </motion.div>
+  );
+}
+
+function ConnectorLine({
   delay,
-  index,
+  showPulse = false,
+  pulseDelay = 0,
 }: {
   delay: number;
-  index: number;
+  showPulse?: boolean;
+  pulseDelay?: number;
 }) {
   return (
-    <div className="flex-1 relative h-px mx-1">
+    <div className="flex-1 relative h-px mx-0.5">
       <motion.div
         className="absolute inset-0 bg-border"
         initial={{ scaleX: 0 }}
@@ -96,8 +112,20 @@ function Connector({
         viewport={{ once: true, margin: "-50px" }}
         transition={{ delay: delay + 0.2, duration: 0.4 }}
       />
-      <DataPulse delay={delay + index * 0.4 + 1} duration={1.2} />
+      {showPulse && <DataPulse delay={pulseDelay} duration={1.2} />}
     </div>
+  );
+}
+
+function Segment({ delay, index }: { delay: number; index: number }) {
+  return (
+    <>
+      <ConnectorLine delay={delay} />
+      <SmallDot delay={delay + 0.1} />
+      <ConnectorLine delay={delay + 0.12} showPulse pulseDelay={delay + index * 0.4 + 1} />
+      <SmallDot delay={delay + 0.2} />
+      <ConnectorLine delay={delay + 0.22} />
+    </>
   );
 }
 
@@ -111,16 +139,21 @@ export function PipelineTrack({ stepCount = 5 }: { stepCount?: number }) {
         className="hidden md:flex absolute top-0 left-0 right-0 h-8 pointer-events-none z-[1] items-center"
         style={{
           paddingLeft: "calc((100% - 4 * 1rem) / 10)",
-          paddingRight: "calc((100% - 4 * 1rem) / 10)",
         }}
       >
         {Array.from({ length: stepCount }).map((_, i) => {
           const segDelay = baseDelay + i * 0.5;
+          const isLast = i === stepCount - 1;
           return (
             <Fragment key={i}>
               <JunctionDot delay={segDelay} />
-              {i < stepCount - 1 && (
-                <Connector delay={segDelay} index={i} />
+              <Segment delay={segDelay} index={i} />
+              {isLast && (
+                <>
+                  <SmallDot delay={segDelay + 0.3} />
+                  <ConnectorLine delay={segDelay + 0.35} />
+                  <JunctionDot delay={segDelay + 0.5} />
+                </>
               )}
             </Fragment>
           );
