@@ -916,56 +916,7 @@ function CLIPreview() {
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/*  CTA                                                                       */
-/* -------------------------------------------------------------------------- */
 
-function CTA() {
-  return (
-    <section className="relative px-6 py-32">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[500px] w-[700px] rounded-full bg-accent/[0.04] blur-[140px]" />
-      </div>
-
-      <motion.div
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-80px" }}
-        variants={stagger}
-        className="relative mx-auto max-w-3xl text-center"
-      >
-        <motion.h2 variants={fadeUp} custom={0} className="text-4xl sm:text-5xl font-bold tracking-tight">
-          Stop shipping<br />
-          <span className="text-red">vulnerable code.</span>
-        </motion.h2>
-        <motion.p variants={fadeUp} custom={1} className="mt-5 text-lg text-text-secondary max-w-xl mx-auto">
-          Set up Docksmith in minutes. Every PR gets reviewed, scanned, attacked, and stress-tested automatically.
-        </motion.p>
-        <motion.div variants={fadeUp} custom={2} className="mt-9 flex items-center justify-center gap-4 flex-wrap">
-          <a
-            href="https://app.docksmith.dev"
-            className={cn(
-              buttonVariants({ size: "lg" }),
-              "h-12 gap-2 px-7 bg-accent text-white font-semibold shadow-lg shadow-accent/25 hover:bg-accent-light hover:shadow-accent/35 transition-all"
-            )}
-          >
-            Start Scanning
-            <ArrowRight size={15} />
-          </a>
-          <a
-            href="https://docs.docksmith.dev"
-            className={cn(
-              buttonVariants({ variant: "outline", size: "lg" }),
-              "h-12 gap-2 px-7 border-border text-text-secondary hover:border-accent/30 hover:text-text transition-all"
-            )}
-          >
-            Read the Docs
-          </a>
-        </motion.div>
-      </motion.div>
-    </section>
-  );
-}
 
 /* -------------------------------------------------------------------------- */
 /*  Challenge Section (at the very bottom)                                    */
@@ -1068,7 +1019,7 @@ export default function LandingPage() {
         <CodeGraph />
         <Features />
         <CLIPreview />
-        <CTA />
+
         <ChallengeSection />
       </main>
       <Footer />
