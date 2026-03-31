@@ -345,7 +345,7 @@ function Pipeline() {
             whileInView="visible"
             viewport={{ once: true, margin: "-40px" }}
             variants={stagger}
-            className="relative z-[2] grid gap-4 md:grid-cols-5 md:pt-6"
+            className="relative z-[2] grid gap-4 md:grid-cols-5 md:pt-14"
           >
             {PIPELINE_STEPS.map((step, i) => (
               <motion.div
