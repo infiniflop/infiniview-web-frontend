@@ -69,9 +69,9 @@ export function AgentBattleNetwork() {
     resize();
     window.addEventListener("resize", resize);
 
-    const NODE_COUNT = 40;
-    const MAX_DIST = Math.min(w, h) * 0.2;
-    const AGENT_COUNT = 15;
+    const NODE_COUNT = 120;
+    const MAX_DIST = Math.min(w, h) * 0.18;
+    const AGENT_COUNT = 30;
 
     const nodes: Node[] = Array.from({ length: NODE_COUNT }, () => ({
       x: Math.random() * w,
