@@ -1,5 +1,8 @@
 "use client";
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.docksmith.dev";
+const DOCS_URL = process.env.NEXT_PUBLIC_DOCS_URL ?? "https://docs.docksmith.dev";
+
 import {
   Terminal,
   Shield,
@@ -133,7 +136,7 @@ function Nav() {
 
         <div className="flex items-center gap-3">
           <a
-            href="https://app.docksmith.dev/login"
+            href={`${APP_URL}/login`}
             className={cn(
               buttonVariants({ variant: "ghost", size: "sm" }),
               "text-[13px] text-text-muted hover:text-text hover:bg-transparent"
@@ -142,7 +145,7 @@ function Nav() {
             Sign In
           </a>
           <a
-            href="https://app.docksmith.dev"
+            href={APP_URL}
             className={cn(
               buttonVariants({ size: "sm" }),
               "bg-accent px-4 text-[13px] font-semibold text-white hover:bg-accent-light"
@@ -252,7 +255,7 @@ function Hero() {
 
         <motion.div variants={fadeUp} custom={3} className="mt-10 flex items-center justify-center gap-4 flex-wrap">
           <a
-            href="https://app.docksmith.dev"
+            href={APP_URL}
             className={cn(
               buttonVariants({ size: "lg" }),
               "h-12 gap-2 px-7 bg-accent text-white font-semibold shadow-lg shadow-accent/25 hover:bg-accent-light hover:shadow-accent/35 transition-all"
@@ -262,7 +265,7 @@ function Hero() {
             <ArrowRight size={15} />
           </a>
           <a
-            href="https://docs.docksmith.dev"
+            href={DOCS_URL}
             className={cn(
               buttonVariants({ variant: "outline", size: "lg" }),
               "h-12 gap-2 px-7 border-border text-text-secondary hover:border-accent/30 hover:text-text transition-all"
@@ -893,9 +896,9 @@ function CLIPreview() {
                 <div className="h-2.5 w-2.5 rounded-full bg-amber/60" />
                 <div className="h-2.5 w-2.5 rounded-full bg-green/60" />
               </div>
-              <span className="ml-2 text-[11px] font-mono text-text-muted">docksmith scan</span>
+              <span className="ml-2 text-[11px] font-[family-name:var(--font-cli)] text-text-muted">docksmith scan</span>
             </div>
-            <div className="p-6 font-mono text-[14px] leading-loose text-text-secondary space-y-1">
+            <div className="p-6 font-[family-name:var(--font-cli)] text-[14px] leading-loose text-text-secondary space-y-1">
               <p><span className="text-text-muted">$</span> <span className="text-text">docksmith scan --repo acme/api --branch feat/auth</span></p>
               <p className="text-text-muted mt-3">Provisioning sandbox...</p>
               <p className="text-green">&#10003; Sandbox ready (Daytona CDE)</p>
@@ -952,7 +955,7 @@ function ChallengeSection() {
         </motion.p>
         <motion.div variants={fadeUp} custom={3} className="mt-9">
           <a
-            href="https://app.docksmith.dev/login"
+            href={`${APP_URL}/login`}
             className={cn(
               buttonVariants({ size: "lg" }),
               "h-12 gap-3 rounded-xl border-2 border-red/40 bg-red-glow px-8 text-base font-bold text-red shadow-lg shadow-red/10 hover:border-red/60 hover:bg-red/20 hover:shadow-red/20 transition-all"
@@ -989,7 +992,7 @@ function Footer() {
           <a href="https://github.com/docksmith" className="text-[12px] text-text-muted transition hover:text-text">
             GitHub
           </a>
-          <a href="https://docs.docksmith.dev" className="text-[12px] text-text-muted transition hover:text-text">
+          <a href={DOCS_URL} className="text-[12px] text-text-muted transition hover:text-text">
             Docs
           </a>
           <a href="mailto:hello@docksmith.dev" className="text-[12px] text-text-muted transition hover:text-text">

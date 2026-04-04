@@ -7,6 +7,7 @@
 @theme {
   --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+  --font-cli: var(--font-source-code), ui-monospace, monospace;
 
   --color-bg: #0a0c10;
   --color-bg-elevated: #12141a;

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans, JetBrains_Mono, Source_Code_Pro } from "next/font/google";
 import { cn } from "@/lib/utils";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -12,6 +12,12 @@ const jakarta = Plus_Jakarta_Sans({
 const jetbrains = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-jetbrains",
+  weight: ["400", "500", "600"],
+});
+
+const sourceCodePro = Source_Code_Pro({
+  subsets: ["latin"],
+  variable: "--font-source-code",
   weight: ["400", "500", "600"],
 });
 
@@ -27,7 +33,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={cn(jakarta.variable, jetbrains.variable)}>
+    <html lang="en" className={cn(jakarta.variable, jetbrains.variable, sourceCodePro.variable)}>
       <body>{children}</body>
     </html>
   );
