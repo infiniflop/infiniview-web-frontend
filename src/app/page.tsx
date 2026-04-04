@@ -871,7 +871,7 @@ function Features() {
 function CLIPreview() {
   return (
     <section className="relative px-6 py-32">
-      <div className="mx-auto max-w-4xl">
+      <div className="mx-auto max-w-5xl">
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-80px" }} variants={stagger} className="text-center mb-10">
           <SectionLabel>Command Line</SectionLabel>
           <motion.h2 variants={fadeUp} custom={1} className="mt-5 text-3xl sm:text-4xl font-bold tracking-tight">
@@ -889,28 +889,28 @@ function CLIPreview() {
           viewport={{ once: true, margin: "-40px" }}
           variants={fadeUp}
         >
-          <div className="rounded-xl border border-border bg-bg-elevated shadow-2xl shadow-black/50 overflow-hidden">
-            <div className="flex items-center gap-2 border-b border-border px-4 py-3">
+          <div className="rounded-xl border border-[#1a1d25] bg-[#0d0f14] shadow-2xl shadow-black/60 overflow-hidden">
+            <div className="flex items-center gap-2 border-b border-[#1a1d25] px-5 py-3">
               <div className="flex gap-1.5">
-                <div className="h-2.5 w-2.5 rounded-full bg-red/60" />
-                <div className="h-2.5 w-2.5 rounded-full bg-amber/60" />
-                <div className="h-2.5 w-2.5 rounded-full bg-green/60" />
+                <div className="h-3 w-3 rounded-full bg-[#ff5f57]" />
+                <div className="h-3 w-3 rounded-full bg-[#febc2e]" />
+                <div className="h-3 w-3 rounded-full bg-[#28c840]" />
               </div>
-              <span className="ml-2 text-[11px] font-[family-name:var(--font-cli)] text-text-muted">docksmith scan</span>
+              <span className="ml-3 text-[12px] font-[family-name:var(--font-cli)] font-medium text-[#6b7280]">docksmith scan</span>
             </div>
-            <div className="p-6 font-[family-name:var(--font-cli)] text-[14px] leading-loose text-text-secondary space-y-1">
-              <p><span className="text-text-muted">$</span> <span className="text-text">docksmith scan --repo acme/api --branch feat/auth</span></p>
-              <p className="text-text-muted mt-3">Provisioning sandbox...</p>
-              <p className="text-green">&#10003; Sandbox ready (Daytona CDE)</p>
-              <p className="text-green">&#10003; Repository cloned &amp; app deployed</p>
-              <p className="text-text-muted mt-2">Dispatching agents...</p>
-              <p className="pl-4 text-accent-light">&#9656; Code review agents analyzing changes</p>
-              <p className="pl-4 text-accent-light">&#9656; Static security scanners running</p>
-              <p className="pl-4 text-accent-light">&#9656; Runtime attack agents probing</p>
-              <p className="pl-4 text-accent-light">&#9656; Interaction testing agent stress-testing UI</p>
-              <p className="text-text-muted mt-2">Building code graph (15 language parsers)...</p>
-              <p className="text-green mt-2">&#10003; Scan complete: 3 critical, 7 high, 12 medium findings</p>
-              <p className="text-text-muted">&#8594; Results posted to PR #247 and dashboard</p>
+            <div className="px-8 py-7 font-[family-name:var(--font-cli)] text-[15px] font-medium leading-[2] text-[#8b949e] space-y-0.5">
+              <p><span className="text-[#6b7280]">$</span> <span className="text-[#e6edf3] font-semibold">docksmith scan --repo acme/api --branch feat/auth</span></p>
+              <p className="text-[#6b7280] mt-3">Provisioning sandbox...</p>
+              <p className="text-[#3fb950] font-semibold">&#10003; Sandbox ready</p>
+              <p className="text-[#3fb950] font-semibold">&#10003; Repository cloned &amp; app deployed</p>
+              <p className="text-[#6b7280] mt-2">Dispatching agents...</p>
+              <p className="pl-4 text-[#f0883e]">&#9656; Code review agents analyzing changes</p>
+              <p className="pl-4 text-[#f0883e]">&#9656; Static security scanners running</p>
+              <p className="pl-4 text-[#f0883e]">&#9656; Runtime attack agents probing</p>
+              <p className="pl-4 text-[#f0883e]">&#9656; Interaction testing agent stress-testing UI</p>
+              <p className="text-[#6b7280] mt-2">Building code graph (15 language parsers)...</p>
+              <p className="text-[#3fb950] font-semibold mt-2">&#10003; Scan complete: 3 critical, 7 high, 12 medium findings</p>
+              <p className="mt-1 font-semibold text-[#e6edf3]">&#8594; Results posted to <span className="text-[#58a6ff]">PR #247</span> and <span className="text-[#58a6ff]">dashboard</span></p>
             </div>
           </div>
         </motion.div>
