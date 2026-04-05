@@ -35,6 +35,10 @@ import { cn } from "@/lib/cn";
 import { buttonVariants } from "@/components/ui/button";
 import { AgentBattleNetwork } from "@/components/agent-battle-network";
 import { PipelineTrack } from "@/components/circuit-pipeline";
+import { AsciiTorus } from "@/components/ascii-torus";
+import { AsciiScramble } from "@/components/ascii-scramble";
+import { AsciiClickBurst } from "@/components/ascii-click-burst";
+import { AsciiRain } from "@/components/ascii-rain";
 import {
   Card,
   CardContent,
@@ -113,7 +117,9 @@ function Nav() {
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/15">
             <Terminal size={13} className="text-accent" />
           </div>
-          <span className="text-[14px] font-bold tracking-tight">docksmith</span>
+          <span className="text-[14px] font-bold tracking-tight font-mono">
+            <AsciiScramble text="docksmith" autoStart delay={100} speed={40} />
+          </span>
         </a>
 
         <div className="hidden md:flex items-center gap-7">
@@ -196,6 +202,7 @@ function Hero() {
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[800px] rounded-full bg-accent/[0.04] blur-[150px]" />
       </div>
+      <AsciiTorus />
       <motion.div
         initial="hidden"
         animate="visible"
@@ -214,7 +221,7 @@ function Hero() {
           custom={1}
           className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight leading-[1.08]"
         >
-          <span className="block">Code that ships</span>
+          <span className="block"><AsciiScramble text="Code that ships" autoStart delay={300} /></span>
           <span className="relative mt-4 inline-block pt-[0.6em]">
             <motion.span
               className="absolute -top-[0.15em] left-1/2 -translate-x-1/2 whitespace-nowrap text-[0.6em] font-extrabold text-accent"
@@ -332,7 +339,7 @@ function Pipeline() {
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-80px" }} variants={stagger} className="text-center mb-16">
           <SectionLabel>How It Works</SectionLabel>
           <motion.h2 variants={fadeUp} custom={1} className="mt-5 text-4xl sm:text-5xl font-bold tracking-tight">
-            From PR to <span className="text-accent">battle-tested</span> in seconds
+            <AsciiScramble text="From PR to " /><span className="text-accent"><AsciiScramble text="battle-tested" /></span><AsciiScramble text=" in seconds" />
           </motion.h2>
           <motion.p variants={fadeUp} custom={2} className="mt-4 text-text-secondary max-w-xl mx-auto text-lg">
             Code review, security testing, interaction testing - fully automated, fully sandboxed.
@@ -434,8 +441,8 @@ function AgentSystem() {
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-80px" }} variants={stagger} className="text-center mb-16">
           <SectionLabel>Multi-Agent AI</SectionLabel>
           <motion.h2 variants={fadeUp} custom={1} className="mt-5 text-4xl sm:text-5xl font-bold tracking-tight">
-            Specialized agents,<br />
-            <span className="text-accent">working in parallel</span>
+            <AsciiScramble text="Specialized agents," /><br />
+            <span className="text-accent"><AsciiScramble text="working in parallel" /></span>
           </motion.h2>
           <motion.p variants={fadeUp} custom={2} className="mt-4 text-text-secondary max-w-xl mx-auto text-lg">
             Each agent has distinct models, tools, and objectives - reviewing, attacking, and stress-testing your code simultaneously.
@@ -576,8 +583,8 @@ function SecurityTestingArsenal() {
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-80px" }} variants={stagger} className="text-center mb-16">
           <SectionLabel>Security &amp; Testing Arsenal</SectionLabel>
           <motion.h2 variants={fadeUp} custom={1} className="mt-5 text-4xl sm:text-5xl font-bold tracking-tight">
-            Scanners. Agents. Interaction tests.<br />
-            <span className="text-red">Zero blind spots.</span>
+            <AsciiScramble text="Scanners. Agents. Interaction tests." /><br />
+            <span className="text-red"><AsciiScramble text="Zero blind spots." /></span>
           </motion.h2>
           <motion.p variants={fadeUp} custom={2} className="mt-4 text-text-secondary max-w-xl mx-auto text-lg">
             Static analysis, runtime attacks, and AI-driven interaction testing - combined into one comprehensive pipeline.
@@ -712,8 +719,8 @@ function CodeGraph() {
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-80px" }} variants={stagger} className="text-center mb-16">
           <SectionLabel>Code Intelligence</SectionLabel>
           <motion.h2 variants={fadeUp} custom={1} className="mt-5 text-4xl sm:text-5xl font-bold tracking-tight">
-            Deep understanding across<br />
-            <span className="text-cyan">15 languages</span>
+            <AsciiScramble text="Deep understanding across" /><br />
+            <span className="text-cyan"><AsciiScramble text="15 languages" /></span>
           </motion.h2>
           <motion.p variants={fadeUp} custom={2} className="mt-4 text-text-secondary max-w-xl mx-auto text-lg">
             Tree-sitter parsers build a code knowledge graph - functions, classes, endpoints, data flows, and dependencies - enabling cross-file vulnerability detection.
@@ -833,8 +840,8 @@ function Features() {
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-80px" }} variants={stagger} className="text-center mb-16">
           <SectionLabel>Features</SectionLabel>
           <motion.h2 variants={fadeUp} custom={1} className="mt-5 text-4xl sm:text-5xl font-bold tracking-tight">
-            Everything you need to<br />
-            <span className="text-teal">secure your codebase</span>
+            <AsciiScramble text="Everything you need to" /><br />
+            <span className="text-teal"><AsciiScramble text="secure your codebase" /></span>
           </motion.h2>
         </motion.div>
 
@@ -875,7 +882,7 @@ function CLIPreview() {
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-80px" }} variants={stagger} className="text-center mb-10">
           <SectionLabel>Command Line</SectionLabel>
           <motion.h2 variants={fadeUp} custom={1} className="mt-5 text-3xl sm:text-4xl font-bold tracking-tight">
-            Scan from your <span className="text-accent">terminal</span>
+            <AsciiScramble text="Scan from your " /><span className="text-accent"><AsciiScramble text="terminal" /></span>
           </motion.h2>
           <motion.div variants={fadeUp} custom={2} className="mt-4 inline-flex items-center gap-2 rounded-full border border-amber/30 bg-amber-glow px-4 py-1.5">
             <Zap size={12} className="text-amber" />
@@ -927,7 +934,13 @@ function CLIPreview() {
 
 function ChallengeSection() {
   return (
-    <section id="challenge" className="relative px-6 py-32">
+    <section id="challenge" className="relative px-6 py-32 overflow-hidden">
+      <AsciiRain
+        color={[239, 68, 68]}
+        opacity={0.2}
+        density={0.6}
+        className="absolute inset-0 w-full h-full pointer-events-none"
+      />
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[400px] w-[600px] rounded-full bg-red/[0.06] blur-[120px]" />
       </div>
@@ -947,8 +960,8 @@ function ChallengeSection() {
         </motion.div>
 
         <motion.h2 variants={fadeUp} custom={1} className="text-4xl sm:text-5xl font-bold tracking-tight">
-          Think your app is<br />
-          <span className="text-red">unbreakable?</span>
+          <AsciiScramble text="Think your app is" /><br />
+          <span className="text-red"><AsciiScramble text="unbreakable?" /></span>
         </motion.h2>
         <motion.p variants={fadeUp} custom={2} className="mt-5 text-lg text-text-secondary max-w-xl mx-auto">
           Put it to the test. Our AI agents will throw everything they have at your application. If there is a crack, they will find it.
@@ -983,7 +996,7 @@ function Footer() {
           <div className="flex h-6 w-6 items-center justify-center rounded-md bg-accent/15">
             <Terminal size={11} className="text-accent" />
           </div>
-          <span className="text-[13px] font-semibold tracking-tight text-text-muted">docksmith</span>
+          <span className="text-[13px] font-semibold tracking-tight text-text-muted font-mono">docksmith</span>
         </div>
         <p className="text-[12px] text-text-muted">
           &copy; {new Date().getFullYear()} Docksmith. All rights reserved.
@@ -1012,6 +1025,7 @@ export default function LandingPage() {
   return (
     <>
       <AgentBattleNetwork />
+      <AsciiClickBurst />
       <ChallengeBadge />
       <Nav />
       <main>

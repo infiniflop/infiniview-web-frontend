@@ -34,7 +34,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={cn(jakarta.variable, jetbrains.variable, sourceCodePro.variable)}>
-      <body>{children}</body>
+      <body className="crt-scanlines crt-vignette crt-flicker">{children}</body>
     </html>
   );
 }
