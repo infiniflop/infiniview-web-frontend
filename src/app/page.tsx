@@ -16,7 +16,6 @@ import {
   Bot,
   ArrowRight,
   ChevronDown,
-  Braces,
   Scan,
   Network,
   Bug,
@@ -35,7 +34,7 @@ import { cn } from "@/lib/cn";
 import { buttonVariants } from "@/components/ui/button";
 import { AgentBattleNetwork } from "@/components/agent-battle-network";
 import { PipelineTrack } from "@/components/circuit-pipeline";
-import { DynamicIsland } from "@/components/dynamic-island";
+import { Nav } from "@/components/nav";
 import {
   Card,
   CardContent,
@@ -97,68 +96,7 @@ function ChallengeBadge() {
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/*  Navigation                                                                */
-/* -------------------------------------------------------------------------- */
-
-function Nav() {
-  return (
-    <motion.nav
-      initial={{ opacity: 0, y: -12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.1 }}
-      className="fixed top-0 z-50 w-full border-b border-border/50 bg-bg/80 backdrop-blur-xl"
-    >
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
-        <a href="/" className="flex items-center gap-2.5">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/15">
-            <Terminal size={13} className="text-accent" />
-          </div>
-          <span className="text-[14px] font-bold tracking-tight">docksmith</span>
-        </a>
-
-        <div className="hidden md:flex items-center gap-7">
-          {[
-            ["How It Works", "#how-it-works"],
-            ["Agents", "#agents"],
-            ["Security & Testing", "#security-testing"],
-            ["Languages", "#languages"],
-            ["Features", "#features"],
-          ].map(([label, href]) => (
-            <a
-              key={href}
-              href={href}
-              className="text-[13px] font-medium text-text-muted transition hover:text-text"
-            >
-              {label}
-            </a>
-          ))}
-        </div>
-
-        <div className="flex items-center gap-3">
-          <a
-            href={`${APP_URL}/login`}
-            className={cn(
-              buttonVariants({ variant: "ghost", size: "sm" }),
-              "text-[13px] text-text-muted hover:text-text hover:bg-transparent"
-            )}
-          >
-            Sign In
-          </a>
-          <a
-            href={APP_URL}
-            className={cn(
-              buttonVariants({ size: "sm" }),
-              "bg-accent px-4 text-[13px] font-semibold text-white hover:bg-accent-light"
-            )}
-          >
-            Get Started
-          </a>
-        </div>
-      </div>
-    </motion.nav>
-  );
-}
+/* Nav is now imported from @/components/nav */
 
 /* -------------------------------------------------------------------------- */
 /*  Hero                                                                      */
@@ -194,9 +132,7 @@ function Hero() {
 
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-24 pb-16 overflow-hidden grain-overlay">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[800px] rounded-full bg-accent/[0.04] blur-[150px]" />
-      </div>
+      <div className="pointer-events-none absolute inset-0" />
       <motion.div
         initial="hidden"
         animate="visible"
@@ -368,15 +304,7 @@ function Pipeline() {
           </motion.div>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-40px" }}
-          transition={{ duration: 0.7, ease: [0.25, 0.4, 0.25, 1] }}
-          className="mt-16 mx-auto w-full max-w-[600px]"
-        >
-          <DynamicIsland />
-        </motion.div>
+
       </div>
     </section>
   );
@@ -580,6 +508,228 @@ const INTERACTION_TESTS = [
   },
 ];
 
+/* -------------------------------------------------------------------------- */
+/*  Before / After Split                                                      */
+/* -------------------------------------------------------------------------- */
+
+const CODE_LINES_LEFT = [
+  { ln: "14", parts: [{ text: "import", cls: "kw" }, { text: " { ", cls: "" }, { text: "fetch", cls: "var" }, { text: " } ", cls: "" }, { text: "from", cls: "kw" }, { text: " ", cls: "" }, { text: "'node-fetch'", cls: "str" }, { text: ";", cls: "" }] },
+  { ln: "15", parts: [] },
+  { ln: "16", parts: [{ text: "export async function", cls: "kw" }, { text: " ", cls: "" }, { text: "validateWebhook", cls: "fn" }, { text: "(", cls: "" }] },
+  { ln: "17", parts: [{ text: "  req", cls: "var" }, { text: ": ", cls: "" }, { text: "Request", cls: "type" }] },
+  { ln: "18", parts: [{ text: ") {", cls: "" }] },
+  { ln: "19", parts: [{ text: "  const", cls: "kw" }, { text: " { ", cls: "" }, { text: "url", cls: "var" }, { text: " } = ", cls: "" }, { text: "await", cls: "kw" }, { text: " req.", cls: "" }, { text: "json", cls: "fn" }, { text: "();", cls: "" }] },
+  { ln: "20", parts: [] },
+  { ln: "21", parts: [{ text: "  // Validate the webhook endpoint", cls: "cm" }] },
+  { ln: "22", parts: [{ text: "  const", cls: "kw" }, { text: " response = ", cls: "" }, { text: "await", cls: "kw" }, { text: " ", cls: "" }, { text: "fetch", cls: "fn" }, { text: "(url, {", cls: "" }] },
+  { ln: "23", parts: [{ text: "    method: ", cls: "" }, { text: "'HEAD'", cls: "str" }, { text: ",", cls: "" }] },
+  { ln: "24", parts: [{ text: "    timeout: 5000,", cls: "" }] },
+  { ln: "25", parts: [{ text: "  });", cls: "" }] },
+  { ln: "26", parts: [] },
+  { ln: "27", parts: [{ text: "  return", cls: "kw" }, { text: " Response.", cls: "" }, { text: "json", cls: "fn" }, { text: "({", cls: "" }] },
+  { ln: "28", parts: [{ text: "    valid: response.ok,", cls: "" }] },
+  { ln: "29", parts: [{ text: "    status: response.status,", cls: "" }] },
+  { ln: "30", parts: [{ text: "  });", cls: "" }] },
+  { ln: "31", parts: [{ text: "}", cls: "" }] },
+  { ln: "32", parts: [] },
+  { ln: "33", parts: [{ text: "// Looks clean. LGTM? 👍", cls: "cm" }] },
+];
+
+const CODE_LINES_RIGHT: { ln: string; parts: { text: string; cls: string }[]; vuln?: boolean; finding?: { severity: string; sevColor: string; title: string; desc: string; evidence?: string } }[] = [
+  { ln: "14", parts: [{ text: "import", cls: "kw" }, { text: " { ", cls: "" }, { text: "fetch", cls: "var" }, { text: " } ", cls: "" }, { text: "from", cls: "kw" }, { text: " ", cls: "" }, { text: "'node-fetch'", cls: "str" }, { text: ";", cls: "" }] },
+  { ln: "15", parts: [] },
+  { ln: "16", parts: [{ text: "export async function", cls: "kw" }, { text: " ", cls: "" }, { text: "validateWebhook", cls: "fn" }, { text: "(", cls: "" }] },
+  { ln: "17", parts: [{ text: "  req", cls: "var" }, { text: ": ", cls: "" }, { text: "Request", cls: "type" }] },
+  { ln: "18", parts: [{ text: ") {", cls: "" }] },
+  { ln: "19", parts: [{ text: "  const", cls: "kw" }, { text: " { ", cls: "" }, { text: "url", cls: "var" }, { text: " } = ", cls: "" }, { text: "await", cls: "kw" }, { text: " req.", cls: "" }, { text: "json", cls: "fn" }, { text: "();", cls: "" }], vuln: true, finding: { severity: "CRITICAL", sevColor: "red", title: "No input validation on user-supplied URL", desc: "User-controlled URL passed directly to fetch() without validation." } },
+  { ln: "21", parts: [{ text: "  // Validate the webhook endpoint", cls: "cm" }] },
+  { ln: "22", parts: [{ text: "  const", cls: "kw" }, { text: " response = ", cls: "" }, { text: "await", cls: "kw" }, { text: " ", cls: "" }, { text: "fetch", cls: "fn" }, { text: "(url, {", cls: "" }], vuln: true, finding: { severity: "CRITICAL", sevColor: "red", title: "SSRF — Exploit Confirmed ⚠", desc: "Server-Side Request Forgery via unvalidated URL. Internal metadata endpoint accessible.", evidence: "POST /api/webhooks/validate {\"url\":\"http://169.254.169.254/...\"} → 200 (IAM creds leaked)" } },
+  { ln: "23", parts: [{ text: "    method: ", cls: "" }, { text: "'HEAD'", cls: "str" }, { text: ",", cls: "" }] },
+  { ln: "24", parts: [{ text: "    timeout: 5000,", cls: "" }] },
+  { ln: "25", parts: [{ text: "  });", cls: "" }] },
+  { ln: "27", parts: [{ text: "  return", cls: "kw" }, { text: " Response.", cls: "" }, { text: "json", cls: "fn" }, { text: "({", cls: "" }], vuln: true, finding: { severity: "HIGH", sevColor: "amber", title: "Response leaks internal service status", desc: "Returning response.status exposes internal infrastructure details to the caller." } },
+];
+
+const TOKEN_COLORS: Record<string, string> = {
+  kw: "text-[#ff7b72]",
+  str: "text-[#a5d6ff]",
+  fn: "text-[#d2a8ff]",
+  cm: "text-[#484f58]",
+  var: "text-[#ffa657]",
+  type: "text-[#79c0ff]",
+  "": "text-[#8b949e]",
+};
+
+function CodeLine({ ln, parts, vuln }: { ln: string; parts: { text: string; cls: string }[]; vuln?: boolean }) {
+  return (
+    <div className={cn(
+      "flex font-[family-name:var(--font-mono)] text-[12px] leading-[1.9] px-4",
+      vuln && "bg-red/[0.06] border-l-[3px] border-red"
+    )}>
+      <span className="w-10 text-right pr-4 text-[#3b3f47] select-none shrink-0">{ln}</span>
+      <span className="flex-1 whitespace-pre">
+        {parts.length === 0 ? "\u00A0" : parts.map((p, i) => (
+          <span key={i} className={TOKEN_COLORS[p.cls]}>{p.text}</span>
+        ))}
+      </span>
+    </div>
+  );
+}
+
+function FindingCallout({ severity, sevColor, title, desc, evidence }: { severity: string; sevColor: string; title: string; desc: string; evidence?: string }) {
+  const colors = sevColor === "red"
+    ? { bg: "bg-red/[0.08]", border: "border-red/20", text: "text-red", badge: "bg-red/20 text-red" }
+    : { bg: "bg-amber/[0.06]", border: "border-amber/20", text: "text-amber", badge: "bg-amber/20 text-amber" };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 6 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.4 }}
+      className={cn("mx-4 my-1 p-3 rounded-lg border", colors.bg, colors.border)}
+    >
+      <div className={cn("flex items-center gap-2 text-[12px] font-bold mb-1", colors.text)}>
+        <span className={cn("px-2 py-0.5 rounded text-[9px] font-bold uppercase", colors.badge)}>{severity}</span>
+        {title}
+      </div>
+      <p className="text-[11px] text-text-muted leading-relaxed">{desc}</p>
+      {evidence && (
+        <p className="text-[10px] text-[#6b7280] font-[family-name:var(--font-mono)] mt-1">▸ {evidence}</p>
+      )}
+    </motion.div>
+  );
+}
+
+function BeforeAfterSplit() {
+  return (
+    <section id="before-after" className="relative px-6 py-32">
+      <div className="mx-auto max-w-6xl">
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-80px" }} variants={stagger} className="text-center mb-14">
+          <SectionLabel>Deep Code Analysis</SectionLabel>
+          <motion.h2 variants={fadeUp} custom={1} className="mt-5 text-4xl sm:text-5xl font-bold tracking-tight">
+            <span className="text-text-muted">What you see</span>{" "}
+            <span className="text-text-secondary">vs</span>{" "}
+            <span className="text-accent">what Docksmith sees.</span>
+          </motion.h2>
+        </motion.div>
+
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-40px" }}
+          variants={stagger}
+          className="relative"
+        >
+          <div className="flex gap-[3px]">
+            {/* Left panel — standard PR review */}
+            <motion.div variants={fadeUp} custom={0} className="flex-1 rounded-xl border border-border bg-bg-card overflow-hidden">
+              <div className="flex items-center justify-between px-5 py-3 border-b border-border">
+                <span className="text-[12px] font-bold uppercase tracking-wider text-text-muted">Standard PR Review</span>
+                <span className="text-[11px] text-[#4b5563] font-[family-name:var(--font-mono)]">src/api/webhooks.ts</span>
+              </div>
+              <div className="py-1">
+                {CODE_LINES_LEFT.map((line, i) => (
+                  <CodeLine key={i} ln={line.ln} parts={line.parts} />
+                ))}
+              </div>
+            </motion.div>
+
+            {/* Middle panel — Docksmith analysis */}
+            <motion.div variants={fadeUp} custom={1} className="flex-1 rounded-xl border border-border bg-bg-card overflow-hidden">
+              <div className="flex items-center justify-between px-5 py-3 border-b border-border">
+                <span className="text-[12px] font-bold uppercase tracking-wider text-accent">Docksmith Analysis</span>
+                <span className="text-[11px] text-accent font-[family-name:var(--font-mono)]">3 findings · 1 exploit confirmed</span>
+              </div>
+              <div className="py-1">
+                {CODE_LINES_RIGHT.map((line, i) => (
+                  <div key={i}>
+                    <CodeLine ln={line.ln} parts={line.parts} vuln={line.vuln} />
+                    {line.finding && (
+                      <FindingCallout
+                        severity={line.finding.severity}
+                        sevColor={line.finding.sevColor}
+                        title={line.finding.title}
+                        desc={line.finding.desc}
+                        evidence={line.finding.evidence}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+
+            {/* Right panel — Interaction Testing Agent */}
+            <motion.div variants={fadeUp} custom={2} className="w-[340px] shrink-0 rounded-xl border border-teal/20 bg-bg-card overflow-hidden flex flex-col">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+                <div className="flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-teal animate-pulse" />
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-teal">Interaction Testing</span>
+                </div>
+                <span className="text-[10px] text-text-muted font-[family-name:var(--font-mono)]">Sonnet 4.6</span>
+              </div>
+              <div className="flex-1 p-4 space-y-3 overflow-y-auto">
+                {/* Explore phase */}
+                <div className="rounded-lg border border-border bg-bg-elevated p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Eye size={11} className="text-teal" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-teal">Explore</span>
+                    <span className="ml-auto rounded-full bg-green/15 px-1.5 py-0.5 text-[8px] font-bold text-green">Done</span>
+                  </div>
+                  <div className="space-y-1.5 font-[family-name:var(--font-mono)] text-[10px]">
+                    <div className="flex items-center gap-1.5 text-green"><span>&#10003;</span><span className="text-text-muted">Found 23 endpoints</span></div>
+                    <div className="flex items-center gap-1.5 text-green"><span>&#10003;</span><span className="text-text-muted">Found 4 forms</span></div>
+                    <div className="flex items-center gap-1.5 text-green"><span>&#10003;</span><span className="text-text-muted">Found auth flow: JWT + session</span></div>
+                  </div>
+                </div>
+
+                {/* Test phase */}
+                <div className="rounded-lg border border-teal/20 bg-bg-elevated p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <MousePointerClick size={11} className="text-teal" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-teal">Test</span>
+                    <span className="ml-auto rounded-full bg-teal/15 px-1.5 py-0.5 text-[8px] font-bold text-teal">Running</span>
+                  </div>
+                  <div className="space-y-1.5 font-[family-name:var(--font-mono)] text-[10px]">
+                    <div className="flex items-center gap-1.5 text-green"><span>&#10003;</span><span className="text-text-muted">Filled webhook URL with SSRF payload</span></div>
+                    <div className="flex items-center gap-1.5 text-green"><span>&#10003;</span><span className="text-text-muted">Submitted form &mdash; server returned 200</span></div>
+                    <div className="flex items-center gap-1.5 text-red"><span>&#9888;</span><span className="text-text-muted">Response leaked internal metadata</span></div>
+                    <div className="flex items-center gap-1.5 text-[#f0883e]"><span>&#9656;</span><span className="text-text-muted">Testing XSS in webhook name...</span></div>
+                  </div>
+                </div>
+
+                {/* Evidence phase */}
+                <div className="rounded-lg border border-border bg-bg-elevated p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Shield size={11} className="text-red" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-red">Evidence</span>
+                    <span className="ml-auto rounded-full bg-red/15 px-1.5 py-0.5 text-[8px] font-bold text-red">2 exploits</span>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="rounded-md bg-red/[0.06] border border-red/15 p-2">
+                      <div className="text-[9px] font-bold text-red mb-0.5">SSRF via webhook form</div>
+                      <div className="text-[9px] text-text-muted font-[family-name:var(--font-mono)] leading-relaxed">Navigated to /webhooks &rarr; filled URL with internal IP &rarr; clicked &ldquo;Validate&rdquo; &rarr; IAM creds leaked</div>
+                    </div>
+                    <div className="rounded-md bg-red/[0.06] border border-red/15 p-2">
+                      <div className="text-[9px] font-bold text-red mb-0.5">Stored XSS in webhook name</div>
+                      <div className="text-[9px] text-text-muted font-[family-name:var(--font-mono)] leading-relaxed">Filled name with &lt;img onerror=alert(1)&gt; &rarr; saved &rarr; script executed</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* VS badge */}
+          <div className="absolute left-[calc(50%-170px)] top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-accent flex items-center justify-center text-[13px] font-extrabold text-white shadow-lg shadow-accent/40">
+            VS
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
 function SecurityTestingArsenal() {
   return (
     <section id="security-testing" className="relative px-6 py-32">
@@ -700,85 +850,6 @@ function SecurityTestingArsenal() {
           </div>
 
 
-        </motion.div>
-      </div>
-    </section>
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/*  Code Graph & Language Support                                             */
-/* -------------------------------------------------------------------------- */
-
-const LANGUAGES = [
-  "TypeScript", "JavaScript", "Python", "Java", "Go",
-  "Rust", "C#", "C++", "C", "PHP",
-  "Swift", "Kotlin", "Ruby", "Scala", "Dart",
-];
-
-function CodeGraph() {
-  return (
-    <section id="languages" className="relative px-6 py-32">
-      <div className="relative mx-auto max-w-6xl">
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-80px" }} variants={stagger} className="text-center mb-16">
-          <SectionLabel>Code Intelligence</SectionLabel>
-          <motion.h2 variants={fadeUp} custom={1} className="mt-5 text-4xl sm:text-5xl font-bold tracking-tight">
-            Deep understanding across<br />
-            <span className="text-cyan">15 languages</span>
-          </motion.h2>
-          <motion.p variants={fadeUp} custom={2} className="mt-4 text-text-secondary max-w-xl mx-auto text-lg">
-            Tree-sitter parsers build a code knowledge graph - functions, classes, endpoints, data flows, and dependencies - enabling cross-file vulnerability detection.
-          </motion.p>
-        </motion.div>
-
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-40px" }}
-          variants={stagger}
-          className="grid gap-6 lg:grid-cols-2"
-        >
-          <motion.div variants={fadeUp} custom={0} className="rounded-xl border border-border bg-bg-card p-7">
-            <h3 className="text-sm font-semibold mb-5 flex items-center gap-2">
-              <Braces size={14} className="text-cyan" />
-              Supported Languages
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {LANGUAGES.map((lang) => (
-                <span
-                  key={lang}
-                  className="rounded-lg border border-border bg-bg-elevated px-3 py-1.5 text-[12px] font-mono font-medium text-text-secondary transition hover:border-cyan/30 hover:text-text"
-                >
-                  {lang}
-                </span>
-              ))}
-            </div>
-          </motion.div>
-
-          <motion.div variants={fadeUp} custom={1} className="rounded-xl border border-border bg-bg-card p-7">
-            <h3 className="text-sm font-semibold mb-5 flex items-center gap-2">
-              <Network size={14} className="text-accent" />
-              Code Graph Nodes
-            </h3>
-            <div className="space-y-3">
-              {[
-                { label: "Functions & Methods", desc: "Parameters, return types, async status, exports" },
-                { label: "Endpoints", desc: "HTTP routes, middleware chains, auth requirements" },
-                { label: "Data Flows", desc: "Tainted input tracing from source to sink" },
-                { label: "Dependencies", desc: "Package versions, known CVEs, fix versions" },
-                { label: "Classes & Imports", desc: "Inheritance trees, module graphs" },
-                { label: "Auth Gates & Middleware", desc: "Authorization checks and middleware ordering" },
-              ].map((item) => (
-                <div key={item.label} className="flex items-start gap-3">
-                  <div className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
-                  <div>
-                    <span className="text-[13px] font-medium">{item.label}</span>
-                    <span className="text-[12px] text-text-muted ml-2">{item.desc}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </motion.div>
         </motion.div>
       </div>
     </section>
@@ -1026,8 +1097,8 @@ export default function LandingPage() {
         <Hero />
         <Pipeline />
         <AgentSystem />
+        <BeforeAfterSplit />
         <SecurityTestingArsenal />
-        <CodeGraph />
         <Features />
         <CLIPreview />
 
