@@ -17,20 +17,16 @@ const AGENT_COLORS = [
 ];
 
 const ORBITAL_COLORS = [
-  [212, 175, 55],   // gold
-  [255, 215, 0],    // bright gold
-  [230, 190, 138],  // champagne gold
-  [192, 192, 192],  // silver
-  [220, 220, 230],  // platinum
-  [183, 135, 38],   // antique gold
-  [30, 30, 30],     // onyx black
-  [50, 50, 50],     // gunmetal
-  [207, 181, 59],   // 24k gold
-  [170, 169, 173],  // brushed steel
-  [218, 165, 32],   // goldenrod
-  [229, 228, 226],  // pearl white
-  [181, 166, 66],   // old gold
-  [196, 202, 206],  // chrome
+  [224, 90, 56],    // brand accent
+  [200, 75, 45],    // deep burnt orange
+  [245, 120, 70],   // warm orange
+  [180, 60, 35],    // dark rust
+  [255, 140, 90],   // soft amber
+  [160, 50, 30],    // ember
+  [20, 184, 166],   // teal (existing brand)
+  [6, 182, 212],    // cyan (existing brand)
+  [40, 40, 45],     // charcoal
+  [60, 55, 50],     // dark warm gray
 ];
 
 /* ── types ── */
