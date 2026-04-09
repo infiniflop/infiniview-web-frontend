@@ -35,6 +35,7 @@ import { cn } from "@/lib/cn";
 import { buttonVariants } from "@/components/ui/button";
 import { AgentBattleNetwork } from "@/components/agent-battle-network";
 import { PipelineTrack } from "@/components/circuit-pipeline";
+import { DynamicIsland } from "@/components/dynamic-island";
 import {
   Card,
   CardContent,
@@ -366,6 +367,16 @@ function Pipeline() {
             ))}
           </motion.div>
         </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.7, ease: [0.25, 0.4, 0.25, 1] }}
+          className="mt-16 mx-auto w-full max-w-[600px]"
+        >
+          <DynamicIsland />
+        </motion.div>
       </div>
     </section>
   );
@@ -989,9 +1000,6 @@ function Footer() {
           &copy; {new Date().getFullYear()} Docksmith. All rights reserved.
         </p>
         <div className="flex items-center gap-5">
-          <a href="https://github.com/docksmith" className="text-[12px] text-text-muted transition hover:text-text">
-            GitHub
-          </a>
           <a href={DOCS_URL} className="text-[12px] text-text-muted transition hover:text-text">
             Docs
           </a>
