@@ -131,7 +131,7 @@ function Hero() {
   const ANIM_DELAY = 1.5;
 
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-24 pb-16 overflow-hidden grain-overlay">
+    <section className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-24 pb-16 overflow-hidden">
       <div className="pointer-events-none absolute inset-0" />
       <motion.div
         initial="hidden"
