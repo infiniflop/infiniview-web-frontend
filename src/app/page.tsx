@@ -2,6 +2,7 @@
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.docksmith.dev";
 const DOCS_URL = process.env.NEXT_PUBLIC_DOCS_URL ?? "https://docs.docksmith.dev";
+const CLI_DOCS_URL = "https://docs.docksmith.dev/cli";
 
 import {
   Terminal,
@@ -331,7 +332,7 @@ const AGENTS = [
   },
   {
     title: "Interaction Testing",
-    model: "Claude Sonnet 4.6",
+    model: "GPT 5.4",
     desc: "Uses computer vision to interact with your running app - fills forms, clicks buttons, injects payloads, discovers broken flows, and tests every user path.",
     icon: Eye,
     color: "teal",
@@ -666,7 +667,7 @@ function BeforeAfterSplit() {
                   <div className="h-2 w-2 rounded-full bg-teal animate-pulse" />
                   <span className="text-[11px] font-bold uppercase tracking-wider text-teal">Interaction Testing</span>
                 </div>
-                <span className="text-[10px] text-text-muted font-[family-name:var(--font-mono)]">Sonnet 4.6</span>
+                <span className="text-[10px] text-text-muted font-[family-name:var(--font-mono)]">GPT 5.4</span>
               </div>
               <div className="flex-1 p-4 space-y-3 overflow-y-auto">
                 {/* Explore phase */}
@@ -864,7 +865,7 @@ const FEATURES = [
   {
     icon: GitBranch,
     title: "GitHub Native",
-    desc: "GitHub App integration with PR webhooks. Findings posted as review comments.",
+    desc: "GitHub App integration with PR webhooks, review comments, failing checks, and branch-protection readiness.",
   },
   {
     icon: Layers,
@@ -879,7 +880,7 @@ const FEATURES = [
   {
     icon: Command,
     title: "Command Palette",
-    desc: "Cmd+K search across all reviews, findings, and settings.",
+    desc: "Cmd+K search across reviews, security findings, settings, security configuration, and scan history.",
   },
   {
     icon: Lock,
@@ -894,7 +895,7 @@ const FEATURES = [
   {
     icon: Zap,
     title: "Self-Learning",
-    desc: "Verified runtime exploits become patterns. Future scans detect recurring vulnerabilities faster.",
+    desc: "Learned patterns now feed prioritization, runtime planning, and finding evidence on future scans.",
   },
   {
     icon: Globe,
@@ -947,7 +948,7 @@ function Features() {
 }
 
 /* -------------------------------------------------------------------------- */
-/*  CLI Preview (moved down, launching soon)                                  */
+/*  CLI Preview                                                               */
 /* -------------------------------------------------------------------------- */
 
 function CLIPreview() {
@@ -959,9 +960,9 @@ function CLIPreview() {
           <motion.h2 variants={fadeUp} custom={1} className="mt-5 text-3xl sm:text-4xl font-bold tracking-tight">
             Scan from your <span className="text-accent">terminal</span>
           </motion.h2>
-          <motion.div variants={fadeUp} custom={2} className="mt-4 inline-flex items-center gap-2 rounded-full border border-amber/30 bg-amber-glow px-4 py-1.5">
-            <Zap size={12} className="text-amber" />
-            <span className="text-[12px] font-semibold text-amber">CLI Feature Launching Soon</span>
+          <motion.div variants={fadeUp} custom={2} className="mt-4 inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent-glow px-4 py-1.5">
+            <Zap size={12} className="text-accent" />
+            <span className="text-[12px] font-semibold text-accent-light">CLI Now Shipping</span>
           </motion.div>
         </motion.div>
 
@@ -981,6 +982,8 @@ function CLIPreview() {
               <span className="ml-3 text-[12px] font-[family-name:var(--font-cli)] font-medium text-[#6b7280]">docksmith scan</span>
             </div>
             <div className="px-8 py-7 font-[family-name:var(--font-cli)] text-[15px] font-medium leading-[2] text-[#8b949e] space-y-0.5">
+              <p><span className="text-[#6b7280]">$</span> <span className="text-[#e6edf3] font-semibold">docksmith auth login</span></p>
+              <p className="text-[#3fb950] font-semibold">&#10003; Authenticated to app.docksmith.dev</p>
               <p><span className="text-[#6b7280]">$</span> <span className="text-[#e6edf3] font-semibold">docksmith scan --repo acme/api --branch feat/auth</span></p>
               <p className="text-[#6b7280] mt-3">Provisioning sandbox...</p>
               <p className="text-[#3fb950] font-semibold">&#10003; Sandbox ready</p>
@@ -990,11 +993,24 @@ function CLIPreview() {
               <p className="pl-4 text-[#f0883e]">&#9656; Static security scanners running</p>
               <p className="pl-4 text-[#f0883e]">&#9656; Runtime attack agents probing</p>
               <p className="pl-4 text-[#f0883e]">&#9656; Interaction testing agent stress-testing UI</p>
+              <p><span className="text-[#6b7280]">$</span> <span className="text-[#e6edf3] font-semibold">docksmith status --last</span></p>
+              <p className="text-[#6b7280]">Following run state from the terminal...</p>
               <p className="text-[#6b7280] mt-2">Building code graph (15 language parsers)...</p>
               <p className="text-[#3fb950] font-semibold mt-2">&#10003; Scan complete: 3 critical, 7 high, 12 medium findings</p>
               <p className="mt-1 font-semibold text-[#e6edf3]">&#8594; Results posted to <span className="text-[#58a6ff]">PR #247</span> and <span className="text-[#58a6ff]">dashboard</span></p>
             </div>
           </div>
+        </motion.div>
+        <motion.div variants={fadeUp} custom={3} className="mt-6 text-center">
+          <a
+            href={CLI_DOCS_URL}
+            className={cn(
+              buttonVariants({ variant: "outline" }),
+              "border-border text-text-secondary hover:border-accent/30 hover:text-text"
+            )}
+          >
+            CLI Docs
+          </a>
         </motion.div>
       </div>
     </section>
