@@ -80,7 +80,7 @@ const PLANS = [
       "Cloud sandbox environments",
       "Secrets management (AES-256)",
       "Priority findings & fix suggestions",
-      "Slack & webhook notifications",
+      "Email & in-app notifications",
     ],
   },
   {
@@ -98,18 +98,18 @@ const PLANS = [
     ctaHref: "mailto:sales@docksmith.dev",
     traits: [
       { icon: Server, text: "Self-hosted option" },
-      { icon: Lock, text: "SSO & SAML" },
+      { icon: Lock, text: "SSO (roadmap)" },
       { icon: Headphones, text: "Dedicated engineer" },
     ],
     features: [
       "Everything in Pro",
       "Unlimited seats",
       "Custom agent configurations",
-      "SOC 2 & ISO 27001 reports",
-      "SLA guarantees (99.9%)",
+      "Compliance roadmap (SOC 2, ISO)",
+      "Priority uptime SLA",
       "Private cloud deployment",
-      "Audit log & RBAC",
-      "Custom integrations",
+      "Team roles & permissions",
+      "Dedicated integration support",
     ],
   },
 ];
@@ -179,7 +179,7 @@ export default function PricingPage() {
             </h1>
 
             <p className="mx-auto mt-5 max-w-lg text-[16px] leading-relaxed text-text-muted">
-              Start free. Upgrade when you need runtime attacks, interaction testing, and enterprise compliance.
+              Start free. Upgrade when you need runtime attacks, interaction testing, and team-wide controls.
             </p>
           </motion.div>
 

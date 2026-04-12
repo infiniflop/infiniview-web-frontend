@@ -186,9 +186,9 @@ function Hero() {
           custom={2}
           className="mx-auto mt-7 max-w-2xl text-lg sm:text-xl text-text-secondary leading-relaxed"
         >
-          Docksmith deploys AI agents that review your code, run security scans,
-          attack your app, and stress-test your UI - all inside cloud sandboxes,
-          triggered from a single PR.
+          Docksmith deploys AI agents that scan, attack, and stress-test your
+          code inside cloud sandboxes - then delivers forensic findings, proof
+          bundles, and a readiness score so you ship with confidence.
         </motion.p>
 
         <motion.div variants={fadeUp} custom={3} className="mt-10 flex items-center justify-center gap-4 flex-wrap">
@@ -234,7 +234,7 @@ const PIPELINE_STEPS = [
   {
     num: "01",
     title: "Trigger",
-    desc: "Open a PR, run the CLI, or click the dashboard. Docksmith picks it up instantly.",
+    desc: "Run the CLI or click the dashboard. Docksmith picks it up instantly.",
     icon: GitBranch,
   },
   {
@@ -258,7 +258,7 @@ const PIPELINE_STEPS = [
   {
     num: "05",
     title: "Report Delivered",
-    desc: "Findings land as PR comments and in the dashboard. Critical issues block the merge.",
+    desc: "Forensic findings land in the dashboard with proof bundles you can replay, export, and compare across runs.",
     icon: FileCode,
   },
 ];
@@ -863,9 +863,9 @@ function SecurityTestingArsenal() {
 
 const FEATURES = [
   {
-    icon: GitBranch,
-    title: "GitHub Native",
-    desc: "GitHub App integration with PR webhooks, review comments, failing checks, and branch-protection readiness.",
+    icon: Search,
+    title: "Forensic Findings",
+    desc: "Every finding includes root-cause evidence, affected code paths, and suggested fixes - all browsable in a dedicated viewer.",
   },
   {
     icon: Layers,
@@ -874,8 +874,8 @@ const FEATURES = [
   },
   {
     icon: Activity,
-    title: "Real-Time Progress",
-    desc: "Watch agents work in real-time via the dashboard with continuous status updates.",
+    title: "Scan Activity Timeline",
+    desc: "Live timeline of every agent action, finding, and decision - searchable and replayable after each run.",
   },
   {
     icon: Command,
