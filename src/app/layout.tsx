@@ -22,7 +22,7 @@ const sourceCodePro = Source_Code_Pro({
 });
 
 export const metadata: Metadata = {
-  title: "Docksmith | AI-Powered Code Review, Security Testing & Interaction Testing",
+  title: "Infiniview | AI-Powered Code Review, Security Testing & Interaction Testing",
   description:
     "Deep code review, autonomous security testing, and interaction testing in a single platform. AI agents review your code, attack your app, and stress-test your UI inside cloud sandboxes.",
 };

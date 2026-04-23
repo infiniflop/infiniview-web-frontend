@@ -1,8 +1,8 @@
 "use client";
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.docksmith.dev";
-const DOCS_URL = process.env.NEXT_PUBLIC_DOCS_URL ?? "https://docs.docksmith.dev";
-const CLI_DOCS_URL = "https://docs.docksmith.dev/cli";
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.infiniview.dev";
+const DOCS_URL = process.env.NEXT_PUBLIC_DOCS_URL ?? "https://docs.infiniview.dev";
+const CLI_DOCS_URL = "https://docs.infiniview.dev/cli";
 
 import {
   Terminal,
@@ -186,7 +186,7 @@ function Hero() {
           custom={2}
           className="mx-auto mt-7 max-w-2xl text-lg sm:text-xl text-text-secondary leading-relaxed"
         >
-          Docksmith deploys AI agents that scan, attack, and stress-test your
+          Infiniview deploys AI agents that scan, attack, and stress-test your
           code inside cloud sandboxes - then delivers forensic findings, proof
           bundles, and a readiness score so you ship with confidence.
         </motion.p>
@@ -234,7 +234,7 @@ const PIPELINE_STEPS = [
   {
     num: "01",
     title: "Trigger",
-    desc: "Run the CLI or click the dashboard. Docksmith picks it up instantly.",
+    desc: "Run the CLI or click the dashboard. Infiniview picks it up instantly.",
     icon: GitBranch,
   },
   {
@@ -611,7 +611,7 @@ function BeforeAfterSplit() {
           <motion.h2 variants={fadeUp} custom={1} className="mt-5 text-4xl sm:text-5xl font-bold tracking-tight">
             <span className="text-text-muted">What you see</span>{" "}
             <span className="text-text-secondary">vs</span>{" "}
-            <span className="text-accent">what Docksmith sees.</span>
+            <span className="text-accent">what Infiniview sees.</span>
           </motion.h2>
         </motion.div>
 
@@ -636,10 +636,10 @@ function BeforeAfterSplit() {
               </div>
             </motion.div>
 
-            {/* Middle panel — Docksmith analysis */}
+            {/* Middle panel — Infiniview analysis */}
             <motion.div variants={fadeUp} custom={1} className="flex-1 rounded-xl border border-border bg-bg-card overflow-hidden">
               <div className="flex items-center justify-between px-5 py-3 border-b border-border">
-                <span className="text-[12px] font-bold uppercase tracking-wider text-accent">Docksmith Analysis</span>
+                <span className="text-[12px] font-bold uppercase tracking-wider text-accent">Infiniview Analysis</span>
                 <span className="text-[11px] text-accent font-[family-name:var(--font-mono)]">3 findings · 1 exploit confirmed</span>
               </div>
               <div className="py-1">
@@ -979,12 +979,12 @@ function CLIPreview() {
                 <div className="h-3 w-3 rounded-full bg-[#febc2e]" />
                 <div className="h-3 w-3 rounded-full bg-[#28c840]" />
               </div>
-              <span className="ml-3 text-[12px] font-[family-name:var(--font-cli)] font-medium text-[#6b7280]">docksmith scan</span>
+              <span className="ml-3 text-[12px] font-[family-name:var(--font-cli)] font-medium text-[#6b7280]">infiniview scan</span>
             </div>
             <div className="px-8 py-7 font-[family-name:var(--font-cli)] text-[15px] font-medium leading-[2] text-[#8b949e] space-y-0.5">
-              <p><span className="text-[#6b7280]">$</span> <span className="text-[#e6edf3] font-semibold">docksmith auth login</span></p>
-              <p className="text-[#3fb950] font-semibold">&#10003; Authenticated to app.docksmith.dev</p>
-              <p><span className="text-[#6b7280]">$</span> <span className="text-[#e6edf3] font-semibold">docksmith scan --repo acme/api --branch feat/auth</span></p>
+              <p><span className="text-[#6b7280]">$</span> <span className="text-[#e6edf3] font-semibold">infiniview auth login</span></p>
+              <p className="text-[#3fb950] font-semibold">&#10003; Authenticated to app.infiniview.dev</p>
+              <p><span className="text-[#6b7280]">$</span> <span className="text-[#e6edf3] font-semibold">infiniview scan --repo acme/api --branch feat/auth</span></p>
               <p className="text-[#6b7280] mt-3">Provisioning sandbox...</p>
               <p className="text-[#3fb950] font-semibold">&#10003; Sandbox ready</p>
               <p className="text-[#3fb950] font-semibold">&#10003; Repository cloned &amp; app deployed</p>
@@ -993,7 +993,7 @@ function CLIPreview() {
               <p className="pl-4 text-[#f0883e]">&#9656; Static security scanners running</p>
               <p className="pl-4 text-[#f0883e]">&#9656; Runtime attack agents probing</p>
               <p className="pl-4 text-[#f0883e]">&#9656; Interaction testing agent stress-testing UI</p>
-              <p><span className="text-[#6b7280]">$</span> <span className="text-[#e6edf3] font-semibold">docksmith status --last</span></p>
+              <p><span className="text-[#6b7280]">$</span> <span className="text-[#e6edf3] font-semibold">infiniview status --last</span></p>
               <p className="text-[#6b7280]">Following run state from the terminal...</p>
               <p className="text-[#6b7280] mt-2">Building code graph (15 language parsers)...</p>
               <p className="text-[#3fb950] font-semibold mt-2">&#10003; Scan complete: 3 critical, 7 high, 12 medium findings</p>
@@ -1081,16 +1081,16 @@ function Footer() {
           <div className="flex h-6 w-6 items-center justify-center rounded-md bg-accent/15">
             <Terminal size={11} className="text-accent" />
           </div>
-          <span className="text-[13px] font-semibold tracking-tight text-text-muted">docksmith</span>
+          <span className="text-[13px] font-semibold tracking-tight text-text-muted">infiniview</span>
         </div>
         <p className="text-[12px] text-text-muted">
-          &copy; {new Date().getFullYear()} Docksmith. All rights reserved.
+          &copy; {new Date().getFullYear()} Infiniview. All rights reserved.
         </p>
         <div className="flex items-center gap-5">
           <a href={DOCS_URL} className="text-[12px] text-text-muted transition hover:text-text">
             Docs
           </a>
-          <a href="mailto:hello@docksmith.dev" className="text-[12px] text-text-muted transition hover:text-text">
+          <a href="mailto:hello@infiniview.dev" className="text-[12px] text-text-muted transition hover:text-text">
             Contact
           </a>
         </div>

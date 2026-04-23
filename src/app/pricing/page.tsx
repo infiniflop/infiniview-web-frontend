@@ -24,7 +24,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/cn";
 import { Nav } from "@/components/nav";
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.docksmith.dev";
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.infiniview.dev";
 
 /* -------------------------------------------------------------------------- */
 /*  Data                                                                      */
@@ -95,7 +95,7 @@ const PLANS = [
     scans: "Volume-based",
     highlighted: false,
     cta: "Talk to Sales",
-    ctaHref: "mailto:sales@docksmith.dev",
+    ctaHref: "mailto:sales@infiniview.dev",
     traits: [
       { icon: Server, text: "Self-hosted option" },
       { icon: Lock, text: "SSO (roadmap)" },
@@ -123,7 +123,7 @@ const SCAN_CREDITS = [
 const FAQS = [
   {
     q: "What counts as a scan?",
-    a: "A scan is triggered each time Docksmith analyzes a pull request or runs on-demand from the CLI. Each scan includes code review, security analysis, and any enabled testing agents.",
+    a: "A scan is triggered each time Infiniview analyzes a pull request or runs on-demand from the CLI. Each scan includes code review, security analysis, and any enabled testing agents.",
   },
   {
     q: "Can I switch plans anytime?",
@@ -466,14 +466,14 @@ export default function PricingPage() {
             <div className="flex h-6 w-6 items-center justify-center rounded-md bg-accent/15">
               <Terminal size={11} className="text-accent" />
             </div>
-            <span className="text-[13px] font-semibold tracking-tight text-white/30">docksmith</span>
+            <span className="text-[13px] font-semibold tracking-tight text-white/30">infiniview</span>
           </div>
           <p className="text-[12px] text-white/20">
-            &copy; {new Date().getFullYear()} Docksmith. All rights reserved.
+            &copy; {new Date().getFullYear()} Infiniview. All rights reserved.
           </p>
           <div className="flex items-center gap-5">
-            <a href="https://docs.docksmith.dev" className="text-[12px] text-white/30 transition hover:text-white/60">Docs</a>
-            <a href="mailto:hello@docksmith.dev" className="text-[12px] text-white/30 transition hover:text-white/60">Contact</a>
+            <a href="https://docs.infiniview.dev" className="text-[12px] text-white/30 transition hover:text-white/60">Docs</a>
+            <a href="mailto:hello@infiniview.dev" className="text-[12px] text-white/30 transition hover:text-white/60">Contact</a>
           </div>
         </div>
       </footer>

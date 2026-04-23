@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/cn";
 import { buttonVariants } from "@/components/ui/button";
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.docksmith.dev";
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.infiniview.dev";
 
 const NAV_LINKS = [
   ["How It Works", "/#how-it-works"],
@@ -28,7 +28,7 @@ export function Nav({ activePath }: { activePath?: string }) {
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/15">
             <Terminal size={13} className="text-accent" />
           </div>
-          <span className="text-[14px] font-bold tracking-tight">docksmith</span>
+          <span className="text-[14px] font-bold tracking-tight">infiniview</span>
         </a>
 
         <div className="hidden md:flex items-center gap-7">
