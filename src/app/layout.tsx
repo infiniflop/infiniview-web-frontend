@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Plus_Jakarta_Sans, JetBrains_Mono, Source_Code_Pro } from "next/font/google";
+import { Inter_Tight, JetBrains_Mono } from "next/font/google";
 import { cn } from "@/lib/utils";
 
-const jakarta = Plus_Jakarta_Sans({
+const interTight = Inter_Tight({
   subsets: ["latin"],
-  variable: "--font-jakarta",
-  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-inter-tight",
+  weight: ["400", "500", "600", "700", "800", "900"],
 });
 
 const jetbrains = JetBrains_Mono({
@@ -15,16 +15,10 @@ const jetbrains = JetBrains_Mono({
   weight: ["400", "500", "600"],
 });
 
-const sourceCodePro = Source_Code_Pro({
-  subsets: ["latin"],
-  variable: "--font-source-code",
-  weight: ["400", "500", "600"],
-});
-
 export const metadata: Metadata = {
-  title: "Infiniview | AI-Powered Code Review, Security Testing & Interaction Testing",
+  title: "Infiniview — attack your code before anyone else does",
   description:
-    "Deep code review, autonomous security testing, and interaction testing in a single platform. AI agents review your code, attack your app, and stress-test your UI inside cloud sandboxes.",
+    "Continuous adversarial review for your codebase. Every pull request gets attacked the way a real outsider would, with reproducible proof and a suggested fix — never a wall of warnings.",
 };
 
 export default function RootLayout({
@@ -33,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={cn(jakarta.variable, jetbrains.variable, sourceCodePro.variable)}>
+    <html lang="en" className={cn(interTight.variable, jetbrains.variable)}>
       <body>{children}</body>
     </html>
   );

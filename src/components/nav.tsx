@@ -1,74 +1,57 @@
 "use client";
 
-import { Terminal } from "lucide-react";
-import { motion } from "framer-motion";
-import { cn } from "@/lib/cn";
-import { buttonVariants } from "@/components/ui/button";
-
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.infiniview.dev";
 
 const NAV_LINKS = [
-  ["How It Works", "/#how-it-works"],
-  ["Agents", "/#agents"],
-  ["Security & Testing", "/#security-testing"],
-  ["Features", "/#features"],
-  ["Pricing", "/pricing"],
+  { num: "01", label: "how it works", href: "#how-it-works" },
+  { num: "02", label: "agents", href: "#agents" },
+  { num: "03", label: "security & testing", href: "#security-testing" },
+  { num: "04", label: "features", href: "#features" },
+  { num: "05", label: "pricing", href: "#pricing" },
 ];
 
-export function Nav({ activePath }: { activePath?: string }) {
+export function Nav({ activePath }: { activePath?: string } = {}) {
   return (
-    <motion.nav
-      initial={{ opacity: 0, y: -12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.1 }}
-      className="fixed top-0 z-50 w-full border-b border-border/50 bg-bg/80 backdrop-blur-xl"
-    >
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
-        <a href="/" className="flex items-center gap-2.5">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/15">
-            <Terminal size={13} className="text-accent" />
+    <nav className="sticky top-0 z-50 border-b border-border bg-bg/82 backdrop-blur-[10px]">
+      <div className="mx-auto flex max-w-[1440px] items-center gap-8 px-6 md:px-12 py-[18px]">
+        <a href="#top" className="flex items-center gap-2.5">
+          <div className="relative h-[22px] w-[22px] bg-lime">
+            <div className="absolute inset-1 border-[1.5px] border-bg" />
           </div>
-          <span className="text-[14px] font-bold tracking-tight">infiniview</span>
+          <span className="text-[15px] font-bold tracking-[-0.02em]">
+            INFINIVIEW<span className="text-lime">/</span>
+            <span className="ml-1.5 font-mono text-[11.5px] font-normal text-text-muted hidden sm:inline">
+              adversary-mode
+            </span>
+          </span>
         </a>
 
-        <div className="hidden md:flex items-center gap-7">
-          {NAV_LINKS.map(([label, href]) => (
+        <div className="flex-1" />
+
+        <div className="hidden lg:flex items-center gap-6 font-mono text-xs text-text-secondary">
+          {NAV_LINKS.map((link) => (
             <a
-              key={href}
-              href={href}
-              className={cn(
-                "text-[13px] font-medium transition hover:text-text",
-                activePath === href
-                  ? "text-accent"
-                  : "text-text-muted"
-              )}
+              key={link.label}
+              href={link.href}
+              className="transition-colors hover:text-lime"
             >
-              {label}
+              <span className="text-text-muted">[{link.num}]</span> {link.label}
             </a>
           ))}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <a
             href={`${APP_URL}/login`}
-            className={cn(
-              buttonVariants({ variant: "ghost", size: "sm" }),
-              "text-[13px] text-text-muted hover:text-text hover:bg-transparent"
-            )}
+            className="font-mono text-xs text-text-secondary px-2.5 py-2 hidden sm:inline-block"
           >
-            Sign In
+            sign in
           </a>
-          <a
-            href={APP_URL}
-            className={cn(
-              buttonVariants({ size: "sm" }),
-              "bg-accent px-4 text-[13px] font-semibold text-white hover:bg-accent-light"
-            )}
-          >
-            Get Started
+          <a href={APP_URL} className="btn-lime font-mono text-xs px-4 py-2.5 tracking-[0.02em]">
+            GET STARTED →
           </a>
         </div>
       </div>
-    </motion.nav>
+    </nav>
   );
 }
