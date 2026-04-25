@@ -807,7 +807,7 @@ export default function LandingPage() {
         <AgentSystem />
         <Arsenal />
         <Features />
-        <Pricing />
+        {/* <Pricing /> */}
         <FAQ />
         <ChallengeCTA />
       </main>

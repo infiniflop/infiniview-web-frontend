@@ -5,7 +5,7 @@ const NAV_LINKS = [
   { num: "02", label: "agents", href: "#agents" },
   { num: "03", label: "security & testing", href: "#security-testing" },
   { num: "04", label: "features", href: "#features" },
-  { num: "05", label: "pricing", href: "#pricing" },
+  // { num: "05", label: "pricing", href: "#pricing" },
 ];
 
 export function Nav({ activePath }: { activePath?: string } = {}) {
