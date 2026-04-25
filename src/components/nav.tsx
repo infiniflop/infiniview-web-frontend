@@ -1,7 +1,5 @@
 "use client";
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.infiniview.dev";
-
 const NAV_LINKS = [
   { num: "01", label: "how it works", href: "#how-it-works" },
   { num: "02", label: "agents", href: "#agents" },
@@ -40,17 +38,9 @@ export function Nav({ activePath }: { activePath?: string } = {}) {
           ))}
         </div>
 
-        <div className="flex items-center gap-2.5">
-          <a
-            href={`${APP_URL}/login`}
-            className="font-mono text-xs text-text-secondary px-2.5 py-2 hidden sm:inline-block"
-          >
-            sign in
-          </a>
-          <a href={APP_URL} className="btn-lime font-mono text-xs px-4 py-2.5 tracking-[0.02em]">
-            GET STARTED →
-          </a>
-        </div>
+        <a href="/#waitlist" className="btn-lime font-mono text-xs px-4 py-2.5 tracking-[0.02em]">
+          JOIN WAITLIST →
+        </a>
       </div>
     </nav>
   );

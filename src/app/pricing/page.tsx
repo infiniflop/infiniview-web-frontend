@@ -24,7 +24,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/cn";
 import { Nav } from "@/components/nav";
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.infiniview.dev";
+const WAITLIST_HREF = "/#waitlist";
 
 /* -------------------------------------------------------------------------- */
 /*  Data                                                                      */
@@ -40,8 +40,8 @@ const PLANS = [
     unit: "/month",
     scans: "50 scans/mo",
     highlighted: false,
-    cta: "Start Free",
-    ctaHref: APP_URL,
+    cta: "Join Waitlist",
+    ctaHref: WAITLIST_HREF,
     traits: [
       { icon: Clock, text: "Results in ~2 min" },
       { icon: RotateCcw, text: "1 re-scan per PR" },
@@ -65,8 +65,8 @@ const PLANS = [
     unit: "/seat/month",
     scans: "Unlimited scans",
     highlighted: true,
-    cta: "Start 14-Day Trial",
-    ctaHref: APP_URL,
+    cta: "Join Waitlist",
+    ctaHref: WAITLIST_HREF,
     traits: [
       { icon: Zap, text: "Results in ~30s" },
       { icon: InfinityIcon, text: "Unlimited re-scans" },
@@ -130,8 +130,8 @@ const FAQS = [
     a: "Yes. Upgrade, downgrade, or cancel anytime. When upgrading, you get prorated credit for the remainder of your billing cycle.",
   },
   {
-    q: "Do you offer a free trial for Pro?",
-    a: "Every Pro plan starts with a 14-day free trial with full access. No credit card required.",
+    q: "How do I get access?",
+    a: "Join the waitlist and we'll invite you as spots open. Early waitlist members get priority access and launch pricing.",
   },
   {
     q: "Is my code safe?",
@@ -179,7 +179,7 @@ export default function PricingPage() {
             </h1>
 
             <p className="mx-auto mt-5 max-w-lg text-[16px] leading-relaxed text-text-muted">
-              Start free. Upgrade when you need runtime attacks, interaction testing, and team-wide controls.
+              Join the waitlist to lock in launch pricing. Plans for indie hackers, startups, and enterprise.
             </p>
           </motion.div>
 
@@ -234,9 +234,9 @@ export default function PricingPage() {
             <div className="flex justify-center -mt-8 mb-4">
               <div className="inline-flex items-center gap-2 rounded-full bg-black/[0.75] backdrop-blur-md px-5 py-2 text-[12px] text-white/80 shadow-lg">
                 <Zap size={11} className="text-accent" />
-                <span className="font-semibold text-white">Launch Offer</span>
+                <span className="font-semibold text-white">Early Access</span>
                 <span className="text-white/50">-</span>
-                <span>14-day free trial on Pro, no card needed</span>
+                <span>Waitlist members get priority access & launch pricing</span>
               </div>
             </div>
 
@@ -447,12 +447,12 @@ export default function PricingPage() {
             transition={{ duration: 0.6 }}
             className="mt-24 text-center"
           >
-            <p className="text-white/30 text-[14px] mb-4">Ready to ship?</p>
+            <p className="text-white/30 text-[14px] mb-4">Ready to ship with confidence?</p>
             <a
-              href={APP_URL}
+              href={WAITLIST_HREF}
               className="inline-flex items-center gap-2 rounded-full bg-white text-black px-7 py-3.5 text-[14px] font-semibold transition hover:bg-white/90 shadow-lg shadow-white/10"
             >
-              Get Started Free
+              Join the Waitlist
               <ArrowRight size={15} />
             </a>
           </motion.div>

@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/cn";
 import { Nav } from "@/components/nav";
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.infiniview.dev";
 const DOCS_URL = process.env.NEXT_PUBLIC_DOCS_URL ?? "https://docs.infiniview.dev";
 
 const fadeUp = {
@@ -106,14 +105,14 @@ const PRICING_TIERS = [
     scans: "50 scans/mo · 1 seat",
     desc: "For indie hackers and side projects that need basic code security coverage.",
     bullets: ["AI code review on every PR", "3 static security scanners", "Basic vulnerability detection", "GitHub integration", "Community support"],
-    cta: "Start Free", href: APP_URL, highlight: false,
+    cta: "Join Waitlist", href: "#waitlist", highlight: false,
   },
   {
     tag: "[02] / PRO", name: "Pro", price: "$59", unit: "/seat/month, billed annual",
     scans: "Unlimited scans · up to 25 seats",
     desc: "Full-stack security for production teams shipping fast.",
     bullets: ["Everything in Starter", "All 30+ static scanners", "Runtime attack agents", "AI interaction testing", "Cloud sandbox environments", "Secrets management (AES-256)", "Priority findings & fix suggestions", "Email & in-app notifications"],
-    cta: "Start 14-Day Trial", href: APP_URL, highlight: true,
+    cta: "Join Waitlist", href: "#waitlist", highlight: true,
   },
   {
     tag: "[03] / ENTERPRISE", name: "Enterprise", price: "Custom", unit: "volume-based",
@@ -127,9 +126,47 @@ const PRICING_TIERS = [
 const FAQS = [
   { q: "What counts as a scan?", a: "A scan is triggered each time Infiniview analyzes a pull request or runs on-demand from the CLI. Each scan includes code review, security analysis, and any enabled testing agents." },
   { q: "Can I switch plans anytime?", a: "Yes. Upgrade, downgrade, or cancel anytime. When upgrading, you get prorated credit for the remainder of your billing cycle." },
-  { q: "Do you offer a free trial for Pro?", a: "Every Pro plan starts with a 14-day free trial with full access. No credit card required." },
+  { q: "How do I get access?", a: "Join the waitlist and we'll invite you as spots open. Early waitlist members get priority access and launch pricing." },
   { q: "Is my code safe?", a: "All code is analyzed inside isolated cloud sandboxes and never stored after the scan completes. Sandboxes are destroyed immediately after each run." },
 ];
+
+/* ─── Waitlist Form ─── */
+
+function WaitlistForm({ id, className }: { id?: string; className?: string }) {
+  const [email, setEmail] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+
+  if (submitted) {
+    return (
+      <div id={id} className={cn("font-mono text-[15px] text-lime py-4", className)}>
+        you're on the list. we'll be in touch.
+      </div>
+    );
+  }
+
+  return (
+    <form
+      id={id}
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (email) setSubmitted(true);
+      }}
+      className={cn("flex gap-2 items-stretch flex-wrap sm:flex-nowrap", className)}
+    >
+      <input
+        type="email"
+        required
+        placeholder="you@company.com"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        className="font-mono text-sm bg-bg-elevated border border-border px-4 py-4 text-text placeholder:text-text-muted focus:outline-none focus:border-lime w-full sm:w-[260px]"
+      />
+      <button type="submit" className="btn-lime text-[15px] px-5 py-4 tracking-[-0.015em] whitespace-nowrap">
+        JOIN WAITLIST →
+      </button>
+    </form>
+  );
+}
 
 /* ─── Hero ─── */
 
@@ -161,17 +198,12 @@ function Hero() {
           </div>
 
           <div className="flex flex-col gap-3 items-start">
-            <a
-              href={APP_URL}
-              className="btn-lime text-[17px] md:text-[19px] px-5 md:px-[26px] py-4 md:py-5 tracking-[-0.015em]"
-            >
-              GET STARTED →
-            </a>
+            <WaitlistForm id="waitlist" />
             <a href={DOCS_URL} className="btn-ghost px-5 py-[15px]">
               read the docs
             </a>
             <div className="font-mono text-[11.5px] text-text-muted mt-2.5">
-              14-day free trial on Pro · no card needed
+              join the waitlist for early access
             </div>
             <div className="font-mono text-[11px] text-text-secondary mt-1 flex gap-3.5 flex-wrap">
               <span><span className="text-lime">●</span> indie</span>
@@ -560,7 +592,7 @@ function Pricing() {
               </motion.h2>
             </div>
             <motion.div variants={fadeUp} custom={2} className="font-mono text-[13px] text-text-muted max-w-[320px] leading-relaxed">
-              Start free. Upgrade when you need runtime attacks, interaction testing, and team-wide controls. Annual saves 25%.
+              Join the waitlist to lock in launch pricing. Plans for indie hackers, startups, and enterprise.
             </motion.div>
           </div>
         </motion.div>
@@ -715,10 +747,10 @@ function ChallengeCTA() {
             </p>
             <div className="mt-7 flex gap-2.5 flex-wrap">
               <a
-                href={`${APP_URL}/login`}
+                href="#waitlist"
                 className="font-mono bg-bg text-lime font-bold text-sm px-6 py-[18px] tracking-[0.02em]"
               >
-                BREAK MY PRODUCT →
+                JOIN THE WAITLIST →
               </a>
               <a
                 href={DOCS_URL}
