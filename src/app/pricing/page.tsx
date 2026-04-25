@@ -63,17 +63,17 @@ const PLANS = [
     cta: "Join Waitlist",
     ctaHref: WAITLIST_HREF,
     traits: [
-      { icon: Zap, text: "All 25 scanners" },
+      { icon: Zap, text: "Full scanner suite" },
       { icon: Shield, text: "Runtime attack agents" },
       { icon: Eye, text: "AI interaction testing" },
     ],
     features: [
       "Everything in Starter",
-      "All 25 scanners",
+      "Full scanner suite",
       "Runtime attack agents",
       "AI interaction testing",
       "Cloud sandbox environments",
-      "Secrets management (AES-256)",
+      "Encrypted secrets management",
       "Priority findings & fix suggestions",
       "Email & in-app notifications",
     ],
@@ -126,7 +126,7 @@ const FAQS = [
   },
   {
     q: "Is my code safe?",
-    a: "Your code runs inside isolated Daytona cloud sandboxes. Sandbox-local files, logs, and processes are torn down after each scan. Findings, proof bundles, and scan metadata persist so you can review results in the dashboard.",
+    a: "Your code runs inside isolated cloud sandboxes. Sandbox-local files, logs, and processes are torn down after each scan. Findings, proof bundles, and scan metadata persist so you can review results in the dashboard.",
   },
 ];
 

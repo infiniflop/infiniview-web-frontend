@@ -1,17 +1,3 @@
-/**
- * Waitlist API Route
- *
- * Requires a Neon Postgres database. Set DATABASE_URL in your environment.
- *
- * Run this SQL to create the table:
- *
- *   CREATE TABLE IF NOT EXISTS waitlist (
- *     id SERIAL PRIMARY KEY,
- *     email TEXT UNIQUE NOT NULL,
- *     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
- *   );
- */
-
 import { neon } from "@neondatabase/serverless";
 
 export async function POST(request: Request) {

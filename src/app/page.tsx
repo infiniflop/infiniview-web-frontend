@@ -23,11 +23,11 @@ const stagger = {
 /* ─── Data ─── */
 
 const WIRE_EVENTS = [
-  { phase: "phase A", agent: "orchestrator", msg: "sandboxes provisioned", color: "text-amber" },
-  { phase: "phase B", agent: "code-review", msg: "logic + type-safety pass", color: "text-cyan" },
-  { phase: "phase B", agent: "runtime-attack", msg: "SSRF probe → metadata reached", color: "text-red" },
-  { phase: "phase B", agent: "interaction", msg: "form fuzzed · stored XSS", color: "text-red" },
-  { phase: "phase C", agent: "orchestrator", msg: "proof bundle assembled", color: "text-lime" },
+  { phase: "setup", agent: "pipeline", msg: "sandboxes provisioned", color: "text-amber" },
+  { phase: "scan", agent: "code-review", msg: "logic + type-safety pass", color: "text-cyan" },
+  { phase: "scan", agent: "runtime-attack", msg: "runtime weakness confirmed", color: "text-red" },
+  { phase: "scan", agent: "interaction", msg: "interaction issue reproduced", color: "text-red" },
+  { phase: "report", agent: "pipeline", msg: "proof bundle assembled", color: "text-lime" },
 ];
 
 const MARQUEE_ITEMS = [
@@ -39,24 +39,24 @@ const MARQUEE_ITEMS = [
 
 const PIPELINE_STEPS = [
   { n: "01", tag: "TRIGGER", h: "Open a PR or use the dashboard.", d: "Infiniview picks it up instantly. Trigger from a pull request, an @infiniview review comment, or the dashboard." },
-  { n: "02", tag: "SANDBOX", h: "A Daytona cloud environment spins up.", d: "Your repo is cloned, built, and deployed in isolation. Two sandboxes per scan — one for setup and interaction, one for security verification." },
-  { n: "03", tag: "AGENTS", h: "Code review, scanners, attackers, and interaction testers run in parallel.", d: "The orchestrator dispatches specialized agents simultaneously. Each has its own model, tools, and objectives." },
+  { n: "02", tag: "SANDBOX", h: "An isolated cloud environment spins up.", d: "Your repo is cloned, built, and deployed in a secure sandbox — fully isolated from production." },
+  { n: "03", tag: "AGENTS", h: "Code review, scanners, attackers, and interaction testers run in parallel.", d: "Specialized agents run simultaneously — reviewing code, testing interactions, and probing for vulnerabilities." },
   { n: "04", tag: "ENRICH", h: "Results are deduplicated and correlated.", d: "Findings are linked through the code graph and enriched with fix suggestions before anything ships to your PR." },
   { n: "05", tag: "REPORT", h: "Forensic findings land in the dashboard.", d: "Proof bundles you can replay, export, and compare across runs. Output also posts to the PR." },
 ];
 
 const AGENTS = [
-  { tag: "01 / ORCHESTRATOR", model: "GPT 5.5", h: "Orchestrator", d: "Coordinates the entire pipeline, dispatches specialized agents, synthesizes final reports, and decides when deeper investigation is needed." },
-  { tag: "02 / CODE REVIEW", model: "GPT 5.5", h: "Code Review Agents", d: "Parallel agents analyze code changes for logic bugs, performance issues, type safety violations, and style problems." },
-  { tag: "03 / INTERACTION", model: "GPT 5.5", h: "Interaction Testing", d: "Uses computer vision to interact with your running app — fills forms, clicks buttons, injects payloads, discovers broken flows, and tests every user path." },
-  { tag: "04 / RUNTIME ATTACK", model: "Multiple Agents", h: "Runtime Attack Agents", d: "AI-driven agents for injection testing, auth attacks, API fuzzing, SSRF probing, session hijacking, prompt injection, and more." },
+  { tag: "01 / COORDINATION", model: "Frontier AI", h: "Review Coordinator", d: "Coordinates the entire pipeline, dispatches specialized agents, synthesizes final reports, and decides when deeper investigation is needed." },
+  { tag: "02 / CODE REVIEW", model: "Frontier AI", h: "Code Review Agents", d: "Parallel agents analyze code changes for logic bugs, performance issues, type safety violations, and style problems." },
+  { tag: "03 / INTERACTION", model: "Specialized AI", h: "Interaction Testing", d: "Uses computer vision to interact with your running app — fills forms, clicks buttons, injects payloads, discovers broken flows, and tests every user path." },
+  { tag: "04 / RUNTIME ATTACK", model: "Runtime Agents", h: "Runtime Attack Agents", d: "AI-driven agents for injection testing, auth attacks, API fuzzing, SSRF probing, session hijacking, prompt injection, and more." },
 ];
 
 const SCANNER_GROUPS = [
-  { label: "Static Analysis", items: ["Semgrep", "ESLint Security", "Bandit", "gosec", "Brakeman", "SpotBugs", "PHPStan", "Bearer", "njsscan", "SonarQube"] },
-  { label: "Dependency Audit", items: ["npm audit", "pip-audit", "cargo-audit", "OSV Scanner", "Safety", "Grype", "Retire.js", "Snyk Open Source"] },
-  { label: "Secrets Detection", items: ["Gitleaks", "detect-secrets", "TruffleHog"] },
-  { label: "Configuration & IaC", items: ["Trivy", "Checkov", "tfsec", "Hadolint", "kube-linter"] },
+  { label: "Static Analysis", items: ["Multi-language SAST", "Type & safety checks", "Taint analysis", "Framework-aware rules"] },
+  { label: "Dependency Audit", items: ["Known CVE detection", "License compliance", "Transitive dependency analysis", "Supply chain risk"] },
+  { label: "Secrets Detection", items: ["Credential scanning", "API key detection", "Entropy analysis"] },
+  { label: "Configuration & IaC", items: ["Container security", "Infrastructure misconfigs", "Policy enforcement", "Manifest validation"] },
 ];
 
 const RUNTIME_AGENTS: [string, string][] = [
@@ -86,11 +86,11 @@ const INTERACTION_TESTS: [string, string][] = [
 
 const FEATURES: [string, string][] = [
   ["Forensic Findings", "Every finding includes root-cause evidence, affected code paths, and suggested fixes — all browsable in a dedicated viewer."],
-  ["Cloud Sandboxes", "Every scan runs in an isolated Daytona cloud environment. Deployed, tested, and torn down automatically."],
+  ["Cloud Sandboxes", "Every scan runs in an isolated cloud environment. Deployed, tested, and torn down automatically."],
   ["Scan Activity Timeline", "Live timeline of every agent action, finding, and decision — searchable and replayable after each run."],
   ["Command Palette", "Cmd+K search across reviews, security findings, settings, security configuration, and scan history."],
-  ["Secrets Management", "Per-repo encrypted secrets stored with AES-256-GCM. Injected into sandboxes at runtime."],
-  ["LLM Reasoning Engine", "AI-augmented vulnerability chain detection. LLMs analyze the code graph to discover multi-step attack paths."],
+  ["Secrets Management", "Per-repo encrypted secrets injected into sandboxes at runtime."],
+  ["Attack Path Analysis", "AI-augmented vulnerability chain detection. Analyzes the code graph to discover multi-step attack paths."],
   ["Self-Learning", "Learned patterns now feed prioritization, runtime planning, and finding evidence on future scans."],
   ["Configurable Scans", "Toggle scanners and agents per-repo. Set auto-review, PR filters, and notifications."],
   ["Compliance Reports", "Generate security compliance reports for SOC 2, ISO 27001, and internal audit requirements."],
@@ -108,7 +108,7 @@ const PRICING_TIERS = [
     tag: "[02] / PRO", name: "Pro", price: "TBD", unit: "",
     scans: "Early access",
     desc: "Full-stack security for production teams shipping fast.",
-    bullets: ["Everything in Starter", "All 25 scanners", "Runtime attack agents", "AI interaction testing", "Cloud sandbox environments", "Secrets management (AES-256)", "Priority findings & fix suggestions", "Email & in-app notifications"],
+    bullets: ["Everything in Starter", "Full scanner suite", "Runtime attack agents", "AI interaction testing", "Cloud sandbox environments", "Encrypted secrets management", "Priority findings & fix suggestions", "Email & in-app notifications"],
     cta: "Join Waitlist", href: "#waitlist", highlight: true,
   },
   {
@@ -124,7 +124,7 @@ const FAQS = [
   { q: "What counts as a scan?", a: "A scan is triggered each time Infiniview analyzes a pull request or runs on-demand from the dashboard. Each scan includes code review, security analysis, and any enabled testing agents." },
   { q: "How does billing work?", a: "Billing is handled through our payment provider. Plan details will be finalized before launch — join the waitlist for updates." },
   { q: "How do I get access?", a: "Join the waitlist and we'll invite you as spots open. Early waitlist members get priority access and launch pricing." },
-  { q: "Is my code safe?", a: "Your code runs inside isolated Daytona cloud sandboxes. Sandbox-local files, logs, and processes are torn down after each scan. Findings, proof bundles, and scan metadata persist so you can review results in the dashboard." },
+  { q: "Is my code safe?", a: "Your code runs inside isolated cloud sandboxes. Sandbox-local files, logs, and processes are torn down after each scan. Findings, proof bundles, and scan metadata persist so you can review results in the dashboard." },
 ];
 
 /* ─── Waitlist Form ─── */
@@ -393,7 +393,7 @@ function AgentSystem() {
               </motion.h2>
             </div>
             <motion.div variants={fadeUp} custom={2} className="font-mono text-[13px] text-text-muted max-w-[340px] leading-relaxed">
-              Each agent has distinct models, tools, and objectives — reviewing, attacking, and stress-testing your code simultaneously.
+              Each agent is purpose-built for its role — reviewing, attacking, and stress-testing your code simultaneously.
             </motion.div>
           </div>
         </motion.div>
