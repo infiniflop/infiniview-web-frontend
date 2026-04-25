@@ -30,6 +30,9 @@
     "typescript": "^6.0.2"
   },
   "pnpm": {
+    "ignoredBuiltDependencies": [
+      "msw"
+    ],
     "onlyBuiltDependencies": [
       "sharp"
     ]
