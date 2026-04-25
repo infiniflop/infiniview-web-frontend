@@ -172,7 +172,7 @@ function WaitlistForm({ id, className }: { id?: string; className?: string }) {
 
 function Hero() {
   return (
-    <section id="top" className="relative overflow-hidden border-b border-border">
+    <section className="relative overflow-hidden border-b border-border">
       <div className="adv-grid-bg absolute inset-0 opacity-[0.32]" />
       <div
         className="absolute inset-0"
@@ -798,7 +798,7 @@ function Footer() {
 
 export default function LandingPage() {
   return (
-    <>
+    <div id="top">
       <Nav />
       <main>
         <Hero />
@@ -812,6 +812,6 @@ export default function LandingPage() {
         <ChallengeCTA />
       </main>
       <Footer />
-    </>
+    </div>
   );
 }

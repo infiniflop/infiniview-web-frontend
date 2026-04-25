@@ -38,9 +38,19 @@ export function Nav({ activePath }: { activePath?: string } = {}) {
           ))}
         </div>
 
-        <a href="/#waitlist" className="btn-lime font-mono text-xs px-4 py-2.5 tracking-[0.02em]">
+        <button
+          type="button"
+          onClick={() => {
+            const form = document.getElementById("waitlist");
+            if (!form) return;
+            form.scrollIntoView({ behavior: "smooth", block: "center" });
+            const input = form.querySelector<HTMLInputElement>("input[type='email']");
+            if (input) setTimeout(() => input.focus(), 600);
+          }}
+          className="btn-lime font-mono text-xs px-4 py-2.5 tracking-[0.02em]"
+        >
           JOIN WAITLIST →
-        </a>
+        </button>
       </div>
     </nav>
   );
