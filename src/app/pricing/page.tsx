@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import {
   Terminal,
   Check,
@@ -11,17 +10,11 @@ import {
   Building2,
   Sparkles,
   Bot,
-  Clock,
-  RotateCcw,
-  Infinity as InfinityIcon,
-  Users,
   Lock,
   Headphones,
-  Server,
-  X,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/cn";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 import { Nav } from "@/components/nav";
 
 const WAITLIST_HREF = "/#waitlist";
@@ -35,21 +28,22 @@ const PLANS = [
     id: "starter",
     name: "Starter",
     desc: "For indie hackers and side projects that need basic code security coverage.",
-    monthlyPrice: 0,
-    annualPrice: 0,
-    unit: "/month",
-    scans: "50 scans/mo",
+    monthlyPrice: null,
+    annualPrice: null,
+    priceLabel: "Free",
+    unit: "",
+    scans: "Early access",
     highlighted: false,
     cta: "Join Waitlist",
     ctaHref: WAITLIST_HREF,
     traits: [
-      { icon: Clock, text: "Results in ~2 min" },
-      { icon: RotateCcw, text: "1 re-scan per PR" },
-      { icon: Users, text: "1 seat" },
+      { icon: Shield, text: "Static security scanners" },
+      { icon: Eye, text: "AI code review on PRs" },
+      { icon: Bot, text: "GitHub integration" },
     ],
     features: [
-      "AI code review on every PR",
-      "3 static security scanners",
+      "AI code review on PRs",
+      "Static security scanners",
       "Basic vulnerability detection",
       "GitHub integration",
       "Community support",
@@ -58,23 +52,24 @@ const PLANS = [
   {
     id: "pro",
     name: "Pro",
-    badge: "Save 25%",
+    badge: "Most Popular",
     desc: "Full-stack security for production teams shipping fast.",
-    monthlyPrice: 79,
-    annualPrice: 59,
-    unit: "/seat/month",
-    scans: "Unlimited scans",
+    monthlyPrice: null,
+    annualPrice: null,
+    priceLabel: "TBD",
+    unit: "",
+    scans: "Early access",
     highlighted: true,
     cta: "Join Waitlist",
     ctaHref: WAITLIST_HREF,
     traits: [
-      { icon: Zap, text: "Results in ~30s" },
-      { icon: InfinityIcon, text: "Unlimited re-scans" },
-      { icon: Users, text: "Up to 25 seats" },
+      { icon: Zap, text: "All 25 scanners" },
+      { icon: Shield, text: "Runtime attack agents" },
+      { icon: Eye, text: "AI interaction testing" },
     ],
     features: [
       "Everything in Starter",
-      "All 30+ static scanners",
+      "All 25 scanners",
       "Runtime attack agents",
       "AI interaction testing",
       "Cloud sandbox environments",
@@ -92,42 +87,38 @@ const PLANS = [
     annualPrice: null,
     priceLabel: "Custom",
     unit: "",
-    scans: "Volume-based",
+    scans: "Contact us",
     highlighted: false,
     cta: "Talk to Sales",
     ctaHref: "mailto:sales@infiniview.dev",
     traits: [
-      { icon: Server, text: "Self-hosted option" },
-      { icon: Lock, text: "SSO (roadmap)" },
+      { icon: Building2, text: "Custom agent configs" },
+      { icon: Lock, text: "Compliance roadmap" },
       { icon: Headphones, text: "Dedicated engineer" },
     ],
     features: [
       "Everything in Pro",
-      "Unlimited seats",
       "Custom agent configurations",
       "Compliance roadmap (SOC 2, ISO)",
-      "Priority uptime SLA",
-      "Private cloud deployment",
-      "Team roles & permissions",
       "Dedicated integration support",
     ],
   },
 ];
 
-const SCAN_CREDITS = [
-  { label: "PR Scan", value: "1 credit", color: "bg-accent" },
-  { label: "Full Security Audit", value: "3 credits", color: "bg-teal" },
-  { label: "CLI On-Demand", value: "1 credit", color: "bg-cyan" },
+const PLAN_NOTES = [
+  { label: "PR triggers", value: "Automated", color: "bg-accent" },
+  { label: "Dashboard scans", value: "On-demand", color: "bg-teal" },
+  { label: "Pricing", value: "Finalized before launch", color: "bg-cyan" },
 ];
 
 const FAQS = [
   {
     q: "What counts as a scan?",
-    a: "A scan is triggered each time Infiniview analyzes a pull request or runs on-demand from the CLI. Each scan includes code review, security analysis, and any enabled testing agents.",
+    a: "A scan is triggered each time Infiniview analyzes a pull request or runs on-demand from the dashboard. Each scan includes code review, security analysis, and any enabled testing agents.",
   },
   {
-    q: "Can I switch plans anytime?",
-    a: "Yes. Upgrade, downgrade, or cancel anytime. When upgrading, you get prorated credit for the remainder of your billing cycle.",
+    q: "How does billing work?",
+    a: "Billing is handled through our payment provider. Plan details will be finalized before launch — join the waitlist for updates.",
   },
   {
     q: "How do I get access?",
@@ -135,7 +126,7 @@ const FAQS = [
   },
   {
     q: "Is my code safe?",
-    a: "All code is analyzed inside isolated cloud sandboxes and never stored after the scan completes. Sandboxes are destroyed immediately after each run.",
+    a: "Your code runs inside isolated Daytona cloud sandboxes. Sandbox-local files, logs, and processes are torn down after each scan. Findings, proof bundles, and scan metadata persist so you can review results in the dashboard.",
   },
 ];
 
@@ -144,7 +135,6 @@ const FAQS = [
 /* -------------------------------------------------------------------------- */
 
 export default function PricingPage() {
-  const [isAnnual, setIsAnnual] = useState(true);
 
   return (
     <>
@@ -183,44 +173,16 @@ export default function PricingPage() {
             </p>
           </motion.div>
 
-          {/* ── Billing Toggle ── */}
+          {/* ── Early Access Note ── */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3, duration: 0.5 }}
-            className="mt-8 flex items-center justify-center gap-3"
+            className="mt-8 flex items-center justify-center"
           >
-            <span className={cn("text-[13px] font-medium transition-colors", !isAnnual ? "text-text" : "text-text-muted")}>
-              Monthly
+            <span className="text-[13px] font-medium text-text-muted">
+              Pricing finalized before launch — waitlist members get priority access
             </span>
-            <button
-              onClick={() => setIsAnnual((v) => !v)}
-              className="relative h-7 w-[52px] rounded-full bg-white/[0.08] backdrop-blur-sm transition hover:bg-white/[0.12]"
-            >
-              <motion.div
-                layout
-                transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                className={cn(
-                  "absolute top-[3px] h-[18px] w-[18px] rounded-full bg-accent shadow-lg shadow-accent/30",
-                  isAnnual ? "left-[29px]" : "left-[3px]"
-                )}
-              />
-            </button>
-            <span className={cn("text-[13px] font-medium transition-colors", isAnnual ? "text-text" : "text-text-muted")}>
-              Annual
-            </span>
-            <AnimatePresence>
-              {isAnnual && (
-                <motion.span
-                  initial={{ opacity: 0, scale: 0.8, x: -6 }}
-                  animate={{ opacity: 1, scale: 1, x: 0 }}
-                  exit={{ opacity: 0, scale: 0.8, x: -6 }}
-                  className="rounded-full bg-teal/[0.12] px-2.5 py-0.5 text-[11px] font-bold text-teal"
-                >
-                  Save 25%
-                </motion.span>
-              )}
-            </AnimatePresence>
           </motion.div>
 
           {/* ── Pricing Container (glassmorphic) ── */}
@@ -242,8 +204,6 @@ export default function PricingPage() {
 
             <div className="grid gap-3 lg:grid-cols-3">
               {PLANS.map((plan, i) => {
-                const price = isAnnual ? plan.annualPrice : plan.monthlyPrice;
-
                 return (
                   <motion.div
                     key={plan.id}
@@ -278,29 +238,9 @@ export default function PricingPage() {
 
                     {/* Price */}
                     <div className="mb-5">
-                      {price !== null ? (
-                        <div className="flex items-baseline gap-1">
-                          <AnimatePresence mode="wait">
-                            <motion.span
-                              key={isAnnual ? "annual" : "monthly"}
-                              initial={{ opacity: 0, y: -10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0, y: 10 }}
-                              transition={{ duration: 0.2 }}
-                              className="text-[42px] font-extrabold tracking-tight text-white leading-none"
-                            >
-                              ${price}
-                            </motion.span>
-                          </AnimatePresence>
-                          {price > 0 && (
-                            <span className="text-[13px] text-white/30 ml-1">{plan.unit}</span>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="text-[42px] font-extrabold tracking-tight text-white leading-none">
-                          {plan.priceLabel}
-                        </span>
-                      )}
+                      <span className="text-[42px] font-extrabold tracking-tight text-white leading-none">
+                        {plan.priceLabel}
+                      </span>
                       <p className="mt-1 text-[12px] font-medium text-white/30">{plan.scans}</p>
                     </div>
 
@@ -332,14 +272,13 @@ export default function PricingPage() {
               })}
             </div>
 
-            {/* Credit cost bar */}
+            {/* Plan notes bar */}
             <div className="mt-4 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 rounded-full bg-white/[0.03] px-6 py-3">
-              <span className="text-[12px] font-medium text-white/30">Scan Credits:</span>
-              {SCAN_CREDITS.map((c) => (
+              {PLAN_NOTES.map((c) => (
                 <div key={c.label} className="flex items-center gap-2">
                   <div className={cn("h-1.5 w-1.5 rounded-full", c.color)} />
                   <span className="text-[12px] text-white/50">
-                    <strong className="text-white/70 font-medium">{c.label}</strong> = {c.value}
+                    <strong className="text-white/70 font-medium">{c.label}</strong>: {c.value}
                   </span>
                 </div>
               ))}

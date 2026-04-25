@@ -18,7 +18,7 @@ const jetbrains = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "Infiniview — attack your code before anyone else does",
   description:
-    "Continuous adversarial review for your codebase. Every pull request gets attacked the way a real outsider would, with reproducible proof and a suggested fix — never a wall of warnings.",
+    "Continuous adversarial review for your codebase. Pull requests and on-demand scans are reviewed with AI agents that attack the way a real outsider would, with reproducible proof and a suggested fix — never a wall of warnings.",
 };
 
 export default function RootLayout({

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/utils";
 import { Nav } from "@/components/nav";
 
 const DOCS_URL = process.env.NEXT_PUBLIC_DOCS_URL ?? "https://docs.infiniview.dev";
@@ -34,11 +34,11 @@ const MARQUEE_ITEMS = [
   "INJECTION", "AUTH ATTACKS", "API FUZZING", "SSRF", "CORS",
   "SESSION HIJACKING", "PROMPT INJECTION", "RATE LIMIT", "CRYPTO AUDIT",
   "FILE UPLOAD", "BIZ-LOGIC", "UI CRAWL", "XSS PAYLOADS", "AUTH FLOWS",
-  "MULTI-TAB RACE", "PAYMENT FLOWS", "NETWORK RESILIENCE", "ACCESSIBILITY",
+  "MULTI-TAB RACE",
 ];
 
 const PIPELINE_STEPS = [
-  { n: "01", tag: "TRIGGER", h: "Run the CLI or click the dashboard.", d: "Infiniview picks it up instantly. Trigger from a pull request, a GitHub comment, the dashboard, or the CLI." },
+  { n: "01", tag: "TRIGGER", h: "Open a PR or use the dashboard.", d: "Infiniview picks it up instantly. Trigger from a pull request, an @infiniview review comment, or the dashboard." },
   { n: "02", tag: "SANDBOX", h: "A Daytona cloud environment spins up.", d: "Your repo is cloned, built, and deployed in isolation. Two sandboxes per scan — one for setup and interaction, one for security verification." },
   { n: "03", tag: "AGENTS", h: "Code review, scanners, attackers, and interaction testers run in parallel.", d: "The orchestrator dispatches specialized agents simultaneously. Each has its own model, tools, and objectives." },
   { n: "04", tag: "ENRICH", h: "Results are deduplicated and correlated.", d: "Findings are linked through the code graph and enriched with fix suggestions before anything ships to your PR." },
@@ -46,18 +46,17 @@ const PIPELINE_STEPS = [
 ];
 
 const AGENTS = [
-  { tag: "01 / ORCHESTRATOR", model: "Claude Opus 4.6", h: "Orchestrator", d: "Coordinates the entire pipeline, dispatches specialized agents, synthesizes final reports, and decides when deeper investigation is needed." },
-  { tag: "02 / CODE REVIEW", model: "GPT 5.4", h: "Code Review Agents", d: "Parallel agents analyze code changes for logic bugs, performance issues, type safety violations, and style problems." },
-  { tag: "03 / INTERACTION", model: "GPT 5.4", h: "Interaction Testing", d: "Uses computer vision to interact with your running app — fills forms, clicks buttons, injects payloads, discovers broken flows, and tests every user path." },
+  { tag: "01 / ORCHESTRATOR", model: "GPT 5.5", h: "Orchestrator", d: "Coordinates the entire pipeline, dispatches specialized agents, synthesizes final reports, and decides when deeper investigation is needed." },
+  { tag: "02 / CODE REVIEW", model: "GPT 5.5", h: "Code Review Agents", d: "Parallel agents analyze code changes for logic bugs, performance issues, type safety violations, and style problems." },
+  { tag: "03 / INTERACTION", model: "GPT 5.5", h: "Interaction Testing", d: "Uses computer vision to interact with your running app — fills forms, clicks buttons, injects payloads, discovers broken flows, and tests every user path." },
   { tag: "04 / RUNTIME ATTACK", model: "Multiple Agents", h: "Runtime Attack Agents", d: "AI-driven agents for injection testing, auth attacks, API fuzzing, SSRF probing, session hijacking, prompt injection, and more." },
 ];
 
 const SCANNER_GROUPS = [
-  { label: "Static Analysis", items: ["Semgrep", "ESLint Security", "Bandit", "gosec", "Brakeman", "SpotBugs", "PHPStan", "Bearer", "njsscan", "CodeQL", "SonarQube", "Snyk Code"] },
+  { label: "Static Analysis", items: ["Semgrep", "ESLint Security", "Bandit", "gosec", "Brakeman", "SpotBugs", "PHPStan", "Bearer", "njsscan", "SonarQube"] },
   { label: "Dependency Audit", items: ["npm audit", "pip-audit", "cargo-audit", "OSV Scanner", "Safety", "Grype", "Retire.js", "Snyk Open Source"] },
   { label: "Secrets Detection", items: ["Gitleaks", "detect-secrets", "TruffleHog"] },
   { label: "Configuration & IaC", items: ["Trivy", "Checkov", "tfsec", "Hadolint", "kube-linter"] },
-  { label: "License Compliance", items: ["FOSSA", "license-checker", "cargo-deny"] },
 ];
 
 const RUNTIME_AGENTS: [string, string][] = [
@@ -82,9 +81,7 @@ const INTERACTION_TESTS: [string, string][] = [
   ["Auth Flow Testing", "Tests login, signup, password reset, and session flows for broken auth, privilege escalation, and token leaks."],
   ["Deep Link & Navigation", "Tests direct URL access, back-button behavior, deep links, and route guards to find auth bypass paths."],
   ["Multi-Tab Concurrency", "Opens multiple tabs with the same session to find race conditions, stale state, and synchronization bugs."],
-  ["Payment & Transaction Flows", "Tests checkout, payment, and financial flows for double-charge, amount manipulation, and step-skipping."],
-  ["Network Resilience", "Simulates slow connections, timeouts, and disconnects to find error handling failures and data loss."],
-  ["Accessibility Probing", "Verifies keyboard navigation, screen reader compatibility, focus traps, and ARIA correctness across all views."],
+  ["Business Logic Probing", "Tests transaction flows, step-skipping, parameter manipulation, and logic bypasses that static analysis cannot catch."],
 ];
 
 const FEATURES: [string, string][] = [
@@ -101,45 +98,73 @@ const FEATURES: [string, string][] = [
 
 const PRICING_TIERS = [
   {
-    tag: "[01] / STARTER", name: "Starter", price: "$0", unit: "/month",
-    scans: "50 scans/mo · 1 seat",
+    tag: "[01] / STARTER", name: "Starter", price: "Free", unit: "",
+    scans: "Early access",
     desc: "For indie hackers and side projects that need basic code security coverage.",
-    bullets: ["AI code review on every PR", "3 static security scanners", "Basic vulnerability detection", "GitHub integration", "Community support"],
+    bullets: ["AI code review on PRs", "Static security scanners", "Basic vulnerability detection", "GitHub integration", "Community support"],
     cta: "Join Waitlist", href: "#waitlist", highlight: false,
   },
   {
-    tag: "[02] / PRO", name: "Pro", price: "$59", unit: "/seat/month, billed annual",
-    scans: "Unlimited scans · up to 25 seats",
+    tag: "[02] / PRO", name: "Pro", price: "TBD", unit: "",
+    scans: "Early access",
     desc: "Full-stack security for production teams shipping fast.",
-    bullets: ["Everything in Starter", "All 30+ static scanners", "Runtime attack agents", "AI interaction testing", "Cloud sandbox environments", "Secrets management (AES-256)", "Priority findings & fix suggestions", "Email & in-app notifications"],
+    bullets: ["Everything in Starter", "All 25 scanners", "Runtime attack agents", "AI interaction testing", "Cloud sandbox environments", "Secrets management (AES-256)", "Priority findings & fix suggestions", "Email & in-app notifications"],
     cta: "Join Waitlist", href: "#waitlist", highlight: true,
   },
   {
-    tag: "[03] / ENTERPRISE", name: "Enterprise", price: "Custom", unit: "volume-based",
-    scans: "Unlimited seats",
+    tag: "[03] / ENTERPRISE", name: "Enterprise", price: "Custom", unit: "",
+    scans: "Contact us",
     desc: "Custom security infrastructure for teams that need full control.",
-    bullets: ["Everything in Pro", "Unlimited seats", "Custom agent configurations", "Compliance roadmap (SOC 2, ISO)", "Priority uptime SLA", "Private cloud deployment", "Team roles & permissions", "Dedicated integration support"],
+    bullets: ["Everything in Pro", "Custom agent configurations", "Compliance roadmap (SOC 2, ISO)", "Dedicated integration support"],
     cta: "Talk to Sales", href: "mailto:sales@infiniview.dev", highlight: false,
   },
 ];
 
 const FAQS = [
-  { q: "What counts as a scan?", a: "A scan is triggered each time Infiniview analyzes a pull request or runs on-demand from the CLI. Each scan includes code review, security analysis, and any enabled testing agents." },
-  { q: "Can I switch plans anytime?", a: "Yes. Upgrade, downgrade, or cancel anytime. When upgrading, you get prorated credit for the remainder of your billing cycle." },
+  { q: "What counts as a scan?", a: "A scan is triggered each time Infiniview analyzes a pull request or runs on-demand from the dashboard. Each scan includes code review, security analysis, and any enabled testing agents." },
+  { q: "How does billing work?", a: "Billing is handled through our payment provider. Plan details will be finalized before launch — join the waitlist for updates." },
   { q: "How do I get access?", a: "Join the waitlist and we'll invite you as spots open. Early waitlist members get priority access and launch pricing." },
-  { q: "Is my code safe?", a: "All code is analyzed inside isolated cloud sandboxes and never stored after the scan completes. Sandboxes are destroyed immediately after each run." },
+  { q: "Is my code safe?", a: "Your code runs inside isolated Daytona cloud sandboxes. Sandbox-local files, logs, and processes are torn down after each scan. Findings, proof bundles, and scan metadata persist so you can review results in the dashboard." },
 ];
 
 /* ─── Waitlist Form ─── */
 
 function WaitlistForm({ id, className }: { id?: string; className?: string }) {
   const [email, setEmail] = useState("");
-  const [submitted, setSubmitted] = useState(false);
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "already" | "error" | "invalid">("idle");
 
-  if (submitted) {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setStatus("invalid");
+      return;
+    }
+
+    setStatus("loading");
+
+    try {
+      const res = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setStatus(data.message === "already_registered" ? "already" : "success");
+      } else {
+        setStatus("error");
+      }
+    } catch {
+      setStatus("error");
+    }
+  };
+
+  if (status === "success" || status === "already") {
     return (
       <div id={id} className={cn("font-mono text-[15px] text-lime py-4", className)}>
-        you're on the list. we'll be in touch.
+        {status === "already" ? "you're already on the list. we'll be in touch." : "you're on the list. we'll be in touch."}
       </div>
     );
   }
@@ -147,23 +172,35 @@ function WaitlistForm({ id, className }: { id?: string; className?: string }) {
   return (
     <form
       id={id}
-      onSubmit={(e) => {
-        e.preventDefault();
-        if (email) setSubmitted(true);
-      }}
-      className={cn("flex gap-2 items-stretch flex-wrap sm:flex-nowrap", className)}
+      onSubmit={handleSubmit}
+      className={cn("flex flex-col gap-2", className)}
     >
-      <input
-        type="email"
-        required
-        placeholder="you@company.com"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        className="font-mono text-sm bg-bg-elevated border border-border px-4 py-4 text-text placeholder:text-text-muted focus:outline-none focus:border-lime w-full sm:w-[260px]"
-      />
-      <button type="submit" className="btn-lime text-[15px] px-5 py-4 tracking-[-0.015em] whitespace-nowrap">
-        JOIN WAITLIST →
-      </button>
+      <div className="flex gap-2 items-stretch flex-wrap sm:flex-nowrap">
+        <input
+          type="email"
+          required
+          placeholder="you@company.com"
+          value={email}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            if (status === "invalid" || status === "error") setStatus("idle");
+          }}
+          className="font-mono text-sm bg-bg-elevated border border-border px-4 py-4 text-text placeholder:text-text-muted focus:outline-none focus:border-lime w-full sm:w-[260px]"
+        />
+        <button
+          type="submit"
+          disabled={status === "loading"}
+          className={cn("btn-lime text-[15px] px-5 py-4 tracking-[-0.015em] whitespace-nowrap", status === "loading" && "opacity-70 cursor-not-allowed")}
+        >
+          {status === "loading" ? "JOINING..." : "JOIN WAITLIST →"}
+        </button>
+      </div>
+      {status === "invalid" && (
+        <p className="font-mono text-xs text-red">enter a valid email address.</p>
+      )}
+      {status === "error" && (
+        <p className="font-mono text-xs text-red">something went wrong. try again.</p>
+      )}
     </form>
   );
 }
@@ -193,7 +230,7 @@ function Hero() {
         <div className="mt-16 md:mt-20 grid grid-cols-1 md:grid-cols-[1.05fr_0.95fr_1fr] gap-8 md:gap-12">
           <div>
             <p className="text-lg md:text-xl leading-relaxed text-[#c5c7c1] max-w-[480px]">
-              Infiniview deploys AI agents that scan, attack, and stress-test your code inside cloud sandboxes — then delivers forensic findings, proof bundles, and a readiness score so you ship with confidence.
+              Infiniview deploys AI agents that scan, attack, and stress-test your code inside cloud sandboxes — then delivers forensic findings, proof bundles, and trust and readiness diagnostics so you ship with confidence.
             </p>
           </div>
 
@@ -617,7 +654,7 @@ function Pricing() {
               <div className="font-mono flex justify-between text-[10.5px] tracking-[0.14em]">
                 <span className={t.highlight ? "text-lime" : "text-text-muted"}>{t.tag}</span>
                 {t.highlight ? (
-                  <span className="text-lime">◆ save 25%</span>
+                  <span className="text-lime">◆ early access</span>
                 ) : (
                   <span className="text-text-muted">·</span>
                 )}
@@ -654,9 +691,8 @@ function Pricing() {
         </motion.div>
 
         <div className="font-mono mt-[18px] text-[11px] text-text-muted flex gap-[22px] flex-wrap">
-          <span>▸ PR Scan = 1 credit</span>
-          <span>▸ Full Security Audit = 3 credits</span>
-          <span>▸ CLI On-Demand = 1 credit</span>
+          <span>▸ Plan details finalized before launch</span>
+          <span>▸ Waitlist members get priority access</span>
         </div>
       </div>
     </section>
