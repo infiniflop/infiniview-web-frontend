@@ -16,9 +16,21 @@ const jetbrains = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Infiniview — attack your code before anyone else does",
+  metadataBase: new URL("https://infiniview.dev"),
+  title: {
+    default: "Infiniview — attack your code before anyone else does",
+    template: "%s | Infiniview",
+  },
   description:
     "Continuous adversarial review for your codebase. Pull requests and on-demand scans are reviewed with AI agents that attack the way a real outsider would, with reproducible proof and a suggested fix — never a wall of warnings.",
+  openGraph: {
+    type: "website",
+    siteName: "Infiniview",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
 };
 
 export default function RootLayout({
