@@ -761,16 +761,16 @@ function FAQ() {
 
 function ChallengeCTA() {
   return (
-    <section id="challenge" className="relative overflow-hidden bg-lime text-bg">
+    <section id="challenge" className="relative overflow-hidden bg-lime text-[#07080b]">
       <div
         className="absolute inset-0 opacity-[0.08]"
         style={{
-          backgroundImage: "linear-gradient(var(--color-bg) 1px, transparent 1px), linear-gradient(90deg, var(--color-bg) 1px, transparent 1px)",
+          backgroundImage: "linear-gradient(#07080b 1px, transparent 1px), linear-gradient(90deg, #07080b 1px, transparent 1px)",
           backgroundSize: "60px 60px",
         }}
       />
       <div className="relative mx-auto max-w-[1440px] px-6 md:px-12 py-[120px]">
-        <div className="font-mono text-[11px] text-bg tracking-[0.18em] opacity-70">
+        <div className="font-mono text-[11px] text-[#07080b] tracking-[0.18em] opacity-70">
           [07] / CHALLENGE MODE
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-10 lg:gap-[60px] items-end mt-5">
@@ -784,13 +784,13 @@ function ChallengeCTA() {
             <div className="mt-7 flex gap-2.5 flex-wrap">
               <a
                 href="#waitlist"
-                className="font-mono bg-bg text-lime font-bold text-sm px-6 py-[18px] tracking-[0.02em]"
+                className="font-mono bg-[#07080b] text-[#d2fb5a] font-bold text-sm px-6 py-[18px] tracking-[0.02em]"
               >
                 JOIN THE WAITLIST →
               </a>
               <a
                 href={DOCS_URL}
-                className="font-mono bg-transparent text-bg border-2 border-bg font-bold text-sm px-[22px] py-4 tracking-[0.02em]"
+                className="font-mono bg-transparent text-[#07080b] border-2 border-[#07080b] font-bold text-sm px-[22px] py-4 tracking-[0.02em]"
               >
                 read the docs
               </a>
@@ -810,7 +810,7 @@ function Footer() {
       <div className="mx-auto max-w-[1440px] px-6 md:px-12 py-10 flex flex-col sm:flex-row items-center justify-between gap-6 flex-wrap">
         <div className="flex items-center gap-2.5">
           <div className="relative h-[22px] w-[22px] bg-lime">
-            <div className="absolute inset-1 border-[1.5px] border-bg" />
+            <div className="absolute inset-1 border-[1.5px] border-[#07080b]" />
           </div>
           <span className="text-[13px] font-bold">infiniview</span>
         </div>

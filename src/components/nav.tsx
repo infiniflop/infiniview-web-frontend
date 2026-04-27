@@ -1,5 +1,7 @@
 "use client";
 
+import { ThemeToggle } from "@/components/theme-toggle";
+
 const NAV_LINKS = [
   { num: "01", label: "how it works", href: "#how-it-works" },
   { num: "02", label: "agents", href: "#agents" },
@@ -14,7 +16,7 @@ export function Nav({ activePath }: { activePath?: string } = {}) {
       <div className="mx-auto flex max-w-[1440px] items-center gap-8 px-6 md:px-12 py-[18px]">
         <a href="#top" className="flex items-center gap-2.5">
           <div className="relative h-[22px] w-[22px] bg-lime">
-            <div className="absolute inset-1 border-[1.5px] border-bg" />
+            <div className="absolute inset-1 border-[1.5px] border-[#07080b]" />
           </div>
           <span className="text-[15px] font-bold tracking-[-0.02em]">
             INFINIVIEW<span className="text-lime">/</span>
@@ -38,19 +40,22 @@ export function Nav({ activePath }: { activePath?: string } = {}) {
           ))}
         </div>
 
-        <button
-          type="button"
-          onClick={() => {
-            const form = document.getElementById("waitlist");
-            if (!form) return;
-            form.scrollIntoView({ behavior: "smooth", block: "center" });
-            const input = form.querySelector<HTMLInputElement>("input[type='email']");
-            if (input) setTimeout(() => input.focus(), 600);
-          }}
-          className="btn-lime font-mono text-xs px-4 py-2.5 tracking-[0.02em]"
-        >
-          JOIN WAITLIST →
-        </button>
+        <div className="flex items-center gap-2.5">
+          <ThemeToggle />
+          <button
+            type="button"
+            onClick={() => {
+              const form = document.getElementById("waitlist");
+              if (!form) return;
+              form.scrollIntoView({ behavior: "smooth", block: "center" });
+              const input = form.querySelector<HTMLInputElement>("input[type='email']");
+              if (input) setTimeout(() => input.focus(), 600);
+            }}
+            className="btn-lime font-mono text-xs px-4 py-2.5 tracking-[0.02em]"
+          >
+            JOIN WAITLIST →
+          </button>
+        </div>
       </div>
     </nav>
   );
