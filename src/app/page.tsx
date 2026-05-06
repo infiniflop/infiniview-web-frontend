@@ -24,8 +24,8 @@ const MARQUEE_ITEMS = [
 
 const PIPELINE_STEPS = [
   { n: "01", tag: "TRIGGER", h: "Open a PR or use the dashboard.", d: "Infiniview picks it up instantly. Trigger from a pull request, an @infiniview review comment, or the dashboard." },
-  { n: "02", tag: "SANDBOX", h: "An isolated cloud environment spins up.", d: "Your repo is cloned, built, and deployed in a secure sandbox — fully isolated from production." },
-  { n: "03", tag: "AGENTS", h: "Code review, scanners, attackers, and interaction testers run in parallel.", d: "Specialized agents run simultaneously — reviewing code, testing interactions, and probing for vulnerabilities." },
+  { n: "02", tag: "SANDBOX", h: "An isolated cloud environment spins up.", d: "Your repo is cloned, built, and deployed in a secure sandbox - fully isolated from production." },
+  { n: "03", tag: "AGENTS", h: "Code review, scanners, attackers, and interaction testers run in parallel.", d: "Specialized agents run simultaneously - reviewing code, testing interactions, and probing for vulnerabilities." },
   { n: "04", tag: "ENRICH", h: "Results are deduplicated and correlated.", d: "Findings are linked through the code graph and enriched with fix suggestions before anything ships to your PR." },
   { n: "05", tag: "REPORT", h: "Forensic findings land in the dashboard.", d: "Proof bundles you can replay, export, and compare across runs. Output also posts to the PR." },
 ];
@@ -33,7 +33,7 @@ const PIPELINE_STEPS = [
 const AGENTS = [
   { tag: "01 / COORDINATION", model: "Frontier AI", h: "Review Coordinator", d: "Coordinates the entire pipeline, dispatches specialized agents, synthesizes final reports, and decides when deeper investigation is needed." },
   { tag: "02 / CODE REVIEW", model: "Frontier AI", h: "Code Review Agents", d: "Parallel agents analyze code changes for logic bugs, performance issues, type safety violations, and style problems." },
-  { tag: "03 / INTERACTION", model: "Specialized AI", h: "Interaction Testing", d: "Uses computer vision to interact with your running app — fills forms, clicks buttons, injects payloads, discovers broken flows, and tests every user path." },
+  { tag: "03 / INTERACTION", model: "Specialized AI", h: "Interaction Testing", d: "Uses computer vision to interact with your running app - fills forms, clicks buttons, injects payloads, discovers broken flows, and tests every user path." },
   { tag: "04 / RUNTIME ATTACK", model: "Runtime Agents", h: "Runtime Attack Agents", d: "AI-driven agents for injection testing, auth attacks, API fuzzing, SSRF probing, session hijacking, prompt injection, and more." },
 ];
 
@@ -70,9 +70,9 @@ const INTERACTION_TESTS: [string, string][] = [
 ];
 
 const FEATURES: [string, string][] = [
-  ["Forensic Findings", "Every finding includes root-cause evidence, affected code paths, and suggested fixes — all browsable in a dedicated viewer."],
+  ["Forensic Findings", "Every finding includes root-cause evidence, affected code paths, and suggested fixes - all browsable in a dedicated viewer."],
   ["Cloud Sandboxes", "Every scan runs in an isolated cloud environment. Deployed, tested, and torn down automatically."],
-  ["Scan Activity Timeline", "Live timeline of every agent action, finding, and decision — searchable and replayable after each run."],
+  ["Scan Activity Timeline", "Live timeline of every agent action, finding, and decision - searchable and replayable after each run."],
   ["Command Palette", "Cmd+K search across reviews, security findings, settings, security configuration, and scan history."],
   ["Secrets Management", "Per-repo encrypted secrets injected into sandboxes at runtime."],
   ["Attack Path Analysis", "AI-augmented vulnerability chain detection. Analyzes the code graph to discover multi-step attack paths."],
@@ -107,7 +107,7 @@ const PRICING_TIERS = [
 
 const FAQS = [
   { q: "What counts as a scan?", a: "A scan is triggered each time Infiniview analyzes a pull request or runs on-demand from the dashboard. Each scan includes code review, security analysis, and any enabled testing agents." },
-  { q: "How does billing work?", a: "Billing is handled through our payment provider. Plan details will be finalized before launch — join the waitlist for updates." },
+  { q: "How does billing work?", a: "Billing is handled through our payment provider. Plan details will be finalized before launch - join the waitlist for updates." },
   { q: "How do I get access?", a: "Join the waitlist and we'll invite you as spots open. Early waitlist members get priority access and launch pricing." },
   { q: "Is my code safe?", a: "Your code runs inside isolated cloud sandboxes. Sandbox-local files, logs, and processes are torn down after each scan. Findings, proof bundles, and scan metadata persist so you can review results in the dashboard." },
 ];
@@ -137,7 +137,7 @@ function Hero() {
         <div className="mt-16 md:mt-20 grid grid-cols-1 md:grid-cols-[1.05fr_0.95fr_1fr] gap-8 md:gap-12">
           <div>
             <p className="text-lg md:text-xl leading-relaxed text-[#c5c7c1] max-w-[480px]">
-              Infiniview deploys AI agents that scan, attack, and stress-test your code inside cloud sandboxes — then delivers forensic findings, proof bundles, and trust and readiness diagnostics so you ship with confidence.
+              Infiniview deploys AI agents that scan, attack, and stress-test your code inside cloud sandboxes - then delivers forensic findings, proof bundles, and trust and readiness diagnostics so you ship with confidence.
             </p>
           </div>
 
@@ -229,7 +229,7 @@ function HowItWorks() {
               </h2>
             </div>
             <div className="font-mono text-[13px] text-text-muted max-w-[340px] leading-relaxed">
-              Code review, security testing, interaction testing — fully automated, fully sandboxed.
+              Code review, security testing, interaction testing - fully automated, fully sandboxed.
             </div>
           </div>
         </div>
@@ -274,7 +274,7 @@ function AgentSystem() {
               </h2>
             </div>
             <div className="font-mono text-[13px] text-text-muted max-w-[340px] leading-relaxed">
-              Each agent is purpose-built for its role — reviewing, attacking, and stress-testing your code simultaneously.
+              Each agent is purpose-built for its role - reviewing, attacking, and stress-testing your code simultaneously.
             </div>
           </div>
         </div>
@@ -322,7 +322,7 @@ function Arsenal() {
               </h2>
             </div>
             <div className="font-mono text-[13px] text-text-muted max-w-[340px] leading-relaxed">
-              Static analysis, runtime attacks, and AI-driven interaction testing — combined into one comprehensive pipeline.
+              Static analysis, runtime attacks, and AI-driven interaction testing - combined into one comprehensive pipeline.
             </div>
           </div>
         </div>
@@ -380,7 +380,7 @@ function Arsenal() {
             // INTERACTION TESTING
           </div>
           <p className="text-sm text-text-secondary mt-0 mb-[18px] max-w-[640px]">
-            AI agents run in a real browser inside the sandbox, interacting with your app like real users — catching bugs that static analysis never could.
+            AI agents run in a real browser inside the sandbox, interacting with your app like real users - catching bugs that static analysis never could.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-border">
             {INTERACTION_TESTS.map(([name, desc], i) => (

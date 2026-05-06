@@ -79,7 +79,7 @@
   color-scheme: dark;
 }
 
-/* Light theme — applied when <html> has the `light` class. The bright lime
+/* Light theme - applied when <html> has the `light` class. The bright lime
    stays the brand color but flips to a deeper olive variant whenever it is
    used as foreground text, where bright lime would have poor contrast. */
 .light {
@@ -108,7 +108,7 @@
   color-scheme: light;
 }
 
-/* Foreground accents — darkened in light mode so small text stays legible.
+/* Foreground accents - darkened in light mode so small text stays legible.
    Background usages of the same colors (e.g. .bg-lime, .bg-red) keep the
    bright variant from the @theme block. */
 .light .text-lime { color: #5e7c0f; }

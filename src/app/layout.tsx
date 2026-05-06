@@ -22,7 +22,7 @@ const jetbrains = JetBrains_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Infiniview — attack your code before anyone else does",
+    default: "Infiniview - attack your code before anyone else does",
     template: "%s | Infiniview",
   },
   description: SITE_DESCRIPTION,
@@ -73,7 +73,7 @@ const structuredData = {
   ],
 };
 
-// Runs before paint to set the initial theme — avoids a flash of the wrong
+// Runs before paint to set the initial theme - avoids a flash of the wrong
 // palette on first load. Reads the saved preference, then falls back to the
 // OS preference. Kept tiny and inlined; no React state involved.
 const themeInitScript = `(function(){try{var s=localStorage.getItem('theme');var t=s==='light'||s==='dark'?s:(window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');if(t==='light')document.documentElement.classList.add('light');}catch(e){}})();`;

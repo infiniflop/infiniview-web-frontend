@@ -123,7 +123,7 @@ const FAQS = [
   },
   {
     q: "How does billing work?",
-    a: "Billing is handled through our payment provider. Plan details will be finalized before launch — join the waitlist for updates.",
+    a: "Billing is handled through our payment provider. Plan details will be finalized before launch - join the waitlist for updates.",
   },
   {
     q: "How do I get access?",
@@ -176,7 +176,7 @@ export default function PricingPage() {
           {/* ── Early Access Note ── */}
           <div className="mt-8 flex items-center justify-center">
             <span className="text-[13px] font-medium text-text-muted">
-              Pricing finalized before launch — waitlist members get priority access
+              Pricing finalized before launch - waitlist members get priority access
             </span>
           </div>
 

@@ -38,7 +38,7 @@ export function ThemeToggle() {
       title={label}
       className="flex items-center justify-center w-9 h-9 border border-border-accent text-text-secondary transition-colors hover:border-lime hover:text-lime"
     >
-      {/* Render an empty box on first paint to avoid hydration mismatch — the
+      {/* Render an empty box on first paint to avoid hydration mismatch - the
           inline script in <head> sets the class before this component mounts. */}
       {theme === null ? (
         <span className="block w-[15px] h-[15px]" aria-hidden />
