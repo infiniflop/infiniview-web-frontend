@@ -11,10 +11,12 @@ const NAV_LINKS = [
 ];
 
 export function Nav({ activePath }: { activePath?: string } = {}) {
+  const homeHref = activePath ? "/" : "#top";
+
   return (
     <nav className="sticky top-0 z-50 border-b border-border bg-bg/82 backdrop-blur-[10px]">
       <div className="mx-auto flex max-w-[1440px] items-center gap-8 px-6 md:px-12 py-[18px]">
-        <a href="#top" className="flex items-center gap-2.5">
+        <a href={homeHref} className="flex items-center gap-2.5">
           <div className="relative h-[22px] w-[22px] bg-lime">
             <div className="absolute inset-1 border-[1.5px] border-[#07080b]" />
           </div>
