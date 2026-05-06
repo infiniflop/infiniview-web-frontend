@@ -332,7 +332,7 @@ function Arsenal() {
           <div className="font-mono text-[11px] text-lime tracking-[0.18em] mb-3.5">
             // STATIC SCANNERS
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-px bg-border mb-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-border mb-12">
             {SCANNER_GROUPS.map((g, i) => (
               <div key={i} className="bg-bg py-[22px] px-[18px]">
                 <div className="flex justify-between items-center mb-3.5">
@@ -384,7 +384,13 @@ function Arsenal() {
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-border">
             {INTERACTION_TESTS.map(([name, desc], i) => (
-              <div key={i} className="bg-bg py-6 px-[22px]">
+              <div
+                key={i}
+                className={cn(
+                  "bg-bg py-6 px-[22px]",
+                  i === INTERACTION_TESTS.length - 1 && "sm:col-span-2 lg:col-span-3",
+                )}
+              >
                 <div className="font-mono text-[10px] text-text-muted tracking-[0.14em]">
                   {String(i + 1).padStart(2, "0")}
                 </div>
