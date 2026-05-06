@@ -1,24 +1,9 @@
-"use client";
-
-import { useState } from "react";
-import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Nav } from "@/components/nav";
+import { FAQAccordion } from "@/components/faq-accordion";
+import { WaitlistForm } from "@/components/waitlist-form";
 
 const DOCS_URL = process.env.NEXT_PUBLIC_DOCS_URL ?? "https://docs.infiniview.dev";
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
-  visible: (i: number = 0) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: i * 0.08, duration: 0.5, ease: [0.25, 0.4, 0.25, 1] as const },
-  }),
-};
-
-const stagger = {
-  visible: { transition: { staggerChildren: 0.06 } },
-};
 
 /* ─── Data ─── */
 
@@ -127,84 +112,6 @@ const FAQS = [
   { q: "Is my code safe?", a: "Your code runs inside isolated cloud sandboxes. Sandbox-local files, logs, and processes are torn down after each scan. Findings, proof bundles, and scan metadata persist so you can review results in the dashboard." },
 ];
 
-/* ─── Waitlist Form ─── */
-
-function WaitlistForm({ id, className }: { id?: string; className?: string }) {
-  const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "already" | "error" | "invalid">("idle");
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setStatus("invalid");
-      return;
-    }
-
-    setStatus("loading");
-
-    try {
-      const res = await fetch("/api/waitlist", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        setStatus(data.message === "already_registered" ? "already" : "success");
-      } else {
-        setStatus("error");
-      }
-    } catch {
-      setStatus("error");
-    }
-  };
-
-  if (status === "success" || status === "already") {
-    return (
-      <div id={id} className={cn("font-mono text-[15px] text-lime py-4", className)}>
-        {status === "already" ? "you're already on the list. we'll be in touch." : "you're on the list. we'll be in touch."}
-      </div>
-    );
-  }
-
-  return (
-    <form
-      id={id}
-      onSubmit={handleSubmit}
-      className={cn("flex flex-col gap-2", className)}
-    >
-      <div className="flex gap-2 items-stretch flex-wrap sm:flex-nowrap">
-        <input
-          type="email"
-          required
-          placeholder="you@company.com"
-          value={email}
-          onChange={(e) => {
-            setEmail(e.target.value);
-            if (status === "invalid" || status === "error") setStatus("idle");
-          }}
-          className="font-mono text-sm bg-bg-elevated border border-border px-4 py-4 text-text placeholder:text-text-muted focus:outline-none focus:border-lime w-full sm:w-[260px]"
-        />
-        <button
-          type="submit"
-          disabled={status === "loading"}
-          className={cn("btn-lime text-[15px] px-5 py-4 tracking-[-0.015em] whitespace-nowrap", status === "loading" && "opacity-70 cursor-not-allowed")}
-        >
-          {status === "loading" ? "JOINING..." : "JOIN WAITLIST →"}
-        </button>
-      </div>
-      {status === "invalid" && (
-        <p className="font-mono text-xs text-red">enter a valid email address.</p>
-      )}
-      {status === "error" && (
-        <p className="font-mono text-xs text-red">something went wrong. try again.</p>
-      )}
-    </form>
-  );
-}
-
 /* ─── Hero ─── */
 
 function Hero() {
@@ -310,44 +217,27 @@ function HowItWorks() {
   return (
     <section id="how-it-works" className="py-[120px] border-b border-border">
       <div className="mx-auto max-w-[1440px] px-6 md:px-12">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-80px" }}
-          variants={stagger}
-        >
+        <div>
           <div className="flex flex-col lg:flex-row items-baseline justify-between mb-12 gap-6 lg:gap-10">
             <div>
-              <motion.div variants={fadeUp} custom={0} className="font-mono text-[11px] text-lime tracking-[0.18em]">
+              <div className="font-mono text-[11px] text-lime tracking-[0.18em]">
                 [01] / HOW IT WORKS
-              </motion.div>
-              <motion.h2
-                variants={fadeUp}
-                custom={1}
-                className="text-[clamp(48px,7vw,104px)] font-bold leading-[0.94] tracking-[-0.045em] mt-[18px]"
-              >
+              </div>
+              <h2 className="text-[clamp(48px,7vw,104px)] font-bold leading-[0.94] tracking-[-0.045em] mt-[18px]">
                 from PR to <span className="text-lime">battle-tested</span>
                 <br />in seconds.
-              </motion.h2>
+              </h2>
             </div>
-            <motion.div variants={fadeUp} custom={2} className="font-mono text-[13px] text-text-muted max-w-[340px] leading-relaxed">
+            <div className="font-mono text-[13px] text-text-muted max-w-[340px] leading-relaxed">
               Code review, security testing, interaction testing — fully automated, fully sandboxed.
-            </motion.div>
+            </div>
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-40px" }}
-          variants={stagger}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-px bg-border"
-        >
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-px bg-border">
           {PIPELINE_STEPS.map((s, i) => (
-            <motion.div
+            <div
               key={i}
-              variants={fadeUp}
-              custom={i}
               className="bg-bg p-6 lg:py-[30px] lg:px-[22px] min-h-[260px] lg:min-h-[300px] flex flex-col"
             >
               <div className="font-mono flex justify-between text-[10.5px] text-text-muted tracking-[0.14em]">
@@ -358,9 +248,9 @@ function HowItWorks() {
                 {s.h}
               </div>
               <p className="text-[13px] leading-[1.55] text-text-secondary mt-3.5">{s.d}</p>
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
       </div>
     </section>
   );
@@ -372,44 +262,27 @@ function AgentSystem() {
   return (
     <section id="agents" className="py-[120px] border-b border-border">
       <div className="mx-auto max-w-[1440px] px-6 md:px-12">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-80px" }}
-          variants={stagger}
-        >
+        <div>
           <div className="flex flex-col lg:flex-row items-baseline justify-between mb-12 gap-6 lg:gap-10">
             <div>
-              <motion.div variants={fadeUp} custom={0} className="font-mono text-[11px] text-lime tracking-[0.18em]">
+              <div className="font-mono text-[11px] text-lime tracking-[0.18em]">
                 [02] / MULTI-AGENT AI
-              </motion.div>
-              <motion.h2
-                variants={fadeUp}
-                custom={1}
-                className="text-[clamp(48px,7vw,100px)] font-bold leading-[0.96] tracking-[-0.045em] mt-[18px]"
-              >
+              </div>
+              <h2 className="text-[clamp(48px,7vw,100px)] font-bold leading-[0.96] tracking-[-0.045em] mt-[18px]">
                 specialized agents,<br />
                 <span className="text-lime">working in parallel.</span>
-              </motion.h2>
+              </h2>
             </div>
-            <motion.div variants={fadeUp} custom={2} className="font-mono text-[13px] text-text-muted max-w-[340px] leading-relaxed">
+            <div className="font-mono text-[13px] text-text-muted max-w-[340px] leading-relaxed">
               Each agent is purpose-built for its role — reviewing, attacking, and stress-testing your code simultaneously.
-            </motion.div>
+            </div>
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-40px" }}
-          variants={stagger}
-          className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-border"
-        >
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-border">
           {AGENTS.map((a, i) => (
-            <motion.div
+            <div
               key={i}
-              variants={fadeUp}
-              custom={i}
               className="bg-bg p-6 md:px-[30px] md:py-[34px] min-h-[220px] md:min-h-[240px]"
             >
               <div className="font-mono flex justify-between text-[10.5px] text-text-muted tracking-[0.14em]">
@@ -422,9 +295,9 @@ function AgentSystem() {
                 {a.h}
               </div>
               <p className="text-sm leading-relaxed text-text-secondary mt-3">{a.d}</p>
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
       </div>
     </section>
   );
@@ -436,46 +309,32 @@ function Arsenal() {
   return (
     <section id="security-testing" className="py-[120px] border-b border-border">
       <div className="mx-auto max-w-[1440px] px-6 md:px-12">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-80px" }}
-          variants={stagger}
-        >
+        <div>
           <div className="flex flex-col lg:flex-row items-baseline justify-between mb-12 gap-6 lg:gap-10">
             <div>
-              <motion.div variants={fadeUp} custom={0} className="font-mono text-[11px] text-lime tracking-[0.18em]">
+              <div className="font-mono text-[11px] text-lime tracking-[0.18em]">
                 [03] / SECURITY &amp; TESTING ARSENAL
-              </motion.div>
-              <motion.h2
-                variants={fadeUp}
-                custom={1}
-                className="text-[clamp(44px,6.5vw,92px)] font-bold leading-[0.98] tracking-[-0.045em] mt-[18px]"
-              >
+              </div>
+              <h2 className="text-[clamp(44px,6.5vw,92px)] font-bold leading-[0.98] tracking-[-0.045em] mt-[18px]">
                 scanners. agents. interaction tests.
                 <br />
                 <span className="text-lime">zero blind spots.</span>
-              </motion.h2>
+              </h2>
             </div>
-            <motion.div variants={fadeUp} custom={2} className="font-mono text-[13px] text-text-muted max-w-[340px] leading-relaxed">
+            <div className="font-mono text-[13px] text-text-muted max-w-[340px] leading-relaxed">
               Static analysis, runtime attacks, and AI-driven interaction testing — combined into one comprehensive pipeline.
-            </motion.div>
+            </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Static Scanners */}
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-40px" }}
-          variants={stagger}
-        >
-          <motion.div variants={fadeUp} custom={0} className="font-mono text-[11px] text-lime tracking-[0.18em] mb-3.5">
+        <div>
+          <div className="font-mono text-[11px] text-lime tracking-[0.18em] mb-3.5">
             // STATIC SCANNERS
-          </motion.div>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-px bg-border mb-12">
             {SCANNER_GROUPS.map((g, i) => (
-              <motion.div key={i} variants={fadeUp} custom={i} className="bg-bg py-[22px] px-[18px]">
+              <div key={i} className="bg-bg py-[22px] px-[18px]">
                 <div className="flex justify-between items-center mb-3.5">
                   <span className="text-[13px] font-semibold">{g.label}</span>
                   <span className="font-mono text-[10.5px] text-lime bg-lime-glow px-2 py-[2px] rounded-full">
@@ -492,59 +351,49 @@ function Arsenal() {
                     </span>
                   ))}
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
-        </motion.div>
+        </div>
 
         {/* Runtime Attack Agents */}
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-40px" }}
-          variants={stagger}
-        >
-          <motion.div variants={fadeUp} custom={0} className="font-mono text-[11px] text-lime tracking-[0.18em] mb-3.5">
+        <div>
+          <div className="font-mono text-[11px] text-lime tracking-[0.18em] mb-3.5">
             // RUNTIME ATTACK AGENTS
-          </motion.div>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-border mb-12">
             {RUNTIME_AGENTS.map(([name, desc], i) => (
-              <motion.div key={i} variants={fadeUp} custom={i} className="bg-bg px-[18px] py-[18px] flex gap-3 items-start">
+              <div key={i} className="bg-bg px-[18px] py-[18px] flex gap-3 items-start">
                 <div className="w-2 h-2 bg-red mt-1.5 shrink-0" />
                 <div>
                   <div className="text-[13px] font-medium">{name}</div>
                   <div className="font-mono text-[10.5px] text-text-muted mt-[3px]">{desc}</div>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
-        </motion.div>
+        </div>
 
         {/* Interaction Testing */}
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-40px" }}
-          variants={stagger}
-        >
-          <motion.div variants={fadeUp} custom={0} className="font-mono text-[11px] text-lime tracking-[0.18em] mb-2">
+        <div>
+          <div className="font-mono text-[11px] text-lime tracking-[0.18em] mb-2">
             // INTERACTION TESTING
-          </motion.div>
-          <motion.p variants={fadeUp} custom={0} className="text-sm text-text-secondary mt-0 mb-[18px] max-w-[640px]">
+          </div>
+          <p className="text-sm text-text-secondary mt-0 mb-[18px] max-w-[640px]">
             AI agents run in a real browser inside the sandbox, interacting with your app like real users — catching bugs that static analysis never could.
-          </motion.p>
+          </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-border">
             {INTERACTION_TESTS.map(([name, desc], i) => (
-              <motion.div key={i} variants={fadeUp} custom={i} className="bg-bg py-6 px-[22px]">
+              <div key={i} className="bg-bg py-6 px-[22px]">
                 <div className="font-mono text-[10px] text-text-muted tracking-[0.14em]">
                   {String(i + 1).padStart(2, "0")}
                 </div>
                 <div className="text-[18px] font-bold tracking-[-0.02em] mt-2.5">{name}</div>
                 <div className="text-[13px] text-text-secondary mt-2 leading-[1.55]">{desc}</div>
-              </motion.div>
+              </div>
             ))}
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );
@@ -556,47 +405,32 @@ function Features() {
   return (
     <section id="features" className="py-[120px] border-b border-border">
       <div className="mx-auto max-w-[1440px] px-6 md:px-12">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-80px" }}
-          variants={stagger}
-        >
+        <div>
           <div className="flex items-baseline justify-between mb-12 gap-10">
             <div>
-              <motion.div variants={fadeUp} custom={0} className="font-mono text-[11px] text-lime tracking-[0.18em]">
+              <div className="font-mono text-[11px] text-lime tracking-[0.18em]">
                 [04] / FEATURES
-              </motion.div>
-              <motion.h2
-                variants={fadeUp}
-                custom={1}
-                className="text-[clamp(48px,7vw,96px)] font-bold leading-[0.98] tracking-[-0.045em] mt-[18px]"
-              >
+              </div>
+              <h2 className="text-[clamp(48px,7vw,96px)] font-bold leading-[0.98] tracking-[-0.045em] mt-[18px]">
                 everything you need to
                 <br />
                 <span className="text-lime">secure your codebase.</span>
-              </motion.h2>
+              </h2>
             </div>
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-40px" }}
-          variants={stagger}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-border"
-        >
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-border">
           {FEATURES.map(([title, desc], i) => (
-            <motion.div key={i} variants={fadeUp} custom={i} className="bg-bg py-[30px] px-[26px] min-h-[200px]">
+            <div key={i} className="bg-bg py-[30px] px-[26px] min-h-[200px]">
               <div className="font-mono text-[10.5px] text-text-muted tracking-[0.14em]">
                 {String(i + 1).padStart(2, "0")}
               </div>
               <div className="text-[22px] font-bold tracking-[-0.025em] mt-3.5">{title}</div>
               <div className="text-[13.5px] text-text-secondary mt-2.5 leading-relaxed">{desc}</div>
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
       </div>
     </section>
   );
@@ -609,43 +443,26 @@ function Pricing() {
     <section id="pricing" className="py-[120px] border-b border-border relative overflow-hidden">
       <div className="adv-grid-bg absolute inset-0 opacity-[0.16]" />
       <div className="relative mx-auto max-w-[1440px] px-6 md:px-12">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-80px" }}
-          variants={stagger}
-        >
+        <div>
           <div className="flex flex-col lg:flex-row items-baseline justify-between mb-12 gap-6 lg:gap-10">
             <div>
-              <motion.div variants={fadeUp} custom={0} className="font-mono text-[11px] text-lime tracking-[0.18em]">
+              <div className="font-mono text-[11px] text-lime tracking-[0.18em]">
                 [05] / PRICING
-              </motion.div>
-              <motion.h2
-                variants={fadeUp}
-                custom={1}
-                className="text-[clamp(48px,7vw,96px)] font-bold leading-none tracking-[-0.045em] mt-4"
-              >
+              </div>
+              <h2 className="text-[clamp(48px,7vw,96px)] font-bold leading-none tracking-[-0.045em] mt-4">
                 security that <span className="text-lime">scales with you.</span>
-              </motion.h2>
+              </h2>
             </div>
-            <motion.div variants={fadeUp} custom={2} className="font-mono text-[13px] text-text-muted max-w-[320px] leading-relaxed">
+            <div className="font-mono text-[13px] text-text-muted max-w-[320px] leading-relaxed">
               Join the waitlist to lock in launch pricing. Plans for indie hackers, startups, and enterprise.
-            </motion.div>
+            </div>
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-40px" }}
-          variants={stagger}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-border"
-        >
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-border">
           {PRICING_TIERS.map((t, i) => (
-            <motion.div
+            <div
               key={i}
-              variants={fadeUp}
-              custom={i}
               className={cn(
                 "flex flex-col pt-[34px] px-[28px] pb-[30px] min-h-[520px] lg:min-h-[580px]",
                 t.highlight ? "bg-bg-elevated border-t-2 border-t-lime" : "bg-bg",
@@ -686,9 +503,9 @@ function Pricing() {
                   {t.cta} →
                 </a>
               </div>
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
 
         <div className="font-mono mt-[18px] text-[11px] text-text-muted flex gap-[22px] flex-wrap">
           <span>▸ Plan details finalized before launch</span>
@@ -702,8 +519,6 @@ function Pricing() {
 /* ─── FAQ ─── */
 
 function FAQ() {
-  const [open, setOpen] = useState(0);
-
   return (
     <section id="faq" className="py-[120px] border-b border-border">
       <div className="mx-auto max-w-[1440px] px-6 md:px-12">
@@ -720,37 +535,7 @@ function FAQ() {
               hello@infiniview.dev gets a human, usually same day.
             </div>
           </div>
-          <div className="border-t border-border">
-            {FAQS.map((f, i) => {
-              const isOpen = open === i;
-              return (
-                <div key={i} className="border-b border-border">
-                  <button
-                    onClick={() => setOpen(isOpen ? -1 : i)}
-                    className="w-full bg-transparent border-0 text-text text-left py-[22px] px-1 cursor-pointer flex items-center gap-4"
-                  >
-                    <span className="font-mono text-[11px] text-text-muted w-[34px] shrink-0">
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                    <span className="text-[22px] font-bold tracking-[-0.025em] flex-1">{f.q}</span>
-                    <span
-                      className={cn(
-                        "font-mono text-[18px] w-5 text-right",
-                        isOpen ? "text-lime" : "text-text-muted",
-                      )}
-                    >
-                      {isOpen ? "–" : "+"}
-                    </span>
-                  </button>
-                  {isOpen && (
-                    <div className="px-1 pb-6 pl-[54px] text-[15px] leading-[1.65] text-text-secondary max-w-[720px]">
-                      {f.a}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+          <FAQAccordion faqs={FAQS} />
         </div>
       </div>
     </section>

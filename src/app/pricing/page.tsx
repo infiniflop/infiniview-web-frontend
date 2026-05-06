@@ -1,5 +1,4 @@
-"use client";
-
+import type { Metadata } from "next";
 import {
   Terminal,
   Check,
@@ -13,11 +12,17 @@ import {
   Lock,
   Headphones,
 } from "lucide-react";
-import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Nav } from "@/components/nav";
 
 const WAITLIST_HREF = "/#waitlist";
+
+export const metadata: Metadata = {
+  title: "Pricing",
+  alternates: {
+    canonical: "/pricing",
+  },
+};
 
 /* -------------------------------------------------------------------------- */
 /*  Data                                                                      */
@@ -149,12 +154,7 @@ export default function PricingPage() {
 
         <div className="relative z-10 mx-auto max-w-5xl px-6 pt-28 pb-24">
           {/* ── Hero ── */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: [0.25, 0.4, 0.25, 1] }}
-            className="text-center"
-          >
+          <div className="text-center">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.06] backdrop-blur-sm px-4 py-1.5 text-[11px] font-medium uppercase tracking-wider text-text-secondary">
               <Sparkles size={10} className="text-accent" />
               Simple pricing
@@ -171,27 +171,17 @@ export default function PricingPage() {
             <p className="mx-auto mt-5 max-w-lg text-[16px] leading-relaxed text-text-muted">
               Join the waitlist to lock in launch pricing. Plans for indie hackers, startups, and enterprise.
             </p>
-          </motion.div>
+          </div>
 
           {/* ── Early Access Note ── */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3, duration: 0.5 }}
-            className="mt-8 flex items-center justify-center"
-          >
+          <div className="mt-8 flex items-center justify-center">
             <span className="text-[13px] font-medium text-text-muted">
               Pricing finalized before launch — waitlist members get priority access
             </span>
-          </motion.div>
+          </div>
 
           {/* ── Pricing Container (glassmorphic) ── */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.7, ease: [0.25, 0.4, 0.25, 1] }}
-            className="mt-12 rounded-[32px] bg-white/[0.03] backdrop-blur-2xl p-3 sm:p-4"
-          >
+          <div className="mt-12 rounded-[32px] bg-white/[0.03] backdrop-blur-2xl p-3 sm:p-4">
             {/* Launch offer pill */}
             <div className="flex justify-center -mt-8 mb-4">
               <div className="inline-flex items-center gap-2 rounded-full bg-black/[0.75] backdrop-blur-md px-5 py-2 text-[12px] text-white/80 shadow-lg">
@@ -203,13 +193,10 @@ export default function PricingPage() {
             </div>
 
             <div className="grid gap-3 lg:grid-cols-3">
-              {PLANS.map((plan, i) => {
+              {PLANS.map((plan) => {
                 return (
-                  <motion.div
+                  <div
                     key={plan.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 + i * 0.1, duration: 0.5, ease: [0.25, 0.4, 0.25, 1] }}
                     className={cn(
                       "relative flex flex-col rounded-[24px] p-6 sm:p-7 transition-all duration-300",
                       plan.highlighted
@@ -267,7 +254,7 @@ export default function PricingPage() {
                       <span>{plan.cta}</span>
                       <ArrowRight size={14} />
                     </a>
-                  </motion.div>
+                  </div>
                 );
               })}
             </div>
@@ -283,16 +270,10 @@ export default function PricingPage() {
                 </div>
               ))}
             </div>
-          </motion.div>
+          </div>
 
           {/* ── Features Breakdown ── */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: 0.6 }}
-            className="mt-20"
-          >
+          <div className="mt-20">
             <h2 className="text-center text-3xl sm:text-4xl font-bold tracking-tight mb-3">
               What&apos;s in each plan
             </h2>
@@ -301,13 +282,9 @@ export default function PricingPage() {
             </p>
 
             <div className="grid gap-3 lg:grid-cols-3">
-              {PLANS.map((plan, pi) => (
-                <motion.div
+              {PLANS.map((plan) => (
+                <div
                   key={plan.id + "-features"}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: pi * 0.1, duration: 0.5 }}
                   className={cn(
                     "rounded-[24px] p-6 sm:p-7",
                     plan.highlighted
@@ -344,48 +321,32 @@ export default function PricingPage() {
                       </li>
                     ))}
                   </ul>
-                </motion.div>
+                </div>
               ))}
             </div>
-          </motion.div>
+          </div>
 
           {/* ── FAQ ── */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: 0.6 }}
-            className="mt-24"
-          >
+          <div className="mt-24">
             <h2 className="text-center text-3xl sm:text-4xl font-bold tracking-tight mb-10">
               Questions? <span className="text-white/30">Answers.</span>
             </h2>
 
             <div className="grid gap-3 sm:grid-cols-2">
               {FAQS.map((faq, i) => (
-                <motion.div
+                <div
                   key={i}
-                  initial={{ opacity: 0, y: 16 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.08, duration: 0.4 }}
                   className="rounded-[20px] bg-white/[0.03] p-6 transition hover:bg-white/[0.05]"
                 >
                   <h4 className="text-[14px] font-semibold text-white mb-2">{faq.q}</h4>
                   <p className="text-[13px] leading-relaxed text-white/40">{faq.a}</p>
-                </motion.div>
+                </div>
               ))}
             </div>
-          </motion.div>
+          </div>
 
           {/* ── Bottom CTA ── */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="mt-24 text-center"
-          >
+          <div className="mt-24 text-center">
             <p className="text-white/30 text-[14px] mb-4">Ready to ship with confidence?</p>
             <a
               href={WAITLIST_HREF}
@@ -394,7 +355,7 @@ export default function PricingPage() {
               Join the Waitlist
               <ArrowRight size={15} />
             </a>
-          </motion.div>
+          </div>
         </div>
       </main>
 
