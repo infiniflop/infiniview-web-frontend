@@ -1,6 +1,6 @@
 # Infiniview
 
-> AI security agents that scan, attack, and stress-test code in isolated cloud sandboxes.
+> AI agents that scan, attack, interact, stress-test code in isolated cloud sandboxes.
 
 Infiniview helps teams validate pull requests and on-demand releases with AI-assisted code review, runtime attack testing, and proof-backed security findings.
 
