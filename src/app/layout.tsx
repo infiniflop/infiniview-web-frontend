@@ -3,6 +3,10 @@ import "./globals.css";
 import { Inter_Tight, JetBrains_Mono } from "next/font/google";
 import { cn } from "@/lib/utils";
 
+const SITE_URL = "https://infiniview.dev";
+const SITE_DESCRIPTION =
+  "Infiniview deploys AI security agents to scan, attack, and stress-test code in cloud sandboxes, delivering proof-backed findings for safer releases.";
+
 const interTight = Inter_Tight({
   subsets: ["latin"],
   variable: "--font-inter-tight",
@@ -16,21 +20,57 @@ const jetbrains = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://infiniview.dev"),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "Infiniview — attack your code before anyone else does",
     template: "%s | Infiniview",
   },
-  description:
-    "Continuous adversarial review for your codebase. Pull requests and on-demand scans are reviewed with AI agents that attack the way a real outsider would, with reproducible proof and a suggested fix — never a wall of warnings.",
+  description: SITE_DESCRIPTION,
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
     type: "website",
     siteName: "Infiniview",
     locale: "en_US",
+    url: SITE_URL,
+    description: SITE_DESCRIPTION,
   },
   twitter: {
     card: "summary_large_image",
+    description: SITE_DESCRIPTION,
   },
+};
+
+const structuredData = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": `${SITE_URL}/#organization`,
+      name: "Infiniview",
+      url: SITE_URL,
+      email: "hello@infiniview.dev",
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${SITE_URL}/#website`,
+      name: "Infiniview",
+      url: SITE_URL,
+      description: SITE_DESCRIPTION,
+      publisher: {
+        "@id": `${SITE_URL}/#organization`,
+      },
+    },
+    {
+      "@type": "SoftwareApplication",
+      name: "Infiniview",
+      applicationCategory: "SecurityApplication",
+      operatingSystem: "Web",
+      url: SITE_URL,
+      description: SITE_DESCRIPTION,
+    },
+  ],
 };
 
 // Runs before paint to set the initial theme — avoids a flash of the wrong
@@ -51,6 +91,10 @@ export default function RootLayout({
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        />
       </head>
       <body>{children}</body>
     </html>
