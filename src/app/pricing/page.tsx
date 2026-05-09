@@ -95,7 +95,7 @@ const PLANS = [
     scans: "Contact us",
     highlighted: false,
     cta: "Talk to Sales",
-    ctaHref: "mailto:sales@infiniview.dev",
+    ctaHref: "mailto:sales@infiniflop.com",
     traits: [
       { icon: Building2, text: "Custom agent configs" },
       { icon: Lock, text: "Compliance roadmap" },
@@ -373,7 +373,7 @@ export default function PricingPage() {
           </p>
           <div className="flex items-center gap-5">
             <a href="https://docs.infiniview.dev" className="text-[12px] text-white/30 transition hover:text-white/60">Docs</a>
-            <a href="mailto:hello@infiniview.dev" className="text-[12px] text-white/30 transition hover:text-white/60">Contact</a>
+            <a href="mailto:hello@infiniflop.com" className="text-[12px] text-white/30 transition hover:text-white/60">Contact</a>
           </div>
         </div>
       </footer>

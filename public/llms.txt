@@ -9,7 +9,7 @@ Infiniview helps teams validate pull requests and on-demand releases with AI-ass
 - Website: https://infiniview.dev/
 - Pricing: https://infiniview.dev/pricing
 - Documentation: https://docs.infiniview.dev/
-- Contact: hello@infiniview.dev
+- Contact: hello@infiniflop.com
 
 ## Product Summary
 

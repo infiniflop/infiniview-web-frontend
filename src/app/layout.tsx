@@ -50,7 +50,7 @@ const structuredData = {
       "@id": `${SITE_URL}/#organization`,
       name: "Infiniview",
       url: SITE_URL,
-      email: "hello@infiniview.dev",
+      email: "hello@infiniflop.com",
     },
     {
       "@type": "WebSite",

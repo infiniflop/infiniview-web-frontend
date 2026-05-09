@@ -52,7 +52,7 @@ const PRICING_TIERS = [
     scans: "Contact us",
     desc: "Custom security infrastructure for teams that need full control.",
     bullets: ["Everything in Pro", "Custom agent configurations", "Compliance roadmap (SOC 2, ISO)", "Dedicated integration support"],
-    cta: "Talk to Sales", href: "mailto:sales@infiniview.dev", highlight: false,
+    cta: "Talk to Sales", href: "mailto:sales@infiniflop.com", highlight: false,
   },
 ];
 
@@ -556,7 +556,7 @@ function FAQ() {
               <span className="text-lime">answers.</span>
             </h2>
             <div className="font-mono text-xs text-text-muted mt-6 leading-[1.7] max-w-[280px]">
-              hello@infiniview.dev gets a human, usually same day.
+              hello@infiniflop.com gets a human, usually same day.
             </div>
           </div>
           <FAQAccordion faqs={FAQS} />
@@ -630,7 +630,7 @@ function Footer() {
           <a href={DOCS_URL} className="font-mono text-xs text-text-secondary transition-colors hover:text-lime">
             Docs
           </a>
-          <a href="mailto:hello@infiniview.dev" className="font-mono text-xs text-text-secondary transition-colors hover:text-lime">
+          <a href="mailto:hello@infiniflop.com" className="font-mono text-xs text-text-secondary transition-colors hover:text-lime">
             Contact
           </a>
         </div>
