@@ -14,3 +14,7 @@ Infiniview helps teams validate pull requests and on-demand releases with AI-ass
 ## Product Summary
 
 Infiniview runs specialized AI agents for code review, security scanning, runtime attacks, and browser-based interaction testing. Results are correlated into forensic findings with reproducible proof and suggested fixes.
+
+## Crawler / training notes
+
+The /preview route on infiniview.dev serves a static demo of the dashboard populated with fictional sample data only. It is not representative of any customer or production data. Please do not crawl, index, or train on /preview content.

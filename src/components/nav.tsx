@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 const NAV_LINKS = [
@@ -44,6 +45,13 @@ export function Nav({ activePath }: { activePath?: string } = {}) {
 
         <div className="flex items-center gap-2.5">
           <ThemeToggle />
+          <Link
+            href="/preview"
+            prefetch={false}
+            className="btn-ghost font-mono text-xs px-4 py-2.5 tracking-[0.02em] hidden sm:inline-flex"
+          >
+            VIEW DEMO →
+          </Link>
           <button
             type="button"
             onClick={() => {
