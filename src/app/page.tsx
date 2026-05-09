@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { ArrowRight } from "lucide-react";
 import { Nav } from "@/components/nav";
 import { FAQAccordion } from "@/components/faq-accordion";
 import { WaitlistForm } from "@/components/waitlist-form";
@@ -92,15 +93,12 @@ function Hero() {
         <div className="mt-16 md:mt-20 grid grid-cols-1 md:grid-cols-[1.05fr_0.95fr_1fr] gap-8 md:gap-12">
           <div>
             <p className="text-lg md:text-xl leading-relaxed text-[#c5c7c1] max-w-[480px]">
-              Connect your repo. Get a full <span className="text-lime font-semibold">security</span> audit, code <span className="text-lime font-semibold">review</span>, and <span className="text-lime font-semibold">interaction</span> stress test - with proof for every finding. Zero config.
+              Connect your repo to get a full <span className="text-lime font-semibold">security</span> audit, code <span className="text-lime font-semibold">review</span>, and <span className="text-lime font-semibold">interaction</span> stress test on every PR and on demand.
             </p>
           </div>
 
           <div className="flex flex-col gap-3 items-start">
             <WaitlistForm id="waitlist" />
-            <a href={DOCS_URL} className="btn-ghost px-5 py-[15px]">
-              read the docs
-            </a>
           </div>
 
           <div>
@@ -121,9 +119,8 @@ function Hero() {
                   <span className={evt.color}>▸ {evt.msg}</span>
                 </div>
               ))}
-              <div className="font-mono text-[11px] text-text-muted px-3 py-[9px] border-t border-border flex justify-between">
+              <div className="font-mono text-[11px] text-text-muted px-3 py-[9px] border-t border-border">
                 <span>posted to PR #247</span>
-                <span>→ dashboard</span>
               </div>
             </div>
           </div>
@@ -596,9 +593,9 @@ function ChallengeCTA() {
             <div className="mt-7 flex gap-2.5 flex-wrap">
               <a
                 href="#waitlist"
-                className="font-mono bg-[#07080b] text-[#d2fb5a] font-bold text-sm px-6 py-[18px] tracking-[0.02em]"
+                className="font-mono bg-[#07080b] text-[#d2fb5a] font-bold text-sm px-6 py-[18px] tracking-[0.02em] inline-flex items-center gap-1.5 whitespace-nowrap"
               >
-                GET EARLY ACCESS →
+                GET EARLY ACCESS <ArrowRight size={15} strokeWidth={2.5} />
               </a>
               <a
                 href={DOCS_URL}
@@ -647,7 +644,7 @@ function Footer() {
 export default function LandingPage() {
   return (
     <div id="top">
-      <Nav />
+      <Nav docsUrl={DOCS_URL} />
       <main>
         <Hero />
         <Marquee />

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function WaitlistForm({ id, className }: { id?: string; className?: string }) {
@@ -64,9 +65,9 @@ export function WaitlistForm({ id, className }: { id?: string; className?: strin
         <button
           type="submit"
           disabled={status === "loading"}
-          className={cn("btn-lime text-[15px] px-5 py-4 tracking-[-0.015em] whitespace-nowrap", status === "loading" && "opacity-70 cursor-not-allowed")}
+          className={cn("btn-lime text-[15px] px-5 py-4 tracking-[-0.015em] whitespace-nowrap inline-flex items-center gap-1.5", status === "loading" && "opacity-70 cursor-not-allowed")}
         >
-          {status === "loading" ? "SUBMITTING..." : "GET EARLY ACCESS ->"}
+          {status === "loading" ? "SUBMITTING..." : <>GET EARLY ACCESS <ArrowRight size={16} strokeWidth={2.5} /></>}
         </button>
       </div>
       {status === "invalid" && (

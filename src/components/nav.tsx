@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 const NAV_LINKS = [
@@ -10,7 +11,7 @@ const NAV_LINKS = [
   { num: "04", label: "faq", href: "#faq" },
 ];
 
-export function Nav({ activePath }: { activePath?: string } = {}) {
+export function Nav({ activePath, docsUrl }: { activePath?: string; docsUrl?: string } = {}) {
   const homeHref = activePath ? "/" : "#top";
 
   return (
@@ -37,6 +38,11 @@ export function Nav({ activePath }: { activePath?: string } = {}) {
               <span className="text-text-muted">[{link.num}]</span> {link.label}
             </a>
           ))}
+          {docsUrl && (
+            <a href={docsUrl} className="transition-colors hover:text-lime">
+              <span className="text-text-muted">[05]</span> docs
+            </a>
+          )}
         </div>
 
         <div className="flex items-center gap-2.5">
@@ -44,9 +50,9 @@ export function Nav({ activePath }: { activePath?: string } = {}) {
           <Link
             href="/preview"
             prefetch={false}
-            className="btn-ghost font-mono text-xs px-4 py-2.5 tracking-[0.02em] hidden sm:inline-flex"
+            className="btn-ghost font-mono text-xs px-4 py-2.5 tracking-[0.02em] hidden sm:inline-flex items-center gap-1.5 whitespace-nowrap"
           >
-            VIEW DEMO →
+            DEMO <ArrowRight size={13} strokeWidth={2.5} />
           </Link>
           <button
             type="button"
@@ -57,9 +63,9 @@ export function Nav({ activePath }: { activePath?: string } = {}) {
               const input = form.querySelector<HTMLInputElement>("input[type='email']");
               if (input) setTimeout(() => input.focus(), 600);
             }}
-            className="btn-lime font-mono text-xs px-4 py-2.5 tracking-[0.02em]"
+            className="btn-lime font-mono text-xs px-4 py-2.5 tracking-[0.02em] inline-flex items-center gap-1.5 whitespace-nowrap"
           >
-            GET EARLY ACCESS →
+            EARLY ACCESS <ArrowRight size={13} strokeWidth={2.5} />
           </button>
         </div>
       </div>
