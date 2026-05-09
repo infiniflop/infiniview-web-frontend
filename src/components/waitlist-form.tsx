@@ -66,7 +66,7 @@ export function WaitlistForm({ id, className }: { id?: string; className?: strin
           disabled={status === "loading"}
           className={cn("btn-lime text-[15px] px-5 py-4 tracking-[-0.015em] whitespace-nowrap", status === "loading" && "opacity-70 cursor-not-allowed")}
         >
-          {status === "loading" ? "JOINING..." : "JOIN WAITLIST ->"}
+          {status === "loading" ? "SUBMITTING..." : "GET EARLY ACCESS ->"}
         </button>
       </div>
       {status === "invalid" && (

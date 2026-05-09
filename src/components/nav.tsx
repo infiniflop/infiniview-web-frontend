@@ -5,10 +5,9 @@ import { ThemeToggle } from "@/components/theme-toggle";
 
 const NAV_LINKS = [
   { num: "01", label: "how it works", href: "#how-it-works" },
-  { num: "02", label: "agents", href: "#agents" },
-  { num: "03", label: "security & testing", href: "#security-testing" },
-  { num: "04", label: "features", href: "#features" },
-  // { num: "05", label: "pricing", href: "#pricing" },
+  { num: "02", label: "arsenal", href: "#arsenal" },
+  { num: "03", label: "features", href: "#features" },
+  { num: "04", label: "faq", href: "#faq" },
 ];
 
 export function Nav({ activePath }: { activePath?: string } = {}) {
@@ -23,9 +22,6 @@ export function Nav({ activePath }: { activePath?: string } = {}) {
           </div>
           <span className="text-[15px] font-bold tracking-[-0.02em]">
             INFINIVIEW<span className="text-lime">/</span>
-            <span className="ml-1.5 font-mono text-[11.5px] font-normal text-text-muted hidden sm:inline">
-              adversary-mode
-            </span>
           </span>
         </a>
 
@@ -63,7 +59,7 @@ export function Nav({ activePath }: { activePath?: string } = {}) {
             }}
             className="btn-lime font-mono text-xs px-4 py-2.5 tracking-[0.02em]"
           >
-            JOIN WAITLIST →
+            GET EARLY ACCESS →
           </button>
         </div>
       </div>
