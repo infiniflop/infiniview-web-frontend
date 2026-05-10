@@ -14,10 +14,12 @@ import {
   FileCode,
   History,
   Lock,
+  Menu,
   Search,
   Settings,
   Shield,
   ShieldAlert,
+  X,
 } from "lucide-react";
 import {
   MOCK_FINDINGS,
@@ -52,6 +54,7 @@ const INERT_NAV_ITEMS: { label: string; icon: typeof FileCode }[] = [
 export function DashboardMock() {
   const [view, setView] = useState<View>("reviews");
   const [selectedReviewId, setSelectedReviewId] = useState<string | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const selectedReview = selectedReviewId
     ? findReview(selectedReviewId) ?? null
@@ -64,16 +67,25 @@ export function DashboardMock() {
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-bg text-foreground">
+      {sidebarOpen && (
+        <div
+          className="md:hidden fixed inset-0 z-40 bg-black/50"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
       <DemoSidebar
         view={view}
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
         onSelectView={(v) => {
           setSelectedReviewId(null);
           setView(v);
+          setSidebarOpen(false);
         }}
       />
 
       <div className="flex flex-1 flex-col overflow-hidden">
-        <DemoHeader title={headerLabel} />
+        <DemoHeader title={headerLabel} onMenuToggle={() => setSidebarOpen(true)} />
 
         <div className="flex flex-1 overflow-y-auto">
           {view === "reviews" && !selectedReview && (
@@ -91,9 +103,6 @@ export function DashboardMock() {
               interactionTests={interactionTestsForReview(selectedReview.id)}
               onBack={() => setSelectedReviewId(null)}
               onOpenFinding={() => {
-                // In the real app this would deep-link to the finding detail
-                // page. In the demo, we just bounce the user to the global
-                // findings view to keep scope small but coherent.
                 setSelectedReviewId(null);
                 setView("findings");
               }}
@@ -109,14 +118,22 @@ export function DashboardMock() {
 
 function DemoSidebar({
   view,
+  open,
+  onClose,
   onSelectView,
 }: {
   view: View;
+  open: boolean;
+  onClose: () => void;
   onSelectView: (v: View) => void;
 }) {
   return (
-    <aside className="flex h-full w-[228px] shrink-0 flex-col border-r border-border bg-bg-elevated">
-      <div className="flex h-16 shrink-0 items-center gap-2.5 border-b border-border px-5">
+    <aside className={cn(
+      "flex h-full w-[228px] shrink-0 flex-col border-r border-border bg-bg-elevated",
+      "fixed md:relative z-50 transition-transform duration-200",
+      open ? "translate-x-0" : "-translate-x-full md:translate-x-0",
+    )}>
+      <div className="flex h-16 shrink-0 items-center justify-between gap-2.5 border-b border-border px-5">
         <Link href="/" className="flex items-center gap-2.5 transition-opacity hover:opacity-80">
           <span className="relative inline-block h-[22px] w-[22px] bg-primary">
             <span className="absolute inset-1 border-[1.5px] border-bg" />
@@ -126,6 +143,14 @@ function DemoSidebar({
             <span className="text-lime">/</span>
           </span>
         </Link>
+        <button
+          type="button"
+          onClick={onClose}
+          className="md:hidden text-text-secondary hover:text-text"
+          aria-label="Close sidebar"
+        >
+          <X size={18} />
+        </button>
       </div>
 
       <nav className="flex flex-1 flex-col gap-0.5 px-3 pt-4">
@@ -202,24 +227,32 @@ function DemoSidebar({
   );
 }
 
-function DemoHeader({ title }: { title: string }) {
+function DemoHeader({ title, onMenuToggle }: { title: string; onMenuToggle: () => void }) {
   return (
-    <header className="flex h-16 shrink-0 items-center border-b border-border px-5">
-      <h1 className="text-[20px] font-extrabold tracking-[-0.03em] text-foreground">
+    <header className="flex h-14 md:h-16 shrink-0 items-center border-b border-border px-4 md:px-5 gap-2">
+      <button
+        type="button"
+        onClick={onMenuToggle}
+        className="md:hidden inline-flex items-center justify-center w-8 h-8 text-text-secondary hover:text-text"
+        aria-label="Open sidebar"
+      >
+        <Menu size={18} />
+      </button>
+      <h1 className="text-base md:text-[20px] font-extrabold tracking-[-0.03em] text-foreground truncate">
         {title}
       </h1>
 
-      <span className="ml-3 inline-flex h-6 items-center gap-1.5 border border-primary/30 bg-primary/10 px-2.5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-primary">
+      <span className="hidden sm:inline-flex ml-2 md:ml-3 h-6 items-center gap-1.5 border border-primary/30 bg-primary/10 px-2.5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-primary shrink-0">
         <EyeOff size={11} />
         Demo mode · sample data
       </span>
 
-      <div className="ml-auto flex items-center gap-2.5">
+      <div className="ml-auto flex items-center gap-2.5 shrink-0">
         <button
           type="button"
           aria-disabled
           title="Search is disabled in the demo"
-          className="inline-flex h-9 w-56 cursor-not-allowed items-center gap-2 border border-border bg-bg-card px-3 font-mono text-[11px] uppercase tracking-[0.08em] text-text-muted transition-colors hover:border-border-accent"
+          className="hidden md:inline-flex h-9 w-56 cursor-not-allowed items-center gap-2 border border-border bg-bg-card px-3 font-mono text-[11px] uppercase tracking-[0.08em] text-text-muted transition-colors hover:border-border-accent"
         >
           <Search size={12} />
           <span>Search</span>
@@ -229,9 +262,10 @@ function DemoHeader({ title }: { title: string }) {
         </button>
         <Link
           href="/#waitlist"
-          className="btn-lime font-mono text-[11px] px-4 py-2.5 tracking-[0.08em] uppercase"
+          className="btn-lime font-mono text-[11px] px-3 md:px-4 py-2 md:py-2.5 tracking-[0.08em] uppercase whitespace-nowrap"
         >
-          Join waitlist →
+          <span className="hidden sm:inline">Join waitlist →</span>
+          <span className="sm:hidden">Waitlist</span>
         </Link>
       </div>
     </header>

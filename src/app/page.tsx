@@ -90,7 +90,7 @@ function Hero() {
           </span>
         </h1>
 
-        <div className="mt-16 md:mt-20 grid grid-cols-1 md:grid-cols-[1.05fr_0.95fr_1fr] gap-8 md:gap-12">
+        <div className="mt-10 md:mt-20 grid grid-cols-1 md:grid-cols-[1.05fr_0.95fr_1fr] gap-8 md:gap-12">
           <div>
             <p className="text-lg md:text-xl leading-relaxed text-[#c5c7c1] max-w-[480px]">
               Connect your repo to get a full <span className="text-lime font-semibold">security</span> audit, code <span className="text-lime font-semibold">review</span>, and <span className="text-lime font-semibold">interaction</span> stress test on every PR and on demand.
@@ -110,13 +110,13 @@ function Hero() {
                 <div
                   key={i}
                   className={cn(
-                    "grid grid-cols-[70px_124px_1fr] gap-2 font-mono text-[11.5px] px-3 py-[9px]",
+                    "grid grid-cols-[55px_1fr] sm:grid-cols-[70px_124px_1fr] gap-x-2 gap-y-0.5 font-mono text-[11.5px] px-3 py-[9px]",
                     i > 0 && "border-t border-border",
                   )}
                 >
                   <span className="text-text-muted">{evt.phase}</span>
-                  <span className="text-cyan">{evt.agent}</span>
-                  <span className={evt.color}>▸ {evt.msg}</span>
+                  <span className="text-cyan hidden sm:block">{evt.agent}</span>
+                  <span className={evt.color}><span className="sm:hidden text-cyan">{evt.agent} </span>▸ {evt.msg}</span>
                 </div>
               ))}
               <div className="font-mono text-[11px] text-text-muted px-3 py-[9px] border-t border-border">
@@ -192,7 +192,7 @@ function TrustBar() {
 
 function HowItWorks() {
   return (
-    <section id="how-it-works" className="py-[120px] border-b border-border">
+    <section id="how-it-works" className="py-16 md:py-[120px] border-b border-border">
       <div className="mx-auto max-w-[1440px] px-6 md:px-12">
         <div>
           <div className="flex flex-col lg:flex-row items-baseline justify-between mb-12 gap-6 lg:gap-10">
@@ -244,7 +244,7 @@ const MOCK_FINDINGS = [
 
 function DashboardPreview() {
   return (
-    <section className="py-[120px] border-b border-border">
+    <section className="py-16 md:py-[120px] border-b border-border">
       <div className="mx-auto max-w-[1440px] px-6 md:px-12">
         <div className="flex flex-col lg:flex-row items-baseline justify-between mb-12 gap-6 lg:gap-10">
           <div>
@@ -263,7 +263,7 @@ function DashboardPreview() {
 
         <div className="border border-border bg-bg-elevated/70 overflow-hidden">
           {/* Top bar */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-border font-mono text-[11px]">
+          <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 border-b border-border font-mono text-[11px]">
             <div className="flex items-center gap-4">
               <span className="text-lime tracking-[0.14em]">SCAN RESULTS</span>
               <span className="text-text-muted">acme/web-app</span>
@@ -275,7 +275,7 @@ function DashboardPreview() {
           </div>
 
           {/* Severity summary */}
-          <div className="flex gap-6 px-4 py-3 border-b border-border font-mono text-[11px]">
+          <div className="flex flex-wrap gap-x-6 gap-y-1.5 px-4 py-3 border-b border-border font-mono text-[11px]">
             <span className="flex items-center gap-1.5"><span className="w-2 h-2 bg-red" /> <span className="text-red">2 critical</span></span>
             <span className="flex items-center gap-1.5"><span className="w-2 h-2 bg-amber" /> <span className="text-amber">5 high</span></span>
             <span className="flex items-center gap-1.5"><span className="w-2 h-2 bg-text-secondary" /> <span className="text-text-secondary">12 medium</span></span>
@@ -287,15 +287,25 @@ function DashboardPreview() {
             <div
               key={i}
               className={cn(
-                "grid grid-cols-[80px_1fr_140px_80px] gap-3 items-center px-4 py-3.5 font-mono text-[11.5px]",
+                "px-4 py-3.5 font-mono text-[11.5px]",
                 i > 0 && "border-t border-border",
                 f.bg,
               )}
             >
-              <span className={cn("font-bold tracking-[0.04em]", f.color)}>{f.severity}</span>
-              <span className="text-text">{f.title}</span>
-              <span className="text-lime">{f.agent}</span>
-              <span className="text-text-muted text-right">{f.proof} files</span>
+              <div className="hidden sm:grid grid-cols-[80px_1fr_140px_80px] gap-3 items-center">
+                <span className={cn("font-bold tracking-[0.04em]", f.color)}>{f.severity}</span>
+                <span className="text-text">{f.title}</span>
+                <span className="text-lime">{f.agent}</span>
+                <span className="text-text-muted text-right">{f.proof} files</span>
+              </div>
+              <div className="sm:hidden flex flex-col gap-1">
+                <div className="flex items-center justify-between">
+                  <span className={cn("font-bold tracking-[0.04em]", f.color)}>{f.severity}</span>
+                  <span className="text-text-muted">{f.proof} files</span>
+                </div>
+                <span className="text-text">{f.title}</span>
+                <span className="text-lime text-[10.5px]">{f.agent}</span>
+              </div>
             </div>
           ))}
 
@@ -344,7 +354,7 @@ const ARSENAL_HIGHLIGHTS = [
 
 function Arsenal() {
   return (
-    <section id="arsenal" className="py-[120px] border-b border-border">
+    <section id="arsenal" className="py-16 md:py-[120px] border-b border-border">
       <div className="mx-auto max-w-[1440px] px-6 md:px-12">
         <div className="flex flex-col lg:flex-row items-baseline justify-between mb-12 gap-6 lg:gap-10">
           <div>
@@ -422,7 +432,7 @@ function WhyInfiniview() {
   const restFeatures = KEY_FEATURES.filter((f) => !f.hero);
 
   return (
-    <section id="features" className="py-[120px] border-b border-border">
+    <section id="features" className="py-16 md:py-[120px] border-b border-border">
       <div className="mx-auto max-w-[1440px] px-6 md:px-12">
         <div className="flex flex-col lg:flex-row items-baseline justify-between mb-12 gap-6 lg:gap-10">
           <div>
@@ -544,7 +554,7 @@ function Pricing() {
 
 function FAQ() {
   return (
-    <section id="faq" className="py-[120px] border-b border-border">
+    <section id="faq" className="py-16 md:py-[120px] border-b border-border">
       <div className="mx-auto max-w-[1440px] px-6 md:px-12">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.8fr] gap-12">
           <div>
@@ -578,12 +588,12 @@ function ChallengeCTA() {
           backgroundSize: "60px 60px",
         }}
       />
-      <div className="relative mx-auto max-w-[1440px] px-6 md:px-12 py-[120px]">
+      <div className="relative mx-auto max-w-[1440px] px-6 md:px-12 py-16 md:py-[120px]">
         <div className="font-mono text-[11px] text-[#07080b] tracking-[0.18em] opacity-70">
           CHALLENGE MODE
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-10 lg:gap-[60px] items-end mt-5">
-          <h2 className="text-[clamp(64px,11vw,160px)] font-bold tracking-[-0.055em] leading-[0.86] m-0">
+          <h2 className="text-[clamp(40px,11vw,160px)] font-bold tracking-[-0.055em] leading-[0.86] m-0">
             think your<br />app is <span className="italic">unbreakable?</span>
           </h2>
           <div>

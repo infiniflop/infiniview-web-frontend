@@ -41,7 +41,7 @@ function StatTile({
         <Icon size={13} />
         {label}
       </div>
-      <p className="mt-5 text-[52px] font-black leading-none tracking-[-0.05em] text-foreground">
+      <p className="mt-5 text-[36px] sm:text-[52px] font-black leading-none tracking-[-0.05em] text-foreground">
         {numberFormatter.format(value)}
       </p>
       <p className="mt-3 text-[12.5px] font-medium leading-relaxed text-text-secondary">
@@ -116,12 +116,12 @@ export function ReviewsView({
       </div>
 
       <div>
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
             <div className="font-mono text-[10.5px] font-bold uppercase tracking-[0.18em] text-lime">
               [01] / Recent Reviews
             </div>
-            <h3 className="mt-1.5 text-[28px] font-black tracking-[-0.04em] text-foreground">
+            <h3 className="mt-1.5 text-[22px] sm:text-[28px] font-black tracking-[-0.04em] text-foreground">
               latest scans
             </h3>
           </div>

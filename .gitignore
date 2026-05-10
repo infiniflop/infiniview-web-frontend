@@ -9,3 +9,4 @@ dist
 package-lock.json
 yarn.lock
 .gstack/
+LANDING_PAGE_AUDIT*.md

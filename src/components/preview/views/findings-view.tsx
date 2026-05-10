@@ -102,7 +102,7 @@ export function FindingsView({ findings }: FindingsViewProps) {
           [02] / Security Findings
         </div>
         <div className="mt-1.5 flex items-baseline gap-3">
-          <h2 className="text-[36px] font-black leading-[1.0] tracking-[-0.045em] text-foreground">
+          <h2 className="text-[24px] sm:text-[36px] font-black leading-[1.0] tracking-[-0.045em] text-foreground">
             verified vulnerabilities
           </h2>
           <Badge tone="secondary">{totalCount}</Badge>
@@ -110,7 +110,7 @@ export function FindingsView({ findings }: FindingsViewProps) {
       </div>
 
       <div className="flex flex-wrap items-center gap-3 border border-border bg-bg-card px-3 py-3">
-        <label className="relative flex min-w-[220px] flex-1 items-center">
+        <label className="relative flex min-w-0 sm:min-w-[220px] flex-1 items-center">
           <Search
             size={13}
             className="pointer-events-none absolute left-3 text-text-muted"

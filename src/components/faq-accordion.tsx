@@ -24,7 +24,7 @@ export function FAQAccordion({ faqs }: { faqs: Faq[] }) {
               <span className="font-mono text-[11px] text-text-muted w-[34px] shrink-0">
                 {String(i + 1).padStart(2, "0")}
               </span>
-              <span className="text-[22px] font-bold tracking-[-0.025em] flex-1">{f.q}</span>
+              <span className="text-base sm:text-[22px] font-bold tracking-[-0.025em] flex-1">{f.q}</span>
               <span
                 className={cn(
                   "font-mono text-[18px] w-5 text-right",
@@ -35,7 +35,7 @@ export function FAQAccordion({ faqs }: { faqs: Faq[] }) {
               </span>
             </button>
             {isOpen && (
-              <div className="px-1 pb-6 pl-[54px] text-[15px] leading-[1.65] text-text-secondary max-w-[720px]">
+              <div className="px-1 pb-6 pl-1 sm:pl-[54px] text-sm sm:text-[15px] leading-[1.65] text-text-secondary max-w-[720px]">
                 {f.a}
               </div>
             )}

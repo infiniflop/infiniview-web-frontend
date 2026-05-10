@@ -184,11 +184,11 @@ export default function PricingPage() {
           <div className="mt-12 rounded-[32px] bg-white/[0.03] backdrop-blur-2xl p-3 sm:p-4">
             {/* Launch offer pill */}
             <div className="flex justify-center -mt-8 mb-4">
-              <div className="inline-flex items-center gap-2 rounded-full bg-black/[0.75] backdrop-blur-md px-5 py-2 text-[12px] text-white/80 shadow-lg">
-                <Zap size={11} className="text-accent" />
+              <div className="inline-flex items-center gap-2 rounded-full bg-black/[0.75] backdrop-blur-md px-4 sm:px-5 py-2 text-[11px] sm:text-[12px] text-white/80 shadow-lg text-center flex-wrap justify-center">
+                <Zap size={11} className="text-accent shrink-0" />
                 <span className="font-semibold text-white">Early Access</span>
-                <span className="text-white/50">-</span>
-                <span>Waitlist members get priority access & launch pricing</span>
+                <span className="text-white/50 hidden sm:inline">-</span>
+                <span className="hidden sm:inline">Waitlist members get priority access & launch pricing</span>
               </div>
             </div>
 
