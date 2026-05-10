@@ -17,9 +17,8 @@ export function ThemeToggle() {
     document.documentElement.classList.toggle("light", next === "light");
     try {
       localStorage.setItem("theme", next);
-    } catch {
-      // localStorage may be unavailable (private mode, etc.)
-    }
+      document.cookie = `theme=${next};domain=.infiniview.dev;path=/;max-age=31536000;samesite=lax`;
+    } catch {}
     setTheme(next);
   };
 

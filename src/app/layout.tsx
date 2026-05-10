@@ -76,7 +76,7 @@ const structuredData = {
 // Runs before paint to set the initial theme - avoids a flash of the wrong
 // palette on first load. Reads the saved preference, then falls back to the
 // OS preference. Kept tiny and inlined; no React state involved.
-const themeInitScript = `(function(){try{var s=localStorage.getItem('theme');var t=s==='light'||s==='dark'?s:(window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');if(t==='light')document.documentElement.classList.add('light');}catch(e){}})();`;
+const themeInitScript = `(function(){try{var c=document.cookie.match(/(?:^|; )theme=(light|dark)/);var s=localStorage.getItem('theme');var t=(c?c[1]:null)||(s==='light'||s==='dark'?s:null)||(window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');if(t==='light')document.documentElement.classList.add('light');}catch(e){}})();`;
 
 export default function RootLayout({
   children,
