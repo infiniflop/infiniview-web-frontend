@@ -271,3 +271,96 @@ button {
 .text-glow-lime {
   text-shadow: 0 0 28px rgba(210, 251, 90, 0.42), 0 0 60px rgba(210, 251, 90, 0.18);
 }
+
+/* Scroll-triggered reveal */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+.reveal.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-scale {
+  transform: translateY(20px) scale(0.95);
+}
+.reveal-scale.revealed {
+  transform: translateY(0) scale(1);
+}
+
+/* Hero hook delayed entrance */
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.hero-hook {
+  opacity: 0;
+  animation: fadeSlideIn 0.5s ease-out 0.15s forwards;
+}
+
+/* Pipeline row stagger */
+
+.pipeline-row {
+  opacity: 0;
+  animation: fadeSlideIn 0.35s ease-out forwards;
+}
+
+/* Border accent animation for hero feature card */
+
+.border-animate {
+  position: relative;
+  border-left-color: transparent !important;
+}
+.border-animate::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--color-lime);
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform 0.6s ease-out;
+}
+.border-animate.revealed::before {
+  transform: scaleY(1);
+}
+
+/* CTA pulse */
+
+@keyframes subtlePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+.pulse-cta {
+  animation: subtlePulse 2.5s ease-in-out infinite;
+}
+
+/* FAQ smooth accordion */
+
+.faq-content {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.3s ease-out;
+}
+.faq-content[data-open="true"] {
+  grid-template-rows: 1fr;
+}
+.faq-content > div {
+  overflow: hidden;
+}
+
+/* Reduced motion */
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .reveal-scale { transform: none; }
+  .hero-hook { opacity: 1; animation: none; }
+  .pipeline-row { opacity: 1; animation: none; }
+  .pulse-cta { animation: none; }
+  .border-animate::before { transform: scaleY(1); transition: none; }
+}

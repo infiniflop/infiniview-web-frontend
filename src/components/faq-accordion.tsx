@@ -27,18 +27,20 @@ export function FAQAccordion({ faqs }: { faqs: Faq[] }) {
               <span className="text-base sm:text-[22px] font-bold tracking-[-0.025em] flex-1">{f.q}</span>
               <span
                 className={cn(
-                  "font-mono text-[18px] w-5 text-right",
-                  isOpen ? "text-lime" : "text-text-muted",
+                  "font-mono text-[18px] w-5 text-right transition-transform duration-300",
+                  isOpen ? "text-lime rotate-45" : "text-text-muted rotate-0",
                 )}
               >
-                {isOpen ? "-" : "+"}
+                +
               </span>
             </button>
-            {isOpen && (
-              <div className="px-1 pb-6 pl-1 sm:pl-[54px] text-sm sm:text-[15px] leading-[1.65] text-text-secondary max-w-[720px]">
-                {f.a}
+            <div className="faq-content" data-open={isOpen}>
+              <div>
+                <div className="px-1 pb-6 pl-1 sm:pl-[54px] text-sm sm:text-[15px] leading-[1.65] text-text-secondary max-w-[720px]">
+                  {f.a}
+                </div>
               </div>
-            )}
+            </div>
           </div>
         );
       })}

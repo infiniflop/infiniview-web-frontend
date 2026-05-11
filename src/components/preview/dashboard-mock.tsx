@@ -264,8 +264,8 @@ function DemoHeader({ title, onMenuToggle }: { title: string; onMenuToggle: () =
           href="/#waitlist"
           className="btn-lime font-mono text-[11px] px-3 md:px-4 py-2 md:py-2.5 tracking-[0.08em] uppercase whitespace-nowrap"
         >
-          <span className="hidden sm:inline">Join waitlist →</span>
-          <span className="sm:hidden">Waitlist</span>
+          <span className="hidden sm:inline">Get early access →</span>
+          <span className="sm:hidden">Early access</span>
         </Link>
       </div>
     </header>

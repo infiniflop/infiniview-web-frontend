@@ -1,8 +1,22 @@
 import { cn } from "@/lib/utils";
-import { ArrowRight } from "lucide-react";
+import {
+  ArrowRight,
+  GitPullRequest,
+  Box,
+  Bot,
+  Filter,
+  FileText,
+  Zap,
+  MousePointer,
+  Code,
+  Plug,
+} from "lucide-react";
 import { Nav } from "@/components/nav";
 import { FAQAccordion } from "@/components/faq-accordion";
 import { WaitlistForm } from "@/components/waitlist-form";
+import { Reveal } from "@/components/reveal";
+import { CounterStat } from "@/components/counter-stat";
+import { DashboardPreviewAnimated } from "@/components/dashboard-preview-animated";
 
 const DOCS_URL = process.env.NEXT_PUBLIC_DOCS_URL ?? "https://docs.infiniview.dev";
 
@@ -24,11 +38,11 @@ const MARQUEE_ITEMS = [
 ];
 
 const PIPELINE_STEPS = [
-  { n: "01", tag: "TRIGGER", h: "Open a PR or use the dashboard.", d: "Infiniview picks it up instantly. Trigger from a pull request, an @infiniview review comment, or the dashboard." },
-  { n: "02", tag: "SANDBOX", h: "An isolated cloud environment spins up.", d: "Your repo is cloned, built, and deployed in a secure sandbox - fully isolated from production." },
-  { n: "03", tag: "AGENTS", h: "Code review, scanners, attackers, and interaction testers run in parallel.", d: "Specialized agents run simultaneously - reviewing code, testing interactions, and probing for vulnerabilities." },
-  { n: "04", tag: "ENRICH", h: "Results are deduplicated and correlated.", d: "Findings are linked through the code graph and enriched with fix suggestions before anything ships to your PR." },
-  { n: "05", tag: "REPORT", h: "Forensic findings land in the dashboard.", d: "Proof bundles you can replay, export, and compare across runs. Output also posts to the PR." },
+  { n: "01", tag: "TRIGGER", icon: GitPullRequest, h: "Open a PR or use the dashboard.", d: "Infiniview picks it up instantly. Trigger from a pull request, an @infiniview review comment, or the dashboard." },
+  { n: "02", tag: "SANDBOX", icon: Box, h: "An isolated cloud environment spins up.", d: "Your repo is cloned, built, and deployed in a secure sandbox - fully isolated from production." },
+  { n: "03", tag: "AGENTS", icon: Bot, h: "Code review, scanners, attackers, and interaction testers run in parallel.", d: "Specialized agents run simultaneously - reviewing code, testing interactions, and probing for vulnerabilities." },
+  { n: "04", tag: "ENRICH", icon: Filter, h: "Results are deduplicated and correlated.", d: "Findings are linked through the code graph and enriched with fix suggestions before anything ships to your PR." },
+  { n: "05", tag: "REPORT", icon: FileText, h: "Forensic findings land in the dashboard.", d: "Proof bundles you can replay, export, and compare across runs. Output also posts to the PR." },
 ];
 
 
@@ -77,8 +91,8 @@ function Hero() {
       />
 
       <div className="relative mx-auto max-w-[1440px] px-6 md:px-12 pt-20 pb-[72px]">
-        <div className="font-mono text-sm text-text-secondary tracking-[0.08em] mb-6">
-          <span className="text-lime">●</span>&nbsp;&nbsp;AI writes 40% of your code now. Who&apos;s checking it?
+        <div className="font-mono text-sm text-text-secondary tracking-[0.08em] mb-6 hero-hook">
+          <span className="text-lime">●</span>&nbsp;&nbsp;AI writes nearly half your code now. Who&apos;s checking it?
         </div>
         <h1 className="text-[clamp(48px,12.5vw,196px)] font-bold leading-[0.86] tracking-[-0.05em]">
           code that ships<br />
@@ -105,21 +119,27 @@ function Hero() {
             <div className="font-mono text-[10.5px] text-lime tracking-[0.18em]">
               SCAN PIPELINE //
             </div>
-            <div className="mt-3.5 border border-border bg-bg-elevated/70">
+            <div className="mt-3.5 border border-[#1a1d24] bg-[#0c0e12]">
               {WIRE_EVENTS.map((evt, i) => (
                 <div
                   key={i}
                   className={cn(
-                    "grid grid-cols-[55px_1fr] sm:grid-cols-[70px_124px_1fr] gap-x-2 gap-y-0.5 font-mono text-[11.5px] px-3 py-[9px]",
-                    i > 0 && "border-t border-border",
+                    "grid grid-cols-[55px_1fr] sm:grid-cols-[70px_124px_1fr] gap-x-2 gap-y-0.5 font-mono text-[11.5px] px-3 py-[9px] pipeline-row",
+                    i > 0 && "border-t border-[#1a1d24]",
                   )}
+                  style={{ animationDelay: `${1.5 + i * 0.3}s` }}
                 >
-                  <span className="text-text-muted">{evt.phase}</span>
-                  <span className="text-cyan hidden sm:block">{evt.agent}</span>
-                  <span className={evt.color}><span className="sm:hidden text-cyan">{evt.agent} </span>▸ {evt.msg}</span>
+                  <span className="text-[#727682]">{evt.phase}</span>
+                  <span className="text-[#7dd3fc] hidden sm:block">{evt.agent}</span>
+                  <span className={evt.color === "text-lime" ? "text-[#d2fb5a]" : evt.color === "text-red" ? "text-[#ff4d4d]" : evt.color === "text-cyan" ? "text-[#7dd3fc]" : "text-[#facc15]"}>
+                    <span className="sm:hidden text-[#7dd3fc]">{evt.agent} </span>▸ {evt.msg}
+                  </span>
                 </div>
               ))}
-              <div className="font-mono text-[11px] text-text-muted px-3 py-[9px] border-t border-border">
+              <div
+                className="font-mono text-[11px] text-[#727682] px-3 py-[9px] border-t border-[#1a1d24] pipeline-row"
+                style={{ animationDelay: `${1.5 + WIRE_EVENTS.length * 0.3}s` }}
+              >
                 <span>posted to PR #247</span>
               </div>
             </div>
@@ -170,19 +190,38 @@ function TrustBar() {
       <div className="mx-auto max-w-[1440px]">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-border">
           {TRUST_STATS.map((s, i) => (
-            <div key={i} className="bg-bg py-10 px-6 md:px-8 text-center">
-              <div className="text-[clamp(36px,5vw,56px)] font-bold tracking-[-0.04em] leading-none text-lime">
-                {s.value}
+            <Reveal key={i} scale delay={i * 100}>
+              <div className="bg-bg py-10 px-6 md:px-8 text-center">
+                <div className="text-[clamp(36px,5vw,56px)] font-bold tracking-[-0.04em] leading-none text-lime">
+                  {s.value}
+                </div>
+                <div className="font-mono text-[11px] text-text-muted tracking-[0.06em] mt-3">
+                  {s.label}
+                </div>
               </div>
-              <div className="font-mono text-[11px] text-text-muted tracking-[0.06em] mt-3">
-                {s.label}
-              </div>
-            </div>
+            </Reveal>
           ))}
         </div>
       </div>
       <div className="font-mono text-xs text-text-muted text-center py-5 border-t border-border">
         Your code runs in isolated sandboxes and is deleted after every scan. We never store your source code.
+      </div>
+    </section>
+  );
+}
+
+/* ─── Position Statement ─── */
+
+function PositionStatement() {
+  return (
+    <section className="border-b border-border">
+      <div className="mx-auto max-w-[1440px] px-6 md:px-12 py-16 md:py-20">
+        <Reveal>
+          <p className="text-[clamp(28px,4.5vw,48px)] font-bold tracking-[-0.035em] leading-[1.1] text-center max-w-[900px] mx-auto">
+            The only security review you need{" "}
+            <span className="text-lime">before production.</span>
+          </p>
+        </Reveal>
       </div>
     </section>
   );
@@ -194,7 +233,7 @@ function HowItWorks() {
   return (
     <section id="how-it-works" className="py-16 md:py-[120px] border-b border-border">
       <div className="mx-auto max-w-[1440px] px-6 md:px-12">
-        <div>
+        <Reveal>
           <div className="flex flex-col lg:flex-row items-baseline justify-between mb-12 gap-6 lg:gap-10">
             <div>
               <div className="font-mono text-[11px] text-lime tracking-[0.18em]">
@@ -210,24 +249,29 @@ function HowItWorks() {
               Code review, security testing, interaction testing - fully automated, fully sandboxed.
             </div>
           </div>
-        </div>
+        </Reveal>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-px bg-border">
-          {PIPELINE_STEPS.map((s, i) => (
-            <div
-              key={i}
-              className="bg-bg p-6 lg:py-[30px] lg:px-[22px] min-h-[260px] lg:min-h-[300px] flex flex-col"
-            >
-              <div className="font-mono flex justify-between text-[10.5px] text-text-muted tracking-[0.14em]">
-                <span className="text-lime">[{s.n}]</span>
-                <span>{s.tag}</span>
-              </div>
-              <div className="text-[20px] lg:text-[22px] font-bold leading-[1.1] tracking-[-0.025em] mt-8">
-                {s.h}
-              </div>
-              <p className="text-[13px] leading-[1.55] text-text-secondary mt-3.5">{s.d}</p>
-            </div>
-          ))}
+          {PIPELINE_STEPS.map((s, i) => {
+            const Icon = s.icon;
+            return (
+              <Reveal key={i} delay={i * 120}>
+                <div className="bg-bg p-6 lg:py-[30px] lg:px-[22px] min-h-[260px] lg:min-h-[300px] flex flex-col">
+                  <div className="font-mono flex justify-between items-center text-[10.5px] text-text-muted tracking-[0.14em]">
+                    <span className="text-lime">[{s.n}]</span>
+                    <span className="flex items-center gap-1.5">
+                      <Icon size={14} className="text-text-muted" />
+                      {s.tag}
+                    </span>
+                  </div>
+                  <div className="text-[20px] lg:text-[22px] font-bold leading-[1.1] tracking-[-0.025em] mt-8">
+                    {s.h}
+                  </div>
+                  <p className="text-[13px] leading-[1.55] text-text-secondary mt-3.5">{s.d}</p>
+                </div>
+              </Reveal>
+            );
+          })}
         </div>
       </div>
     </section>
@@ -236,85 +280,28 @@ function HowItWorks() {
 
 /* ─── Dashboard Preview ─── */
 
-const MOCK_FINDINGS = [
-  { severity: "CRITICAL", color: "text-red", bg: "bg-red/5", title: "SQL Injection in /api/users", agent: "injection-tester", proof: 3 },
-  { severity: "HIGH", color: "text-amber", bg: "", title: "Broken auth on /admin route", agent: "auth-attacker", proof: 5 },
-  { severity: "MEDIUM", color: "text-text-secondary", bg: "", title: "Missing rate limiting on /api/login", agent: "rate-limit-tester", proof: 2 },
-];
-
 function DashboardPreview() {
   return (
     <section className="py-16 md:py-[120px] border-b border-border">
       <div className="mx-auto max-w-[1440px] px-6 md:px-12">
-        <div className="flex flex-col lg:flex-row items-baseline justify-between mb-12 gap-6 lg:gap-10">
-          <div>
-            <div className="font-mono text-[11px] text-lime tracking-[0.18em]">
-              WHAT YOU GET
-            </div>
-            <h2 className="text-[clamp(48px,7vw,104px)] font-bold leading-[0.94] tracking-[-0.045em] mt-[18px]">
-              forensic findings,<br />
-              <span className="text-lime">not just alerts.</span>
-            </h2>
-          </div>
-          <div className="font-mono text-[13px] text-text-muted max-w-[340px] leading-relaxed">
-            Every vulnerability comes with root-cause evidence, affected code paths, and a suggested fix.
-          </div>
-        </div>
-
-        <div className="border border-border bg-bg-elevated/70 overflow-hidden">
-          {/* Top bar */}
-          <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 border-b border-border font-mono text-[11px]">
-            <div className="flex items-center gap-4">
-              <span className="text-lime tracking-[0.14em]">SCAN RESULTS</span>
-              <span className="text-text-muted">acme/web-app</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <span className="text-green">COMPLETE</span>
-              <span className="text-text-muted">2m 47s ago</span>
-            </div>
-          </div>
-
-          {/* Severity summary */}
-          <div className="flex flex-wrap gap-x-6 gap-y-1.5 px-4 py-3 border-b border-border font-mono text-[11px]">
-            <span className="flex items-center gap-1.5"><span className="w-2 h-2 bg-red" /> <span className="text-red">2 critical</span></span>
-            <span className="flex items-center gap-1.5"><span className="w-2 h-2 bg-amber" /> <span className="text-amber">5 high</span></span>
-            <span className="flex items-center gap-1.5"><span className="w-2 h-2 bg-text-secondary" /> <span className="text-text-secondary">12 medium</span></span>
-            <span className="flex items-center gap-1.5"><span className="w-2 h-2 bg-text-muted" /> <span className="text-text-muted">3 low</span></span>
-          </div>
-
-          {/* Finding rows */}
-          {MOCK_FINDINGS.map((f, i) => (
-            <div
-              key={i}
-              className={cn(
-                "px-4 py-3.5 font-mono text-[11.5px]",
-                i > 0 && "border-t border-border",
-                f.bg,
-              )}
-            >
-              <div className="hidden sm:grid grid-cols-[80px_1fr_140px_80px] gap-3 items-center">
-                <span className={cn("font-bold tracking-[0.04em]", f.color)}>{f.severity}</span>
-                <span className="text-text">{f.title}</span>
-                <span className="text-lime">{f.agent}</span>
-                <span className="text-text-muted text-right">{f.proof} files</span>
+        <Reveal>
+          <div className="flex flex-col lg:flex-row items-baseline justify-between mb-12 gap-6 lg:gap-10">
+            <div>
+              <div className="font-mono text-[11px] text-lime tracking-[0.18em]">
+                WHAT YOU GET
               </div>
-              <div className="sm:hidden flex flex-col gap-1">
-                <div className="flex items-center justify-between">
-                  <span className={cn("font-bold tracking-[0.04em]", f.color)}>{f.severity}</span>
-                  <span className="text-text-muted">{f.proof} files</span>
-                </div>
-                <span className="text-text">{f.title}</span>
-                <span className="text-lime text-[10.5px]">{f.agent}</span>
-              </div>
+              <h2 className="text-[clamp(48px,7vw,104px)] font-bold leading-[0.94] tracking-[-0.045em] mt-[18px]">
+                forensic findings,<br />
+                <span className="text-lime">not just alerts.</span>
+              </h2>
             </div>
-          ))}
-
-          {/* Bottom bar */}
-          <div className="flex items-center justify-between px-4 py-3 border-t border-border font-mono text-[11px] text-text-muted">
-            <span>12 agents completed in 2m 47s</span>
-            <span className="text-lime">→ view full report</span>
+            <div className="font-mono text-[13px] text-text-muted max-w-[340px] leading-relaxed">
+              Every vulnerability comes with root-cause evidence, affected code paths, and a suggested fix.
+            </div>
           </div>
-        </div>
+        </Reveal>
+
+        <DashboardPreviewAnimated />
       </div>
     </section>
   );
@@ -323,30 +310,34 @@ function DashboardPreview() {
 /* ─── Arsenal (condensed) ─── */
 
 const ARSENAL_STATS = [
-  { value: "26", label: "static scanners", sub: "SAST, dependencies, secrets, IaC" },
-  { value: "12", label: "runtime attack agents", sub: "injection, auth, SSRF, session, more" },
-  { value: "7", label: "interaction test types", sub: "forms, auth flows, XSS, race conditions" },
-  { value: "4", label: "parallel code review agents", sub: "logic, performance, types, style" },
+  { value: 26, suffix: "", label: "static scanners", sub: "SAST, dependencies, secrets, IaC" },
+  { value: 12, suffix: "", label: "runtime attack agents", sub: "injection, auth, SSRF, session, more" },
+  { value: 7, suffix: "", label: "interaction test types", sub: "forms, auth flows, XSS, race conditions" },
+  { value: 4, suffix: "", label: "parallel code review agents", sub: "logic, performance, types, style" },
 ];
 
 const ARSENAL_HIGHLIGHTS = [
   {
     tag: "RUNTIME ATTACKS",
+    icon: Zap,
     h: "Real exploits, not guesses",
     d: "AI agents deploy your app in a sandbox and attempt real attacks - SQL injection, auth bypass, SSRF, session hijacking. If there's a crack, they find it and prove it.",
   },
   {
     tag: "INTERACTION TESTING",
+    icon: MousePointer,
     h: "Tests every user path automatically",
     d: "Computer-vision agents interact with your running app like real users. They fill forms, click buttons, test auth flows, and discover broken states no static tool can find.",
   },
   {
     tag: "CODE REVIEW",
+    icon: Code,
     h: "Four agents review every change",
     d: "Parallel AI agents analyze your code for logic bugs, performance issues, type safety violations, and style problems - simultaneously, on every PR.",
   },
   {
     tag: "ZERO CONFIG",
+    icon: Plug,
     h: "Connect your repo. That's it.",
     d: "No test cases to write. No OpenAPI specs to provide. No scanners to configure. Infiniview discovers your attack surface and generates test plans autonomously.",
   },
@@ -356,26 +347,28 @@ function Arsenal() {
   return (
     <section id="arsenal" className="py-16 md:py-[120px] border-b border-border">
       <div className="mx-auto max-w-[1440px] px-6 md:px-12">
-        <div className="flex flex-col lg:flex-row items-baseline justify-between mb-12 gap-6 lg:gap-10">
-          <div>
-            <div className="font-mono text-[11px] text-lime tracking-[0.18em]">
-              THE ARSENAL
+        <Reveal>
+          <div className="flex flex-col lg:flex-row items-baseline justify-between mb-12 gap-6 lg:gap-10">
+            <div>
+              <div className="font-mono text-[11px] text-lime tracking-[0.18em]">
+                THE ARSENAL
+              </div>
+              <h2 className="text-[clamp(48px,7vw,104px)] font-bold leading-[0.94] tracking-[-0.045em] mt-[18px]">
+                every layer,<br />
+                <span className="text-lime">covered.</span>
+              </h2>
             </div>
-            <h2 className="text-[clamp(48px,7vw,104px)] font-bold leading-[0.94] tracking-[-0.045em] mt-[18px]">
-              every layer,<br />
-              <span className="text-lime">covered.</span>
-            </h2>
+            <div className="font-mono text-[13px] text-text-muted max-w-[340px] leading-relaxed">
+              Static analysis, runtime attacks, interaction testing, and AI code review - combined into one scan.
+            </div>
           </div>
-          <div className="font-mono text-[13px] text-text-muted max-w-[340px] leading-relaxed">
-            Static analysis, runtime attacks, interaction testing, and AI code review - combined into one scan.
-          </div>
-        </div>
+        </Reveal>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-border">
           {ARSENAL_STATS.map((s, i) => (
             <div key={i} className="bg-bg py-8 px-5 md:px-6">
               <div className="text-[clamp(40px,6vw,64px)] font-bold tracking-[-0.04em] leading-none">
-                {s.value}
+                <CounterStat target={s.value} suffix={s.suffix} delay={i * 100} />
               </div>
               <div className="text-[14px] font-semibold mt-3">{s.label}</div>
               <div className="font-mono text-[10.5px] text-text-muted mt-1.5">{s.sub}</div>
@@ -384,17 +377,23 @@ function Arsenal() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-border mt-12">
-          {ARSENAL_HIGHLIGHTS.map((h, i) => (
-            <div key={i} className="bg-bg p-6 md:px-[30px] md:py-[34px]">
-              <div className="font-mono text-[10.5px] text-lime tracking-[0.14em]">
-                {h.tag}
-              </div>
-              <div className="text-2xl md:text-[28px] font-bold tracking-[-0.03em] mt-5">
-                {h.h}
-              </div>
-              <p className="text-sm leading-relaxed text-text-secondary mt-3">{h.d}</p>
-            </div>
-          ))}
+          {ARSENAL_HIGHLIGHTS.map((h, i) => {
+            const Icon = h.icon;
+            return (
+              <Reveal key={i} delay={i * 150}>
+                <div className="bg-bg p-6 md:px-[30px] md:py-[34px]">
+                  <div className="font-mono text-[10.5px] text-lime tracking-[0.14em] flex items-center gap-1.5">
+                    <Icon size={14} />
+                    {h.tag}
+                  </div>
+                  <div className="text-2xl md:text-[28px] font-bold tracking-[-0.03em] mt-5">
+                    {h.h}
+                  </div>
+                  <p className="text-sm leading-relaxed text-text-secondary mt-3">{h.d}</p>
+                </div>
+              </Reveal>
+            );
+          })}
         </div>
       </div>
     </section>
@@ -434,35 +433,41 @@ function WhyInfiniview() {
   return (
     <section id="features" className="py-16 md:py-[120px] border-b border-border">
       <div className="mx-auto max-w-[1440px] px-6 md:px-12">
-        <div className="flex flex-col lg:flex-row items-baseline justify-between mb-12 gap-6 lg:gap-10">
-          <div>
-            <div className="font-mono text-[11px] text-lime tracking-[0.18em]">
-              WHY INFINIVIEW
+        <Reveal>
+          <div className="flex flex-col lg:flex-row items-baseline justify-between mb-12 gap-6 lg:gap-10">
+            <div>
+              <div className="font-mono text-[11px] text-lime tracking-[0.18em]">
+                WHY INFINIVIEW
+              </div>
+              <h2 className="text-[clamp(48px,7vw,104px)] font-bold leading-[0.94] tracking-[-0.045em] mt-[18px]">
+                proof,<br />
+                <span className="text-lime">not alerts.</span>
+              </h2>
             </div>
-            <h2 className="text-[clamp(48px,7vw,104px)] font-bold leading-[0.94] tracking-[-0.045em] mt-[18px]">
-              proof,<br />
-              <span className="text-lime">not alerts.</span>
-            </h2>
           </div>
-        </div>
+        </Reveal>
 
         {heroFeature && (
-          <div className="border-l-2 border-l-lime bg-bg-elevated/50 p-8 md:p-10 mb-px">
-            <div className="text-[28px] md:text-[36px] font-bold tracking-[-0.03em]">
-              {heroFeature.title}
+          <Reveal>
+            <div className="border-l-2 border-l-lime bg-bg-elevated/50 p-8 md:p-10 mb-px border-animate">
+              <div className="text-[28px] md:text-[36px] font-bold tracking-[-0.03em]">
+                {heroFeature.title}
+              </div>
+              <p className="text-[15px] leading-relaxed text-text-secondary mt-4 max-w-[640px]">
+                {heroFeature.desc}
+              </p>
             </div>
-            <p className="text-[15px] leading-relaxed text-text-secondary mt-4 max-w-[640px]">
-              {heroFeature.desc}
-            </p>
-          </div>
+          </Reveal>
         )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-border">
           {restFeatures.map((f, i) => (
-            <div key={i} className="bg-bg py-[30px] px-[26px] min-h-[180px]">
-              <div className="text-[22px] font-bold tracking-[-0.025em]">{f.title}</div>
-              <div className="text-[13.5px] text-text-secondary mt-2.5 leading-relaxed">{f.desc}</div>
-            </div>
+            <Reveal key={i} delay={i * 120}>
+              <div className="bg-bg py-[30px] px-[26px] min-h-[180px]">
+                <div className="text-[22px] font-bold tracking-[-0.025em]">{f.title}</div>
+                <div className="text-[13.5px] text-text-secondary mt-2.5 leading-relaxed">{f.desc}</div>
+              </div>
+            </Reveal>
           ))}
         </div>
       </div>
@@ -557,18 +562,20 @@ function FAQ() {
     <section id="faq" className="py-16 md:py-[120px] border-b border-border">
       <div className="mx-auto max-w-[1440px] px-6 md:px-12">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.8fr] gap-12">
-          <div>
-            <div className="font-mono text-[11px] text-lime tracking-[0.18em]">
-              QUESTIONS
+          <Reveal>
+            <div>
+              <div className="font-mono text-[11px] text-lime tracking-[0.18em]">
+                QUESTIONS
+              </div>
+              <h2 className="text-[clamp(48px,6vw,84px)] font-bold tracking-[-0.045em] leading-[1.02] mt-4">
+                questions?<br />
+                <span className="text-lime">answers.</span>
+              </h2>
+              <div className="font-mono text-xs text-text-muted mt-6 leading-[1.7] max-w-[280px]">
+                hello@infiniflop.com gets a human, usually same day.
+              </div>
             </div>
-            <h2 className="text-[clamp(48px,6vw,84px)] font-bold tracking-[-0.045em] leading-[1.02] mt-4">
-              questions?<br />
-              <span className="text-lime">answers.</span>
-            </h2>
-            <div className="font-mono text-xs text-text-muted mt-6 leading-[1.7] max-w-[280px]">
-              hello@infiniflop.com gets a human, usually same day.
-            </div>
-          </div>
+          </Reveal>
           <FAQAccordion faqs={FAQS} />
         </div>
       </div>
@@ -589,33 +596,35 @@ function ChallengeCTA() {
         }}
       />
       <div className="relative mx-auto max-w-[1440px] px-6 md:px-12 py-16 md:py-[120px]">
-        <div className="font-mono text-[11px] text-[#07080b] tracking-[0.18em] opacity-70">
-          CHALLENGE MODE
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-10 lg:gap-[60px] items-end mt-5">
-          <h2 className="text-[clamp(40px,11vw,160px)] font-bold tracking-[-0.055em] leading-[0.86] m-0">
-            think your<br />app is <span className="italic">unbreakable?</span>
-          </h2>
-          <div>
-            <p className="text-[18.5px] leading-[1.55] m-0 max-w-[480px]">
-              Put it to the test. Our AI agents will throw everything they have at your application. If there is a crack, they will find it.
-            </p>
-            <div className="mt-7 flex gap-2.5 flex-wrap">
-              <a
-                href="#waitlist"
-                className="font-mono bg-[#07080b] text-[#d2fb5a] font-bold text-sm px-6 py-[18px] tracking-[0.02em] inline-flex items-center gap-1.5 whitespace-nowrap"
-              >
-                GET EARLY ACCESS <ArrowRight size={15} strokeWidth={2.5} />
-              </a>
-              <a
-                href={DOCS_URL}
-                className="font-mono bg-transparent text-[#07080b] border-2 border-[#07080b] font-bold text-sm px-[22px] py-4 tracking-[0.02em]"
-              >
-                read the docs
-              </a>
+        <Reveal>
+          <div className="font-mono text-[11px] text-[#07080b] tracking-[0.18em] opacity-70">
+            CHALLENGE MODE
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-10 lg:gap-[60px] items-end mt-5">
+            <h2 className="text-[clamp(40px,11vw,160px)] font-bold tracking-[-0.055em] leading-[0.86] m-0">
+              think your<br />app is <span className="italic">unbreakable?</span>
+            </h2>
+            <div>
+              <p className="text-[18.5px] leading-[1.55] m-0 max-w-[480px]">
+                Put it to the test. Our AI agents will throw everything they have at your application. If there is a crack, they will find it.
+              </p>
+              <div className="mt-7 flex gap-2.5 flex-wrap">
+                <a
+                  href="#waitlist"
+                  className="font-mono bg-[#07080b] text-[#d2fb5a] font-bold text-sm px-6 py-[18px] tracking-[0.02em] inline-flex items-center gap-1.5 whitespace-nowrap pulse-cta"
+                >
+                  GET EARLY ACCESS <ArrowRight size={15} strokeWidth={2.5} />
+                </a>
+                <a
+                  href={DOCS_URL}
+                  className="font-mono bg-transparent text-[#07080b] border-2 border-[#07080b] font-bold text-sm px-[22px] py-4 tracking-[0.02em]"
+                >
+                  read the docs
+                </a>
+              </div>
             </div>
           </div>
-        </div>
+        </Reveal>
       </div>
     </section>
   );
@@ -634,7 +643,7 @@ function Footer() {
           <span className="text-[13px] font-bold">infiniview</span>
         </div>
         <div className="font-mono text-xs text-text-muted">
-          © {new Date().getFullYear()} Infiniview. All rights reserved.
+          © {new Date().getFullYear()} Infiniview · Built by Infiniflop Labs
         </div>
         <div className="flex gap-5">
           <a href={DOCS_URL} className="font-mono text-xs text-text-secondary transition-colors hover:text-lime">
@@ -642,6 +651,12 @@ function Footer() {
           </a>
           <a href="mailto:hello@infiniflop.com" className="font-mono text-xs text-text-secondary transition-colors hover:text-lime">
             Contact
+          </a>
+          <a href="/privacy" className="font-mono text-xs text-text-secondary transition-colors hover:text-lime">
+            Privacy
+          </a>
+          <a href="/terms" className="font-mono text-xs text-text-secondary transition-colors hover:text-lime">
+            Terms
           </a>
         </div>
       </div>
@@ -659,6 +674,7 @@ export default function LandingPage() {
         <Hero />
         <Marquee />
         <TrustBar />
+        <PositionStatement />
         <HowItWorks />
         <DashboardPreview />
         <Arsenal />
