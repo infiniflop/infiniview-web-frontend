@@ -79,10 +79,10 @@ function reviewSubtitle(r: MockReview): string {
 
 function StatusBar({ status }: { status: MockReview["status"] }) {
   const colorMap: Record<MockReview["status"], string> = {
-    completed: "bg-[#a8d944]",
-    "in-progress": "bg-[#7dd3fc]",
-    pending: "bg-[#facc15]",
-    failed: "bg-[#ff4d4d]",
+    completed: "bg-[#10b981]",
+    "in-progress": "bg-[#22d3ee]",
+    pending: "bg-[#a1a1aa]",
+    failed: "bg-[#f43f5e]",
     limited: "bg-[#facc15]",
   };
   return (

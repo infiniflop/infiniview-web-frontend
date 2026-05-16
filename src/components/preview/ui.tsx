@@ -13,28 +13,25 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   size?: Size;
 }
 
-// Sharp-cornered, mono-uppercase buttons that match the landing page's
-// .btn-lime / .btn-ghost language. No rounded corners on the body buttons —
-// only the icon variant gets a small radius to keep hit targets readable.
 const VARIANT_CLASSES: Record<Variant, string> = {
-  lime: "bg-primary text-primary-foreground font-mono uppercase tracking-[0.08em] font-bold border-0 hover:-translate-x-[2px] hover:-translate-y-[2px] hover:shadow-[4px_4px_0_var(--color-bg),4px_4px_0_1px_var(--color-primary)]",
+  lime: "bg-primary text-primary-foreground text-sm font-medium border border-transparent hover:bg-primary/80",
   ghost:
-    "bg-transparent text-foreground border border-border-accent font-mono uppercase tracking-[0.08em] font-medium hover:border-primary hover:text-primary",
+    "bg-transparent text-foreground border border-transparent text-sm font-medium hover:bg-bg-card-hover hover:text-foreground",
   outline:
-    "bg-transparent text-text-secondary border border-border font-mono uppercase tracking-[0.08em] hover:border-border-accent hover:text-foreground",
-  icon: "bg-transparent text-text-secondary border border-transparent rounded-md hover:bg-bg-card-hover hover:text-foreground",
+    "bg-transparent text-text-secondary border border-border text-sm font-medium hover:bg-bg-card-hover hover:text-foreground",
+  icon: "bg-transparent text-text-secondary border border-transparent hover:bg-bg-card-hover hover:text-foreground",
 };
 
 const SIZE_CLASSES: Record<Size, string> = {
-  sm: "h-7 px-3 text-[10.5px]",
-  md: "h-9 px-4 text-[11.5px]",
-  lg: "h-10 px-5 text-[12px]",
+  sm: "h-7 gap-1 px-2.5",
+  md: "h-8 gap-1.5 px-2.5",
+  lg: "h-9 gap-1.5 px-2.5",
 };
 
 const ICON_SIZE_CLASSES: Record<Size, string> = {
-  sm: "h-7 w-7 text-[11px]",
-  md: "h-8 w-8 text-[12px]",
-  lg: "h-9 w-9 text-[13px]",
+  sm: "size-7",
+  md: "size-8",
+  lg: "size-9",
 };
 
 export function Button({
@@ -147,10 +144,10 @@ export type Severity = "critical" | "high" | "medium" | "low" | "info";
 
 const SEVERITY_CLASSES: Record<Severity, string> = {
   critical: "border-red-500/30 bg-red-500/15 text-red-400",
-  high: "border-rose-400/30 bg-rose-500/12 text-rose-300",
-  medium: "border-amber-400/30 bg-amber-500/12 text-amber-300",
-  low: "border-sky-400/30 bg-sky-500/12 text-sky-300",
-  info: "border-zinc-400/30 bg-zinc-500/12 text-zinc-300",
+  high: "border-rose-500/30 bg-rose-500/15 text-rose-400",
+  medium: "border-amber-500/30 bg-amber-500/15 text-amber-400",
+  low: "border-blue-500/30 bg-blue-500/15 text-blue-400",
+  info: "border-gray-500/30 bg-gray-500/15 text-gray-400",
 };
 
 export function SeverityBadge({
@@ -186,23 +183,23 @@ const STATUS_META: Record<
 > = {
   completed: {
     label: "Completed",
-    color: "#a8d944",
-    dotClass: "bg-[#a8d944]",
+    color: "#10b981",
+    dotClass: "bg-[#10b981]",
   },
   "in-progress": {
     label: "Running",
-    color: "#7dd3fc",
-    dotClass: "border border-[#7dd3fc] border-t-transparent animate-spin rounded-full",
+    color: "#22d3ee",
+    dotClass: "border border-[#22d3ee] border-t-transparent animate-spin rounded-full",
   },
   pending: {
     label: "Queued",
-    color: "#facc15",
-    dotClass: "bg-[#facc15]",
+    color: "#a1a1aa",
+    dotClass: "bg-[#a1a1aa]",
   },
   failed: {
     label: "Failed",
-    color: "#ff4d4d",
-    dotClass: "bg-[#ff4d4d] animate-pulse",
+    color: "#f43f5e",
+    dotClass: "bg-[#f43f5e] animate-pulse",
   },
   limited: {
     label: "Limited coverage",
