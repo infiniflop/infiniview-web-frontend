@@ -92,7 +92,7 @@ function Hero() {
 
       <div className="relative mx-auto max-w-[1440px] px-6 md:px-12 pt-20 pb-[72px]">
         <div className="font-mono text-sm text-text-secondary tracking-[0.08em] mb-6 hero-hook">
-          <span className="text-lime">●</span>&nbsp;&nbsp;AI writes nearly half your code now. Who&apos;s checking it?
+          <span className="text-lime">●</span>&nbsp;&nbsp;AI writes more than half your code now. Who&apos;s checking it?
         </div>
         <h1 className="text-[clamp(48px,12.5vw,196px)] font-bold leading-[0.86] tracking-[-0.05em]">
           code that ships<br />
