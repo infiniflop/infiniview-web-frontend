@@ -144,10 +144,10 @@ export type Severity = "critical" | "high" | "medium" | "low" | "info";
 
 const SEVERITY_CLASSES: Record<Severity, string> = {
   critical: "border-red-500/30 bg-red-500/15 text-red-400",
-  high: "border-rose-500/30 bg-rose-500/15 text-rose-400",
-  medium: "border-amber-500/30 bg-amber-500/15 text-amber-400",
-  low: "border-blue-500/30 bg-blue-500/15 text-blue-400",
-  info: "border-gray-500/30 bg-gray-500/15 text-gray-400",
+  high: "border-orange-500/30 bg-orange-500/15 text-orange-400",
+  medium: "border-yellow-500/30 bg-yellow-500/15 text-yellow-400",
+  low: "border-emerald-500/30 bg-emerald-500/15 text-emerald-400",
+  info: "border-blue-500/30 bg-blue-500/15 text-blue-400",
 };
 
 export function SeverityBadge({
@@ -248,6 +248,37 @@ export function ResultChip({ result }: { result: TestResult }) {
       )}
     >
       {result}
+    </span>
+  );
+}
+
+// ─── Severity pills (count + label) ─────────────────────────────────────────
+
+export interface SeverityCount {
+  severity: Severity;
+  count: number;
+}
+
+export function SeverityPills({
+  counts,
+  className,
+}: {
+  counts: SeverityCount[];
+  className?: string;
+}) {
+  return (
+    <span className={cn("flex flex-wrap items-center gap-1", className)}>
+      {counts.map(({ severity, count }) => (
+        <span
+          key={severity}
+          className={cn(
+            "inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 font-mono text-[9px] font-medium tabular-nums",
+            SEVERITY_CLASSES[severity],
+          )}
+        >
+          {count} {severity}
+        </span>
+      ))}
     </span>
   );
 }

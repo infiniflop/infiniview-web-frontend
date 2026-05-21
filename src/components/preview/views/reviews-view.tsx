@@ -7,9 +7,10 @@ import {
   ChevronRight,
   GitBranch,
   GitFork,
+  Info,
   ShieldAlert,
 } from "lucide-react";
-import { Badge, StatusBadge } from "@/components/preview/ui";
+import { Badge, SeverityPills, StatusBadge, type SeverityCount } from "@/components/preview/ui";
 import {
   type MockReview,
   type MockOverviewStats,
@@ -27,36 +28,34 @@ const numberFormatter = new Intl.NumberFormat("en-US");
 function StatTile({
   icon: Icon,
   label,
+  tooltip,
   value,
-  caption,
 }: {
   icon: typeof Activity;
   label: string;
+  tooltip: string;
   value: number;
-  caption: string;
 }) {
   return (
     <div className="border border-border bg-bg-card p-6">
-      <div className="flex items-center gap-2 font-mono text-[10.5px] font-bold uppercase tracking-[0.18em] text-lime">
-        <Icon size={13} />
-        {label}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 font-mono text-[10.5px] font-bold uppercase tracking-[0.18em] text-lime">
+          <Icon size={13} />
+          {label}
+        </div>
+        <span className="group relative">
+          <span className="cursor-default text-text-secondary transition-colors hover:text-foreground">
+            <Info size={14} />
+          </span>
+          <span className="pointer-events-none absolute bottom-full right-0 z-50 mb-2 w-max max-w-[220px] rounded-md bg-foreground px-3 py-1.5 text-xs text-background opacity-0 transition-opacity group-hover:opacity-100">
+            {tooltip}
+          </span>
+        </span>
       </div>
       <p className="mt-5 text-[36px] sm:text-[52px] font-black leading-none tracking-[-0.05em] text-foreground">
         {numberFormatter.format(value)}
       </p>
-      <p className="mt-3 text-[12.5px] font-medium leading-relaxed text-text-secondary">
-        {caption}
-      </p>
     </div>
-  );
-}
-
-function totalFindings(r: MockReview): number {
-  return (
-    r.findingsCount.critical +
-    r.findingsCount.high +
-    r.findingsCount.medium +
-    r.findingsCount.low
   );
 }
 
@@ -64,7 +63,11 @@ function reviewSubtitle(r: MockReview): string {
   if (r.status === "pending") return "Queued — waiting on a sandbox slot.";
   if (r.status === "in-progress") return "Running scan + interaction agents…";
   if (r.status === "failed") return r.summary ?? "Run failed.";
-  const total = totalFindings(r);
+  const total =
+    r.findingsCount.critical +
+    r.findingsCount.high +
+    r.findingsCount.medium +
+    r.findingsCount.low;
   const passed = r.passedTests;
   const tests = r.totalTests;
   if (total === 0 && tests === 0) return "No findings or interaction results.";
@@ -75,6 +78,16 @@ function reviewSubtitle(r: MockReview): string {
   ]
     .filter(Boolean)
     .join(" · ");
+}
+
+function getSeverityPills(r: MockReview): SeverityCount[] | null {
+  if (r.status !== "completed" && r.status !== "limited") return null;
+  const counts: SeverityCount[] = [];
+  if (r.findingsCount.critical > 0) counts.push({ severity: "critical", count: r.findingsCount.critical });
+  if (r.findingsCount.high > 0) counts.push({ severity: "high", count: r.findingsCount.high });
+  if (r.findingsCount.medium > 0) counts.push({ severity: "medium", count: r.findingsCount.medium });
+  if (r.findingsCount.low > 0) counts.push({ severity: "low", count: r.findingsCount.low });
+  return counts.length > 0 ? counts : null;
 }
 
 function StatusBar({ status }: { status: MockReview["status"] }) {
@@ -88,7 +101,7 @@ function StatusBar({ status }: { status: MockReview["status"] }) {
   return (
     <span
       aria-hidden
-      className={cn("h-8 w-[3px] rounded-full", colorMap[status])}
+      className={cn("h-8 w-[3px] shrink-0 rounded-full max-sm:self-stretch max-sm:h-auto", colorMap[status])}
     />
   );
 }
@@ -105,13 +118,13 @@ export function ReviewsView({
           icon={Activity}
           label="Total Runs"
           value={overviewStats.totalRuns}
-          caption="Every scan you've launched in Infiniview so far."
+          tooltip="Every scan you've launched in Infiniview so far."
         />
         <StatTile
           icon={ShieldAlert}
-          label="Unique Vulnerabilities"
+          label="Significant Vulnerabilities"
           value={overviewStats.uniqueVulnerabilitiesFound}
-          caption="Unique critical, high, medium, and low severity findings surfaced."
+          tooltip="Unique critical and high severity security findings Infiniview has surfaced."
         />
       </div>
 
@@ -130,42 +143,53 @@ export function ReviewsView({
           </span>
         </div>
         <div className="overflow-hidden border border-border bg-bg-card">
-          {reviews.map((review, i) => (
-            <button
-              key={review.id}
-              type="button"
-              onClick={() => onSelect(review.id)}
-              className={cn(
-                "group flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-bg-card-hover",
-                i !== reviews.length - 1 && "border-b border-border",
-              )}
-            >
-              <StatusBar status={review.status} />
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center bg-secondary">
-                <GitFork size={13} className="text-text-secondary" />
-              </div>
-
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 truncate text-[14px] font-bold tracking-[-0.01em] text-foreground">
-                  {review.name ?? review.repoFullName}
+          {reviews.map((review, i) => {
+            const pills = getSeverityPills(review);
+            return (
+              <button
+                key={review.id}
+                type="button"
+                onClick={() => onSelect(review.id)}
+                className={cn(
+                  "group flex w-full flex-wrap items-center gap-x-3 gap-y-1.5 px-4 py-3 text-left transition-colors hover:bg-bg-card-hover",
+                  i !== reviews.length - 1 && "border-b border-border",
+                )}
+              >
+                <StatusBar status={review.status} />
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center bg-secondary max-sm:hidden">
+                  <GitFork size={13} className="text-text-secondary" />
                 </div>
-                <div className="mt-0.5 truncate text-[11.5px] font-medium text-text-muted">
-                  {review.name ? `${review.repoFullName} · ` : ""}
-                  {reviewSubtitle(review)}
-                </div>
-              </div>
 
-              <Badge tone="outline" className="hidden shrink-0 sm:inline-flex">
-                <GitBranch size={10} className="text-text-muted" />
-                <span className="font-mono">{review.branch}</span>
-              </Badge>
-              <StatusBadge status={review.status} />
-              <ChevronRight
-                size={14}
-                className="shrink-0 text-text-muted transition-transform group-hover:translate-x-0.5"
-              />
-            </button>
-          ))}
+                <div className="min-w-0 shrink-0 max-sm:min-w-[calc(100%-24px)]">
+                  <div className="truncate text-[14px] font-bold tracking-[-0.01em] text-foreground">
+                    {review.name ?? review.repoFullName}
+                  </div>
+                  {!pills && (
+                    <div className="mt-0.5 truncate text-[11.5px] font-medium text-text-muted">
+                      {review.name ? `${review.repoFullName} · ` : ""}
+                      {reviewSubtitle(review)}
+                    </div>
+                  )}
+                </div>
+
+                {pills && (
+                  <SeverityPills counts={pills} className="max-sm:pl-3" />
+                )}
+
+                <div className="ml-auto flex shrink-0 items-center gap-3">
+                  <Badge tone="outline" className="hidden shrink-0 sm:inline-flex">
+                    <GitBranch size={10} className="text-text-muted" />
+                    <span className="font-mono">{review.branch}</span>
+                  </Badge>
+                  <StatusBadge status={review.status} />
+                  <ChevronRight
+                    size={14}
+                    className="shrink-0 text-text-muted transition-transform group-hover:translate-x-0.5"
+                  />
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>

@@ -5,8 +5,8 @@ import { cn } from "@/lib/utils";
 
 const MOCK_FINDINGS = [
   { severity: "CRITICAL", color: "text-red", bg: "bg-red/5", title: "SQL Injection in /api/users", agent: "injection-tester", proof: 3 },
-  { severity: "HIGH", color: "text-amber", bg: "", title: "Broken auth on /admin route", agent: "auth-attacker", proof: 5 },
-  { severity: "MEDIUM", color: "text-text-secondary", bg: "", title: "Missing rate limiting on /api/login", agent: "rate-limit-tester", proof: 2 },
+  { severity: "HIGH", color: "text-orange-400", bg: "", title: "Broken auth on /admin route", agent: "auth-attacker", proof: 5 },
+  { severity: "MEDIUM", color: "text-yellow-400", bg: "", title: "Missing rate limiting on /api/login", agent: "rate-limit-tester", proof: 2 },
 ];
 
 type Phase = "idle" | "running" | "complete";
@@ -80,16 +80,16 @@ export function DashboardPreviewAnimated() {
           <span className="text-red">{severityCounts.critical} critical</span>
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="w-2 h-2 bg-amber" />
-          <span className="text-amber">{severityCounts.high} high</span>
+          <span className="w-2 h-2 bg-orange-400" />
+          <span className="text-orange-400">{severityCounts.high} high</span>
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="w-2 h-2 bg-text-secondary" />
-          <span className="text-text-secondary">{severityCounts.medium} medium</span>
+          <span className="w-2 h-2 bg-yellow-400" />
+          <span className="text-yellow-400">{severityCounts.medium} medium</span>
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="w-2 h-2 bg-text-muted" />
-          <span className="text-text-muted">0 low</span>
+          <span className="w-2 h-2 bg-emerald-400" />
+          <span className="text-emerald-400">0 low</span>
         </span>
       </div>
 

@@ -37,10 +37,10 @@ const EXPLOIT_OPTIONS: ("all" | Exploitability)[] = [
 
 const SEVERITY_DOT: Record<Severity, string> = {
   critical: "bg-red-400",
-  high: "bg-rose-300",
-  medium: "bg-amber-300",
-  low: "bg-sky-300",
-  info: "bg-zinc-300",
+  high: "bg-orange-400",
+  medium: "bg-yellow-400",
+  low: "bg-emerald-400",
+  info: "bg-blue-400",
 };
 
 function exploitLabel(v: "all" | Exploitability): string {
