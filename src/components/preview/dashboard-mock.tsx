@@ -313,6 +313,14 @@ function DemoHeader({
         Demo · sample data
       </span>
 
+      <Link
+        href="/"
+        className="ml-1.5 hidden h-6 items-center gap-1.5 border border-border bg-card px-2.5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:border-border-accent hover:text-foreground sm:inline-flex"
+      >
+        <X size={11} />
+        Exit demo
+      </Link>
+
       <div className="ml-auto flex items-center gap-2">
         <ThemeToggle />
         <button

@@ -60,12 +60,23 @@ function StatTile({
           <Icon size={13} />
           {label}
         </div>
-        <span className="group relative">
-          <span className="cursor-default text-text-secondary transition-colors hover:text-foreground">
+        <span className="group/info relative inline-flex">
+          <button
+            type="button"
+            aria-label={`${label} details`}
+            className="text-text-secondary transition-colors hover:text-foreground"
+          >
             <Info size={14} />
-          </span>
-          <span className="pointer-events-none absolute bottom-full right-0 z-50 mb-2 w-max max-w-[220px] rounded-md bg-foreground px-3 py-1.5 text-xs text-background opacity-0 transition-opacity group-hover:opacity-100">
+          </button>
+          <span
+            role="tooltip"
+            className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 w-max max-w-[240px] -translate-x-1/2 translate-y-1 text-balance rounded-md bg-foreground px-3 py-1.5 text-center text-xs text-background opacity-0 shadow-md transition-all duration-150 group-hover/info:translate-y-0 group-hover/info:opacity-100 max-sm:left-auto max-sm:right-0 max-sm:translate-x-0 max-sm:text-left"
+          >
             {tooltip}
+            <span
+              aria-hidden
+              className="absolute left-1/2 top-full size-2.5 -translate-x-1/2 -translate-y-1/2 rotate-45 rounded-[2px] bg-foreground max-sm:left-auto max-sm:right-1.5 max-sm:translate-x-0"
+            />
           </span>
         </span>
       </div>
