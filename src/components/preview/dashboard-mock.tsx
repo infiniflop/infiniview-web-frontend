@@ -5,20 +5,21 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ElementType } from "react";
 import {
-  ArrowUpRight,
   BookOpen,
   ChevronLeft,
-  EyeOff,
+  ChevronRight,
   FileCode,
   History,
-  Lock,
+  LogOut,
   Menu,
+  Plus,
   Search,
   Settings,
   Shield,
   ShieldAlert,
+  GitFork,
   X,
 } from "lucide-react";
 import {
@@ -32,60 +33,69 @@ import {
 import { ReviewsView } from "@/components/preview/views/reviews-view";
 import { ReviewDetailView } from "@/components/preview/views/review-detail-view";
 import { FindingsView } from "@/components/preview/views/findings-view";
+import { Button } from "@/components/preview/ui";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { cn } from "@/lib/utils";
 
-type View = "reviews" | "findings";
+type View = "reviews" | "scan-history" | "findings" | "security" | "settings";
 
-const ACTIVE_NAV_ITEMS: {
+interface NavItem {
   id: View;
   label: string;
-  icon: typeof FileCode;
-}[] = [
-  { id: "reviews", label: "Reviews", icon: FileCode },
-  { id: "findings", label: "Findings", icon: ShieldAlert },
+  icon: ElementType;
+  wired: boolean;
+}
+
+const NAV_ITEMS: NavItem[] = [
+  { id: "reviews", label: "Reviews", icon: FileCode, wired: true },
+  { id: "scan-history", label: "Scan History", icon: History, wired: false },
+  { id: "findings", label: "Findings", icon: ShieldAlert, wired: true },
+  { id: "security", label: "Security", icon: Shield, wired: false },
+  { id: "settings", label: "Settings", icon: Settings, wired: false },
 ];
 
-const INERT_NAV_ITEMS: { label: string; icon: typeof FileCode }[] = [
-  { label: "Scan History", icon: History },
-  { label: "Security", icon: Shield },
-  { label: "Settings", icon: Settings },
-];
+const NAV_LABELS = Object.fromEntries(
+  NAV_ITEMS.map((i) => [i.id, i.label]),
+) as Record<View, string>;
 
 export function DashboardMock() {
   const [view, setView] = useState<View>("reviews");
   const [selectedReviewId, setSelectedReviewId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
 
   const selectedReview = selectedReviewId
     ? findReview(selectedReviewId) ?? null
     : null;
 
-  const headerLabel = useMemo(() => {
-    if (selectedReview) return selectedReview.name ?? selectedReview.repoFullName;
-    return view === "reviews" ? "Reviews" : "Findings";
-  }, [selectedReview, view]);
+  const headerLabel = useMemo(() => NAV_LABELS[view], [view]);
+
+  const selectView = (v: View) => {
+    setSelectedReviewId(null);
+    setView(v);
+    setSidebarOpen(false);
+  };
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-bg text-foreground">
+    <div className="flex h-screen w-screen overflow-hidden bg-background text-foreground">
       {sidebarOpen && (
         <div
-          className="md:hidden fixed inset-0 z-40 bg-black/50"
+          className="fixed inset-0 z-40 bg-black/50 md:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
+
       <DemoSidebar
         view={view}
+        collapsed={collapsed}
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
-        onSelectView={(v) => {
-          setSelectedReviewId(null);
-          setView(v);
-          setSidebarOpen(false);
-        }}
+        onToggleCollapsed={() => setCollapsed((c) => !c)}
+        onSelectView={selectView}
       />
 
       <div className="flex flex-1 flex-col overflow-hidden">
-        <DemoHeader title={headerLabel} onMenuToggle={() => setSidebarOpen(true)} />
+        <DemoHeader label={headerLabel} onMenuToggle={() => setSidebarOpen(true)} />
 
         <div className="flex flex-1 overflow-y-auto">
           {view === "reviews" && !selectedReview && (
@@ -102,14 +112,14 @@ export function DashboardMock() {
               findings={findingsForReview(selectedReview.id)}
               interactionTests={interactionTestsForReview(selectedReview.id)}
               onBack={() => setSelectedReviewId(null)}
-              onOpenFinding={() => {
-                setSelectedReviewId(null);
-                setView("findings");
-              }}
             />
           )}
 
           {view === "findings" && <FindingsView findings={MOCK_FINDINGS} />}
+
+          {(view === "scan-history" ||
+            view === "security" ||
+            view === "settings") && <ComingSoonView view={view} />}
         </div>
       </div>
     </div>
@@ -118,43 +128,52 @@ export function DashboardMock() {
 
 function DemoSidebar({
   view,
+  collapsed,
   open,
   onClose,
+  onToggleCollapsed,
   onSelectView,
 }: {
   view: View;
+  collapsed: boolean;
   open: boolean;
   onClose: () => void;
+  onToggleCollapsed: () => void;
   onSelectView: (v: View) => void;
 }) {
   return (
-    <aside className={cn(
-      "flex h-full w-[228px] shrink-0 flex-col border-r border-border bg-bg-elevated",
-      "fixed md:relative z-50 transition-transform duration-200",
-      open ? "translate-x-0" : "-translate-x-full md:translate-x-0",
-    )}>
-      <div className="flex h-16 shrink-0 items-center justify-between gap-2.5 border-b border-border px-5">
-        <Link href="/" className="flex items-center gap-2.5 transition-opacity hover:opacity-80">
-          <span className="relative inline-block h-[22px] w-[22px] bg-primary">
-            <span className="absolute inset-1 border-[1.5px] border-bg" />
-          </span>
-          <span className="text-[15px] font-extrabold tracking-[-0.02em]">
-            INFINIVIEW
-            <span className="text-lime">/</span>
-          </span>
+    <aside
+      className={cn(
+        "fixed z-50 flex h-full shrink-0 flex-col border-r border-sidebar-border bg-sidebar transition-[width,transform] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] md:relative",
+        open ? "translate-x-0" : "-translate-x-full md:translate-x-0",
+      )}
+      style={{ width: collapsed ? 56 : 228 }}
+    >
+      <div className="flex h-16 shrink-0 items-center justify-between gap-2.5 border-b border-sidebar-border px-4">
+        <Link
+          href="/"
+          className="flex items-center gap-2.5 transition-opacity hover:opacity-80"
+        >
+          <span className="brand-mark shrink-0" />
+          {!collapsed && (
+            <span className="text-[15px] font-semibold tracking-[-0.02em] text-foreground">
+              INFINIVIEW
+              <span className="text-primary">/</span>
+            </span>
+          )}
         </Link>
         <button
           type="button"
           onClick={onClose}
-          className="md:hidden text-text-secondary hover:text-text"
+          className="text-muted-foreground hover:text-foreground md:hidden"
           aria-label="Close sidebar"
         >
           <X size={18} />
         </button>
       </div>
 
-      <nav className="flex flex-1 flex-col gap-0.5 px-3 pt-4">
-        {ACTIVE_NAV_ITEMS.map((item) => {
+      <nav className="flex flex-1 flex-col gap-0.5 px-2 pt-3">
+        {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
           const isActive = view === item.id;
           return (
@@ -162,112 +181,209 @@ function DemoSidebar({
               key={item.id}
               type="button"
               onClick={() => onSelectView(item.id)}
+              title={collapsed ? item.label : undefined}
               className={cn(
-                "relative flex items-center gap-2.5 px-3 py-2.5 text-left font-mono text-[11.5px] font-semibold uppercase tracking-[0.08em] transition-colors duration-150",
+                "relative flex items-center gap-2.5 px-3 py-2.5 text-left transition-colors duration-150",
                 isActive
-                  ? "bg-bg-card font-bold text-foreground"
-                  : "text-text-secondary hover:bg-bg-card/60 hover:text-foreground",
+                  ? "nav-item-active bg-sidebar-accent font-bold text-foreground"
+                  : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground",
               )}
             >
-              {isActive && (
-                <span
-                  aria-hidden
-                  className="absolute left-0 top-1/2 h-5 w-[2px] -translate-y-1/2 bg-primary"
-                />
-              )}
               <Icon size={14} className={isActive ? "text-primary" : ""} />
-              <span>{item.label}</span>
+              {!collapsed && (
+                <span className="font-mono text-[11.5px] font-semibold uppercase tracking-[0.08em]">
+                  {item.label}
+                </span>
+              )}
             </button>
           );
         })}
-
-        <div className="mt-5 border-t border-border pt-3">
-          <div className="px-3 pb-1.5 font-mono text-[9.5px] uppercase tracking-[0.18em] text-text-muted">
-            Locked in demo
-          </div>
-          {INERT_NAV_ITEMS.map((item) => {
-            const Icon = item.icon;
-            return (
-              <div
-                key={item.label}
-                aria-disabled="true"
-                title="Disabled in demo · sign up to enable"
-                className="flex cursor-not-allowed items-center gap-2.5 px-3 py-2.5 font-mono text-[11.5px] uppercase tracking-[0.08em] text-text-muted/70"
-              >
-                <Icon size={14} />
-                <span className="flex-1">{item.label}</span>
-                <Lock size={10} className="opacity-70" />
-              </div>
-            );
-          })}
-        </div>
 
         <Link
           href="https://docs.infiniview.dev"
           target="_blank"
           rel="noreferrer"
-          className="mt-3 flex items-center gap-2.5 px-3 py-2.5 font-mono text-[11.5px] uppercase tracking-[0.08em] text-text-secondary transition-colors hover:bg-bg-card/60 hover:text-foreground"
+          title={collapsed ? "Docs" : undefined}
+          className="flex items-center gap-2.5 px-3 py-2.5 text-muted-foreground transition-colors duration-150 hover:bg-sidebar-accent/60 hover:text-foreground"
         >
           <BookOpen size={14} />
-          Docs
-          <ArrowUpRight size={11} className="ml-auto opacity-60" />
+          {!collapsed && (
+            <span className="font-mono text-[11.5px] font-semibold uppercase tracking-[0.08em]">
+              Docs
+            </span>
+          )}
         </Link>
+
+        {!collapsed && (
+          <div className="mt-4 px-0.5">
+            <Button
+              variant="lime"
+              size="sm"
+              onClick={() => onSelectView("reviews")}
+              className="w-full justify-start gap-2 text-[13px] font-medium"
+            >
+              <Plus size={14} />
+              New Review
+            </Button>
+          </div>
+        )}
+        {collapsed && (
+          <div className="mt-4 px-0.5">
+            <Button
+              variant="lime"
+              size="sm"
+              aria-label="New review"
+              onClick={() => onSelectView("reviews")}
+              className="h-8 w-full"
+            >
+              <Plus size={14} />
+            </Button>
+          </div>
+        )}
       </nav>
 
-      <div className="border-t border-border px-3 py-3">
-        <Link
-          href="/"
-          className="btn-ghost flex w-full items-center justify-center gap-2 px-3 py-2.5"
+      <div className="mt-auto flex flex-col gap-1 border-t border-sidebar-border px-2 py-3">
+        {!collapsed && (
+          <div className="mb-1 flex items-center gap-2 px-2.5 py-1.5">
+            <GitFork size={13} className="shrink-0 text-muted-foreground" />
+            <span className="flex-1 truncate font-mono text-[11px] text-muted-foreground">
+              @acme-dev
+            </span>
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={onToggleCollapsed}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          className="flex items-center gap-2.5 px-2.5 py-1.5 text-muted-foreground transition-colors hover:bg-sidebar-accent/50 hover:text-foreground"
         >
-          <ChevronLeft size={12} />
-          Exit demo
-        </Link>
+          {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+          {!collapsed && <span className="text-[12px]">Collapse</span>}
+        </button>
+
+        <div className="flex items-center gap-2 px-2 py-1.5">
+          <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-secondary font-mono text-[10px] font-semibold text-foreground ring-1 ring-border">
+            A
+          </div>
+          {!collapsed && (
+            <>
+              <span className="flex-1 truncate text-[12px] font-medium text-foreground">
+                Acme Dev
+              </span>
+              <Link
+                href="/"
+                aria-label="Exit demo"
+                title="Exit demo"
+                className="p-1 text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <LogOut size={12} />
+              </Link>
+            </>
+          )}
+        </div>
       </div>
     </aside>
   );
 }
 
-function DemoHeader({ title, onMenuToggle }: { title: string; onMenuToggle: () => void }) {
+function DemoHeader({
+  label,
+  onMenuToggle,
+}: {
+  label: string;
+  onMenuToggle: () => void;
+}) {
   return (
-    <header className="flex h-14 md:h-16 shrink-0 items-center border-b border-border px-4 md:px-5 gap-2">
+    <header className="flex h-16 shrink-0 items-center gap-2 border-b border-border px-4 md:px-5">
       <button
         type="button"
         onClick={onMenuToggle}
-        className="md:hidden inline-flex items-center justify-center w-8 h-8 text-text-secondary hover:text-text"
+        className="inline-flex size-8 items-center justify-center text-muted-foreground hover:text-foreground md:hidden"
         aria-label="Open sidebar"
       >
         <Menu size={18} />
       </button>
-      <h1 className="text-base md:text-[20px] font-extrabold tracking-[-0.03em] text-foreground truncate">
-        {title}
+
+      <h1 className="truncate text-[20px] font-semibold tracking-[-0.03em] text-foreground">
+        {label}
       </h1>
 
-      <span className="hidden sm:inline-flex ml-2 md:ml-3 h-6 items-center gap-1.5 border border-primary/30 bg-primary/10 px-2.5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-primary shrink-0">
-        <EyeOff size={11} />
-        Demo mode · sample data
+      <span className="ml-2 hidden h-6 items-center gap-1.5 border border-primary/30 bg-primary/10 px-2.5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-primary sm:inline-flex">
+        Demo · sample data
       </span>
 
-      <div className="ml-auto flex items-center gap-2.5 shrink-0">
+      <div className="ml-auto flex items-center gap-2">
+        <ThemeToggle />
         <button
           type="button"
           aria-disabled
           title="Search is disabled in the demo"
-          className="hidden md:inline-flex h-9 w-56 cursor-not-allowed items-center gap-2 border border-border bg-bg-card px-3 font-mono text-[11px] uppercase tracking-[0.08em] text-text-muted transition-colors hover:border-border-accent"
+          className="hidden h-9 w-56 cursor-not-allowed items-center gap-2 border border-border bg-card px-3 font-mono text-[11px] uppercase tracking-[0.08em] text-muted-foreground transition-colors hover:border-border-accent md:inline-flex"
         >
           <Search size={12} />
           <span>Search</span>
-          <kbd className="ml-auto border border-border bg-secondary px-1.5 py-0.5 font-mono text-[9.5px] leading-none text-text-muted">
+          <kbd className="ml-auto border border-border bg-secondary px-1.5 py-0.5 font-mono text-[9.5px] leading-none text-muted-foreground">
             ⌘K
           </kbd>
         </button>
         <Link
           href="/#waitlist"
-          className="btn-lime font-mono text-[11px] px-3 md:px-4 py-2 md:py-2.5 tracking-[0.08em] uppercase whitespace-nowrap"
+          className="btn-lime whitespace-nowrap px-3 py-2 font-mono text-[11px] uppercase tracking-[0.08em] md:px-4 md:py-2.5"
         >
           <span className="hidden sm:inline">Get early access →</span>
-          <span className="sm:hidden">Early access</span>
+          <span className="sm:hidden">Access</span>
         </Link>
       </div>
     </header>
+  );
+}
+
+const COMING_SOON_COPY: Record<
+  Exclude<View, "reviews" | "findings">,
+  { icon: ElementType; title: string; body: string }
+> = {
+  "scan-history": {
+    icon: History,
+    title: "Scan History",
+    body: "Browse every completed and in-progress run, compare deltas across scans, and restore archived reviews. Available in the full product.",
+  },
+  security: {
+    icon: Shield,
+    title: "Security Configuration",
+    body: "Tune scanners, attack agents, and scan defaults per repository. Available in the full product.",
+  },
+  settings: {
+    icon: Settings,
+    title: "Settings",
+    body: "Manage your GitHub connection, automation preferences, and team access. Available in the full product.",
+  },
+};
+
+function ComingSoonView({
+  view,
+}: {
+  view: "scan-history" | "security" | "settings";
+}) {
+  const copy = COMING_SOON_COPY[view];
+  const Icon = copy.icon;
+  return (
+    <div className="fade-enter mx-auto flex w-full max-w-2xl flex-col items-center px-6 py-16 text-center">
+      <div className="mb-6 flex size-16 items-center justify-center border border-border bg-card">
+        <Icon size={24} className="text-muted-foreground" />
+      </div>
+      <h3 className="text-[20px] font-semibold tracking-[-0.03em] text-foreground">
+        {copy.title}
+      </h3>
+      <p className="mt-2 max-w-[360px] text-[13px] leading-relaxed text-muted-foreground">
+        {copy.body}
+      </p>
+      <Link
+        href="/#waitlist"
+        className="btn-lime mt-6 px-5 py-2.5 font-mono text-[11px] uppercase tracking-[0.08em]"
+      >
+        Get early access →
+      </Link>
+    </div>
   );
 }

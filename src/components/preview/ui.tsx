@@ -122,7 +122,7 @@ export function CardHeader({
 
 export function CardTitle({ children }: { children: ReactNode }) {
   return (
-    <div className="flex items-center gap-2 text-[15px] font-extrabold tracking-[-0.02em] text-foreground">
+    <div className="flex items-center gap-2 text-[15px] font-semibold tracking-[-0.02em] text-foreground">
       {children}
     </div>
   );
@@ -177,54 +177,44 @@ export type ReviewStatus =
   | "failed"
   | "limited";
 
-const STATUS_META: Record<
-  ReviewStatus,
-  { label: string; color: string; dotClass: string }
-> = {
-  completed: {
-    label: "Completed",
-    color: "#10b981",
-    dotClass: "bg-[#10b981]",
-  },
-  "in-progress": {
-    label: "Running",
-    color: "#22d3ee",
-    dotClass: "border border-[#22d3ee] border-t-transparent animate-spin rounded-full",
-  },
-  pending: {
-    label: "Queued",
-    color: "#a1a1aa",
-    dotClass: "bg-[#a1a1aa]",
-  },
-  failed: {
-    label: "Failed",
-    color: "#f43f5e",
-    dotClass: "bg-[#f43f5e] animate-pulse",
-  },
-  limited: {
-    label: "Limited coverage",
-    color: "#facc15",
-    dotClass: "bg-[#facc15]",
-  },
+const STATUS_META: Record<ReviewStatus, { label: string; color: string }> = {
+  completed: { label: "Completed", color: "#10b981" },
+  "in-progress": { label: "Running", color: "#22d3ee" },
+  pending: { label: "Queued", color: "#a1a1aa" },
+  failed: { label: "Failed", color: "#f43f5e" },
+  limited: { label: "Limited coverage", color: "#facc15" },
 };
+
+// Mirrors the product's StatusDot — animated pending bounce, spinner, and
+// failed pulse via the shared dashboard CSS classes in globals.css.
+function StatusDot({ status, color }: { status: ReviewStatus; color: string }) {
+  if (status === "pending") {
+    return (
+      <span className="status-dots-pending">
+        <span style={{ background: color }} />
+        <span style={{ background: color }} />
+        <span style={{ background: color }} />
+      </span>
+    );
+  }
+  if (status === "in-progress") {
+    return <span className="status-spinner" style={{ color }} />;
+  }
+  if (status === "failed") {
+    return <span className="status-failed-dot" style={{ background: color }} />;
+  }
+  return <span className="size-1.5 rounded-full" style={{ background: color }} />;
+}
 
 export function StatusBadge({ status }: { status: ReviewStatus }) {
   const meta = STATUS_META[status];
-  const isSpinner = status === "in-progress";
   return (
     <span
       className="inline-flex items-center gap-1.5 font-mono text-[11px]"
       style={{ color: meta.color }}
     >
-      <span
-        aria-hidden
-        className={cn(
-          "inline-block",
-          isSpinner ? "h-2 w-2" : "h-1.5 w-1.5 rounded-full",
-          meta.dotClass,
-        )}
-      />
-      {meta.label}
+      <StatusDot status={status} color={meta.color} />
+      <span>{meta.label}</span>
     </span>
   );
 }

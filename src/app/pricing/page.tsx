@@ -112,14 +112,14 @@ const PLANS = [
 
 const PLAN_NOTES = [
   { label: "PR triggers", value: "Automated", color: "bg-accent" },
-  { label: "Dashboard scans", value: "On-demand", color: "bg-teal" },
+  { label: "Dashboard reviews", value: "On-demand", color: "bg-teal" },
   { label: "Pricing", value: "Finalized before launch", color: "bg-cyan" },
 ];
 
 const FAQS = [
   {
     q: "What counts as a scan?",
-    a: "A scan is triggered each time Infiniview analyzes a pull request or runs on-demand from the dashboard. Each scan includes code review, security analysis, and any enabled testing agents.",
+    a: "A scan run is triggered each time Infiniview analyzes a pull request or reruns a dashboard review. Each scan run includes code review, security analysis, and any enabled testing agents.",
   },
   {
     q: "How does billing work?",

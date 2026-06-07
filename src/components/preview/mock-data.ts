@@ -22,6 +22,8 @@ export interface MockReview {
   startedAgo: string;
 }
 
+export type FindingTab = "security" | "code-review" | "interaction-testing";
+
 export interface MockFinding {
   id: string;
   reviewId: string;
@@ -36,6 +38,73 @@ export interface MockFinding {
   ruleId: string;
   scanner: string;
   summary: string;
+  // Optional richer fields surfaced in the finding detail view. Where omitted,
+  // the detail view falls back to `summary`/`file`/`line`.
+  tab?: FindingTab;
+  primaryFile?: string;
+  lineStart?: number;
+  lineEnd?: number;
+  sourcePhase?: string;
+  description?: string;
+  attackPath?: string[];
+  evidence?: string[];
+  affectedFiles?: string[];
+  suggestedFix?: string;
+  poc?: string;
+  suppressed?: boolean;
+}
+
+// ─── Story + readiness narrative blocks (per completed review) ───────────
+
+export interface StoryAttackPath {
+  id: string;
+  title: string;
+  severity: Severity;
+  summary: string;
+  verifiedCount: number;
+  steps: string[];
+}
+
+export interface StoryRootCause {
+  id: string;
+  label: string;
+  severity: Severity;
+  findingCount: number;
+  summary: string;
+  files: string[];
+}
+
+export interface StoryLeverageFix {
+  id: string;
+  label: string;
+  severity: Severity;
+  reason: string;
+  affectedFiles: string[];
+}
+
+export interface StoryInsights {
+  attackPaths: StoryAttackPath[];
+  rootCauses: StoryRootCause[];
+  leverageFixes: StoryLeverageFix[];
+}
+
+export type ReadinessState = "ready" | "warning" | "blocked";
+
+export interface ReadinessCheck {
+  id: string;
+  label: string;
+  status: "pass" | "warn" | "fail";
+  detail: string;
+  blocking?: boolean;
+}
+
+export interface ReadinessDiagnostics {
+  state: ReadinessState;
+  summary: string;
+  canRerun: boolean;
+  replayReady: boolean;
+  checks: ReadinessCheck[];
+  recommendations: string[];
 }
 
 export interface MockInteractionTest {
@@ -174,6 +243,32 @@ export const MOCK_FINDINGS: MockFinding[] = [
     scanner: "runtime-attack",
     summary:
       "Replaying the same refund request 5x within 1s issues 5 distinct refunds. Sandbox reproduced double-spend on a $42.00 charge.",
+    tab: "security",
+    primaryFile: "services/refund/handler.ts",
+    lineStart: 142,
+    lineEnd: 168,
+    sourcePhase: "runtime-attack",
+    description:
+      "The refund issuance handler derives no idempotency key from the request and performs the ledger write before any duplicate check. Because the upstream gateway retries on a 200-but-slow response, a single user action can land as several writes. The attack agent replayed an in-flight refund and confirmed multiple distinct refund records were committed against one charge.",
+    attackPath: [
+      "Attacker initiates a legitimate refund for charge ch_42 and captures the request.",
+      "Request is replayed 5 times within a 1s window before the first write settles.",
+      "Each call passes the (stateful) balance check using the pre-refund balance.",
+      "Five refund records commit; the customer is credited 5x the charge amount.",
+    ],
+    evidence: [
+      "POST /v1/refund replayed x5 -> 5x HTTP 200 with distinct refund_id values.",
+      "Ledger query after replay shows 5 rows for charge_id=ch_42 totalling $210.00.",
+      "No 409/idempotency-conflict response observed on any replay.",
+    ],
+    affectedFiles: [
+      "services/refund/handler.ts",
+      "services/refund/ledger.ts",
+      "routes/refund.ts",
+    ],
+    suggestedFix:
+      "Require an `Idempotency-Key` header, persist it with the refund record under a unique constraint, and short-circuit replays with the original response.",
+    poc: "for i in $(seq 1 5); do\n  curl -s -XPOST https://sandbox/v1/refund \\\n    -H \"Authorization: Bearer $TOKEN\" \\\n    -d '{\"charge_id\":\"ch_42\",\"amount\":4200}' &\ndone; wait\n# -> 5x {\"refund_id\":\"re_...\",\"status\":\"succeeded\"}",
   },
   {
     id: "fd_02",
@@ -190,6 +285,27 @@ export const MOCK_FINDINGS: MockFinding[] = [
     scanner: "sast",
     summary:
       "Unsanitized `q` query param interpolated into raw query. PoC confirms `' OR 1=1 --` exfiltrates user emails.",
+    tab: "security",
+    primaryFile: "services/admin/search.ts",
+    lineStart: 87,
+    lineEnd: 94,
+    sourcePhase: "static-analysis",
+    description:
+      "The admin search handler builds its SQL by string concatenation using the raw `q` query parameter. Taint analysis traces `req.query.q` directly into the executed statement with no parameterization or escaping, and the runtime probe confirmed boolean-based extraction of adjacent columns.",
+    attackPath: [
+      "Authenticated low-priv admin hits /admin/search?q=...",
+      "`q` is concatenated into `WHERE name LIKE '%<q>%'`.",
+      "Payload `%' OR 1=1 -- ` returns the full users table.",
+      "UNION-based payload exfiltrates email + password_hash columns.",
+    ],
+    evidence: [
+      "/admin/search?q=%25%27%20OR%201%3D1%20--%20 returned 4,812 rows.",
+      "UNION SELECT email,password_hash,NULL... echoed credentials in results.",
+    ],
+    affectedFiles: ["services/admin/search.ts", "lib/db/query.ts"],
+    suggestedFix:
+      "Use parameterized queries / prepared statements; never interpolate request input into SQL. Add a query builder allowlist for sortable columns.",
+    poc: "GET /admin/search?q=%25' OR 1=1 -- \nGET /admin/search?q=%25' UNION SELECT email,password_hash,NULL FROM users -- ",
   },
   {
     id: "fd_03",
@@ -363,6 +479,27 @@ export const MOCK_FINDINGS: MockFinding[] = [
     scanner: "runtime-attack",
     summary:
       "Token from tenant A returns 200 with tenant B order payload when `:id` matches an existing record in B's namespace.",
+    tab: "security",
+    primaryFile: "services/orders/get.ts",
+    lineStart: 22,
+    lineEnd: 40,
+    sourcePhase: "runtime-attack",
+    description:
+      "The order lookup resolves `:id` directly from the orders table without scoping the query to the caller's tenant. Any authenticated user can read another tenant's order by guessing or enumerating a valid order id, leaking PII and line-item totals across tenant boundaries.",
+    attackPath: [
+      "Tenant A user authenticates and notes their own order id format.",
+      "User requests GET /v1/orders/<id-from-tenant-B> with their own token.",
+      "Handler loads the row by id only; tenant scope is never checked.",
+      "200 OK returns tenant B's customer name, address, and totals.",
+    ],
+    evidence: [
+      "GET /v1/orders/ord_B17 with tenant-A token -> 200 with tenant-B payload.",
+      "No 403/404 returned for cross-tenant ids across 50 sampled records.",
+    ],
+    affectedFiles: ["services/orders/get.ts", "lib/auth/tenant-scope.ts"],
+    suggestedFix:
+      "Scope every order query by `tenant_id = ctx.tenantId` and return 404 (not 403) for out-of-scope ids to avoid enumeration.",
+    poc: "curl -s https://sandbox/v1/orders/ord_B17 \\\n  -H \"Authorization: Bearer $TENANT_A_TOKEN\"\n# -> 200 {\"tenant\":\"B\",\"customer\":\"...\",\"total\":18840}",
   },
   {
     id: "fd_14",
@@ -474,7 +611,193 @@ export const MOCK_INTERACTION_TESTS: MockInteractionTest[] = [
   },
 ];
 
+// ─── Story insights (what this run means) ────────────────────────────────
+
+export const STORY_BY_REVIEW: Record<string, StoryInsights> = {
+  rv_01: {
+    attackPaths: [
+      {
+        id: "ap_01",
+        title: "Unbounded refund replay -> double-spend",
+        severity: "critical",
+        summary:
+          "Missing idempotency on the refund path chains with the absent rate limit to let a single refund be cashed out multiple times.",
+        verifiedCount: 2,
+        steps: [
+          "Capture an in-flight refund request",
+          "Replay it 5x within the 1s settlement window",
+          "Each call passes the stale balance check",
+          "Five refunds commit against one charge",
+        ],
+      },
+      {
+        id: "ap_02",
+        title: "Admin search SQLi -> credential exfiltration",
+        severity: "critical",
+        summary:
+          "The unsanitized search filter allows UNION-based extraction of the users table including password hashes.",
+        verifiedCount: 1,
+        steps: [
+          "Authenticate as a low-priv admin",
+          "Inject a boolean payload into ?q=",
+          "Confirm full-table disclosure",
+          "Pivot to UNION SELECT on credentials",
+        ],
+      },
+    ],
+    rootCauses: [
+      {
+        id: "rc_01",
+        label: "Request input trusted without validation",
+        severity: "critical",
+        findingCount: 3,
+        summary:
+          "Several handlers consume request parameters directly into side effects or queries with no validation layer.",
+        files: ["services/admin/search.ts", "routes/auth/login.ts", "config/cors.ts"],
+      },
+      {
+        id: "rc_02",
+        label: "Stateful writes lack idempotency",
+        severity: "high",
+        findingCount: 2,
+        summary:
+          "Money-moving endpoints write before deduplicating, so retries and replays produce duplicate effects.",
+        files: ["services/refund/handler.ts", "routes/refund.ts"],
+      },
+    ],
+    leverageFixes: [
+      {
+        id: "lf_01",
+        label: "Add an idempotency middleware to mutating routes",
+        severity: "critical",
+        reason:
+          "Closes the double-refund path and hardens every other write endpoint at once.",
+        affectedFiles: ["services/refund/handler.ts", "routes/refund.ts"],
+      },
+      {
+        id: "lf_02",
+        label: "Introduce a shared input-validation layer",
+        severity: "high",
+        reason:
+          "Neutralizes the SQLi, open-redirect, and CORS findings that all stem from trusting raw input.",
+        affectedFiles: ["services/admin/search.ts", "config/cors.ts"],
+      },
+    ],
+  },
+  rv_04: {
+    attackPaths: [
+      {
+        id: "ap_04",
+        title: "Cross-tenant order disclosure (IDOR)",
+        severity: "critical",
+        summary:
+          "Order lookups are not tenant-scoped, leaking PII across customers via id enumeration.",
+        verifiedCount: 1,
+        steps: [
+          "Authenticate as tenant A",
+          "Request an order id owned by tenant B",
+          "Handler resolves by id only",
+          "Tenant B order payload is returned",
+        ],
+      },
+    ],
+    rootCauses: [
+      {
+        id: "rc_04",
+        label: "Authorization checks missing tenant scope",
+        severity: "critical",
+        findingCount: 1,
+        summary: "Resource handlers authenticate the caller but never authorize the resource.",
+        files: ["services/orders/get.ts"],
+      },
+    ],
+    leverageFixes: [
+      {
+        id: "lf_04",
+        label: "Enforce tenant scoping in the data-access layer",
+        severity: "critical",
+        reason: "Removes the IDOR class entirely rather than patching one route.",
+        affectedFiles: ["services/orders/get.ts", "lib/auth/tenant-scope.ts"],
+      },
+    ],
+  },
+};
+
+// ─── Readiness diagnostics (ready to rerun) ──────────────────────────────
+
+export const READINESS_BY_REVIEW: Record<string, ReadinessDiagnostics> = {
+  rv_01: {
+    state: "ready",
+    summary: "All sandbox artifacts captured. This run can be replayed deterministically.",
+    canRerun: true,
+    replayReady: true,
+    checks: [
+      { id: "c1", label: "Sandbox snapshot", status: "pass", detail: "Container image + seed DB captured." },
+      { id: "c2", label: "Network recording", status: "pass", detail: "All outbound calls recorded for replay." },
+      { id: "c3", label: "Secrets present", status: "pass", detail: "All required env vars resolved at run time." },
+    ],
+    recommendations: [
+      "Re-run after adding the idempotency middleware to confirm the double-refund path closes.",
+      "Promote the SQLi fix and re-scan the admin surface.",
+    ],
+  },
+  rv_02: {
+    state: "warning",
+    summary: "Replayable, but one interaction step depended on a live third-party preview.",
+    canRerun: true,
+    replayReady: true,
+    checks: [
+      { id: "c1", label: "Sandbox snapshot", status: "pass", detail: "Captured." },
+      { id: "c2", label: "CMS preview origin", status: "warn", detail: "Live origin used; replay falls back to a recording." },
+    ],
+    recommendations: ["Pin the CMS preview origin to the sandbox for deterministic replays."],
+  },
+  rv_04: {
+    state: "ready",
+    summary: "Run is fully reproducible.",
+    canRerun: true,
+    replayReady: true,
+    checks: [
+      { id: "c1", label: "Sandbox snapshot", status: "pass", detail: "Captured." },
+      { id: "c2", label: "Auth fixtures", status: "pass", detail: "Multi-tenant tokens seeded." },
+    ],
+    recommendations: ["Re-run with tenant scoping enforced to verify the IDOR is resolved."],
+  },
+  rv_05: {
+    state: "blocked",
+    summary: "The run cannot be replayed until the missing build secret is provided.",
+    canRerun: false,
+    replayReady: false,
+    checks: [
+      { id: "c1", label: "Build step", status: "fail", detail: "Sandbox build failed before any coverage.", blocking: true },
+      { id: "c2", label: "FIREBASE_KEY", status: "fail", detail: "Required env var was not provided.", blocking: true },
+    ],
+    recommendations: ["Add FIREBASE_KEY to the review's secret set and re-launch."],
+  },
+  rv_07: {
+    state: "ready",
+    summary: "Run is reproducible.",
+    canRerun: true,
+    replayReady: true,
+    checks: [
+      { id: "c1", label: "Sandbox snapshot", status: "pass", detail: "Captured." },
+      { id: "c2", label: "Adversarial probe set", status: "pass", detail: "Prompt-injection corpus recorded." },
+    ],
+    recommendations: ["Add the per-IP rate limit and re-run the streaming stress test."],
+  },
+};
+
 // ─── Convenience selectors ───────────────────────────────────────────────
+
+export function storyForReview(reviewId: string): StoryInsights | undefined {
+  return STORY_BY_REVIEW[reviewId];
+}
+
+export function readinessForReview(
+  reviewId: string,
+): ReadinessDiagnostics | undefined {
+  return READINESS_BY_REVIEW[reviewId];
+}
 
 export function findReview(reviewId: string): MockReview | undefined {
   return MOCK_REVIEWS.find((r) => r.id === reviewId);
