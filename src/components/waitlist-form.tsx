@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 
 export function WaitlistForm({ id, className }: { id?: string; className?: string }) {
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "already" | "error" | "invalid">("idle");
+  const [status, setStatus] = useState<"idle" | "success" | "already" | "error" | "invalid">("idle");
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -16,7 +16,9 @@ export function WaitlistForm({ id, className }: { id?: string; className?: strin
       return;
     }
 
-    setStatus("loading");
+    // Optimistically confirm immediately so submission feels instant; the write
+    // happens in the background. Only roll back to an error if it actually fails.
+    setStatus("success");
 
     try {
       const res = await fetch("/api/waitlist", {
@@ -27,7 +29,7 @@ export function WaitlistForm({ id, className }: { id?: string; className?: strin
 
       if (res.ok) {
         const data = await res.json();
-        setStatus(data.message === "already_registered" ? "already" : "success");
+        if (data.message === "already_registered") setStatus("already");
       } else {
         setStatus("error");
       }
@@ -64,10 +66,9 @@ export function WaitlistForm({ id, className }: { id?: string; className?: strin
         />
         <button
           type="submit"
-          disabled={status === "loading"}
-          className={cn("btn-lime text-[15px] px-5 py-4 tracking-[-0.015em] whitespace-nowrap inline-flex items-center gap-1.5", status === "loading" && "opacity-70 cursor-not-allowed")}
+          className="btn-lime text-[15px] px-5 py-4 tracking-[-0.015em] whitespace-nowrap inline-flex items-center gap-1.5"
         >
-          {status === "loading" ? "SUBMITTING..." : <>GET EARLY ACCESS <ArrowRight size={16} strokeWidth={2.5} /></>}
+          GET EARLY ACCESS <ArrowRight size={16} strokeWidth={2.5} />
         </button>
       </div>
       {status === "invalid" && (
