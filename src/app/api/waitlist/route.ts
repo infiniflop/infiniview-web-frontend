@@ -1,10 +1,7 @@
 import { neon } from "@neondatabase/serverless";
 
-// Run on the Edge runtime (near-zero cold start) instead of the Node serverless
-// runtime, and pin to iad1 to stay co-located with the us-east-1 Neon database.
-// The neon() HTTP driver is built for this, so the insert is a single fast round trip.
-export const runtime = "edge";
-export const preferredRegion = "iad1";
+// Neon HTTP driver works on the default Node.js (Fluid Compute) runtime.
+// Prefer co-locating the Vercel project/function region with the Neon DB (e.g. iad1).
 
 export async function POST(request: Request) {
   try {

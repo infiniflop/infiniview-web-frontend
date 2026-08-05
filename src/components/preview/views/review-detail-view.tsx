@@ -401,7 +401,6 @@ function AttackPathChain({ steps }: { steps: string[] }) {
       </div>
       <ol className="space-y-2.5">
         {visible.map((step, idx) => (
-          // eslint-disable-next-line react/no-array-index-key
           <li key={idx} className="flex gap-3">
             <div className="flex flex-col items-center pt-[1px]">
               <span className="flex size-5 shrink-0 items-center justify-center rounded-full border border-primary/25 bg-primary/10 font-mono text-[9px] font-semibold tabular-nums text-primary">
