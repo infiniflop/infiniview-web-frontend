@@ -22,10 +22,13 @@ export function DashboardPreviewAnimated() {
     const el = containerRef.current;
     if (!el) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setPhase("complete");
-      setVisibleFindings(3);
-      setShowBottom(true);
-      return;
+      // Defer so we don't sync-set state in the effect body (react-hooks/set-state-in-effect).
+      const id = requestAnimationFrame(() => {
+        setPhase("complete");
+        setVisibleFindings(3);
+        setShowBottom(true);
+      });
+      return () => cancelAnimationFrame(id);
     }
     const observer = new IntersectionObserver(
       ([entry]) => {

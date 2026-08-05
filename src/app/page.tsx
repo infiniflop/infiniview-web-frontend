@@ -475,8 +475,9 @@ function WhyInfiniview() {
   );
 }
 
-/* ─── Pricing ─── */
+/* ─── Pricing (kept for possible re-enable; live pricing lives at /pricing) ─── */
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- intentionally unused while section is commented out below
 function Pricing() {
   return (
     <section id="pricing" className="py-[120px] border-b border-border relative overflow-hidden">

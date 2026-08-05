@@ -1,16 +1,26 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { Moon, Sun } from "lucide-react";
 
 type Theme = "light" | "dark";
 
-export function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme | null>(null);
+function getTheme(): Theme {
+  return document.documentElement.classList.contains("light") ? "light" : "dark";
+}
 
-  useEffect(() => {
-    setTheme(document.documentElement.classList.contains("light") ? "light" : "dark");
-  }, []);
+function subscribe(onStoreChange: () => void) {
+  const observer = new MutationObserver(onStoreChange);
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["class"],
+  });
+  return () => observer.disconnect();
+}
+
+export function ThemeToggle() {
+  const theme = useSyncExternalStore<Theme | null>(subscribe, getTheme, () => null);
+  const mounted = theme !== null;
 
   const toggle = () => {
     const next: Theme = theme === "dark" ? "light" : "dark";
@@ -19,11 +29,10 @@ export function ThemeToggle() {
       localStorage.setItem("theme", next);
       document.cookie = `theme=${next};domain=.infiniview.dev;path=/;max-age=31536000;samesite=lax`;
     } catch {}
-    setTheme(next);
   };
 
   const isDark = theme === "dark";
-  const label = theme === null
+  const label = !mounted
     ? "Toggle theme"
     : isDark
       ? "Switch to light mode"
@@ -39,7 +48,7 @@ export function ThemeToggle() {
     >
       {/* Render an empty box on first paint to avoid hydration mismatch - the
           inline script in <head> sets the class before this component mounts. */}
-      {theme === null ? (
+      {!mounted ? (
         <span className="block w-[15px] h-[15px]" aria-hidden />
       ) : isDark ? (
         <Sun size={15} strokeWidth={1.75} aria-hidden />
