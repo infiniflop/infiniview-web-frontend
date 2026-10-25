@@ -239,6 +239,15 @@ export function Pipeline() {
           },
         });
 
+        // the chapter opens on a calmer light than the statement ends on, so its heading and lede read
+        // over the corridor; scrolling back up restores the statement's final glow
+        const head = ScrollTrigger.create({
+          trigger: q(".pipe-head"),
+          start: "top 88%",
+          onEnter: () => setMood(moods[0], 1),
+          onLeaveBack: () => setMood({ alert: 0, energy: 1, portal: 0.85 }, 1),
+        });
+
         // pointer parallax on a wrapper so it composes with the scroll orbit
         let off: (() => void) | undefined;
         if (!isSmall && !window.matchMedia("(hover: none)").matches) {
@@ -257,6 +266,7 @@ export function Pipeline() {
 
         return () => {
           off?.();
+          head.kill();
           st.kill();
           tl.kill();
         };

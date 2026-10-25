@@ -66,6 +66,29 @@ One clock, one scroll engine, no competing animators.
 - Social images and favicon were regenerated from the new hero.
 - `package.json` gains three dependencies (`gsap`, `@gsap/react`, `lenis`), and every dependency is at its latest release (Next 16.4.3, React 19.3.1, ESLint 10.13, lucide-react 1.61, `@neondatabase/serverless` 1.2, `tailwind-merge` 3.7, `@types/*`). The lockfile is regenerated with pnpm 10. ESLint 10 prints unmet-peer warnings from `eslint-config-next`'s bundled `jsx-a11y` and `react` plugins (they have not declared ESLint 10 yet); all rule families still run (verified against a deliberately broken file).
 
+### Page edges and surfaces
+
+The details at the edge of the viewport are part of the design, not leftovers:
+
+- **Overscroll and rubber-banding.** `html`, `body` and the canvas fallback are all the same `#03040a` (set by CSS *and* by the inline bootstrap script before first paint, for every path except the legacy `/preview`), so pulling past either end of the page, or an iOS bounce, never flashes white. `color-scheme: dark` themes native scrollbars, form controls and the overscroll area; `theme-color` colours the mobile browser chrome. `/preview` keeps its own light/dark surface.
+- **Safe areas.** `viewport-fit=cover` with `env(safe-area-inset-*)` on the nav, gutters and footer, so nothing sits under a notch, the Dynamic Island or the home indicator; `100vh` has an `svh` upgrade so phone URL bars do not cut heroes off.
+- **Platform polish.** Themed scrollbars, autofill and caret colours, tap-highlight off, `text-size-adjust`, `prefers-reduced-transparency`, `prefers-contrast`, `forced-colors` and print styles.
+- **Not-found, error and global-error pages** are designed (same shell; `global-error` is dependency-free inline styles), plus a web manifest, maskable and Apple touch icons, and alt text for the social images.
+
+### Security notes
+
+- `POST /api/waitlist` keeps its contract (`{ success: true }`, `already_registered` on a duplicate). It now also requires `application/json`, caps the body at 2 KB, validates the address type and length, and answers `415 / 413 / 400 / 429`. The 429 limiter (8 requests / 10 min per client IP) is **in memory, per server instance**: a best-effort brake, not a guarantee. The durable fix is a rate-limit rule at the edge or WAF.
+- Response headers on every route: `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, a `Permissions-Policy` that denies camera, microphone, geolocation, payment, USB and FLoC, and a restricted CSP (`base-uri`, `form-action`, `object-src 'none'`, `frame-ancestors` limited to this site and `*.infiniview.dev`). A full script-src CSP is not set: Next's inline bootstrap scripts need nonces, which would force every page dynamic. HSTS is left to the platform.
+- Structured data is serialised with `<` escaped. The theme cookie is `Secure` over HTTPS. `.env*` is git-ignored except `.env.example`.
+- Not changed on purpose: the `already_registered` response (product contract, low sensitivity) and the shared `.infiniview.dev` theme-cookie domain (shared with the product app).
+
+### Accessibility and QA
+
+- **Keyboard**: one tab walk covers every control on both routes; accordions and tabs have real roles, roving focus and Escape/focus-return for the menu. The e2e suite (about 60 real-input tests, run against a production build and the dev server under StrictMode) is green.
+- **axe-core 4.14**: no violations on `/pricing`, the 404 page or the open mobile menu; the home findings (statement `aria-label`, hero cue label, unlit-word contrast) are fixed.
+- **Contrast over a moving background** is something axe cannot evaluate (the corridor is a canvas), so it is measured from pixels: scroll in 0.3-viewport steps, screenshot, screenshot again with all text made transparent (so the true background under every glyph is sampled), and compare against WCAG AA at the 90th-percentile worst pixel. Phones (320, 390), tablet, 1280×720, 1440×900 and 1920×1080, both routes. That audit found and fixed: the nav glass being washed out by headlines scrolling under it, phone/tablet pipeline copy sitting on the portal (now on its own pane), body copy and the scan card over the portal's glow (denser tint, a soft halo on body copy, a dimmer portal in those chapters) and a few muted greys that sat just under 4.5:1.
+- Layout was audited at 12 viewport sizes on both routes for horizontal overflow and clipped elements, and reviewed visually as contact sheets (phone, SE, iPad, tablet landscape, laptop, FHD).
+
 ### Weight (production build, gzip)
 
 JS ≈ 263 KB · CSS ≈ 22 KB · fonts ≈ 126 KB (Mona Sans 96 KB, JetBrains Mono 31 KB) · HTML ≈ 18 KB.

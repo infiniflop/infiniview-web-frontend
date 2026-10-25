@@ -149,7 +149,6 @@ export function Hero() {
         type="button"
         className="hero-cue"
         onClick={() => scrollToTarget("#how-it-works", { duration: 1.8 })}
-        aria-label="Scroll to how it works"
       >
         <span>Travel down</span>
         <i aria-hidden />

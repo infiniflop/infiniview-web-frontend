@@ -155,11 +155,15 @@ export function Corridor() {
       );
       gl.uniform2f(U.ptr, scene.px, scene.py);
       gl.uniform1f(U.vel, scene.velocity);
+      // Stacked layouts (phones, portrait tablets) put the copy right over the vanishing point, so
+      // the portal is a soft glow there; the finale's peak (> 0.8) still comes through in full.
+      const p = scene.mood.portal;
+      const portal = aspect > 1.15 ? p : p * 0.5 + Math.max(0, p - 0.8);
       gl.uniform4f(
         U.mood,
         scene.mood.alert,
         scene.mood.energy,
-        scene.mood.portal,
+        portal,
         scene.mood.width,
       );
       gl.uniform2f(U.vp, vpx, vpy);

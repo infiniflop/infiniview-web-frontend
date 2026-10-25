@@ -51,8 +51,8 @@ html.lenis body {
   --iv-void: #03040a;
   --iv-deep: #070914;
   --iv-ink: #f3f5fa;
-  --iv-ink-2: #b3b9ca;
-  --iv-ink-3: #8189a0;
+  --iv-ink-2: #bec4d4;
+  --iv-ink-3: #8c94ab;
   --iv-lime: #d2fb5a;
   --iv-lime-soft: #e6ff9c;
   --iv-lime-deep: #8fb023;
@@ -205,6 +205,22 @@ html.lenis body {
   }
   .tnum {
     font-variant-numeric: tabular-nums;
+  }
+  /* Copy can cross the portal's bright core (the vanishing point moves with the viewport). A soft
+     dark halo is invisible on the dark ground and acts as a local scrim exactly where the glow is.
+     Not used on the lime finale, where the type is dark on a light field. */
+  .t-lede,
+  .t-body,
+  .t-small,
+  .kicker,
+  .plate-label {
+    text-shadow: 0 0 14px rgba(3, 4, 10, 0.7), 0 0 3px rgba(3, 4, 10, 0.4);
+  }
+  .cta .t-lede,
+  .cta .t-body,
+  .cta .t-small,
+  .cta .kicker {
+    text-shadow: none;
   }
 
   /* kicker: a plain sentence-case lead-in, not a tiny shouty label */
@@ -531,7 +547,14 @@ html.lenis body {
     height: 62px;
     padding: 0 9px 0 22px;
   }
-  .nav-bar { transition: background-color 0.4s ease, box-shadow 0.4s ease; }
+  /* Denser than a content pane: display type scrolls underneath the bar, and blurred white
+     letterforms must not wash the links out (measured ≥ 4.5:1 with headlines behind it). */
+  .nav-bar {
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02) 50%, rgba(255, 255, 255, 0.035)),
+      rgba(5, 7, 16, 0.84);
+    transition: background-color 0.4s ease, box-shadow 0.4s ease;
+  }
   .nav-bar--ink {
     background: linear-gradient(145deg, rgba(7, 10, 2, 0.94), rgba(7, 10, 2, 0.86));
     -webkit-backdrop-filter: none;
@@ -735,6 +758,7 @@ html.lenis body {
   }
   .hero-kicker {
     margin-bottom: clamp(14px, 1.8vw, 26px);
+    color: #d9deea; /* the first line on the page sits on the brightest part of the corridor */
   }
   .hero-h1 {
     /* capped so "before anyone else does." always fits the 1480 frame on two lines */
@@ -832,6 +856,10 @@ html.lenis body {
     --r: 30px;
     padding: 22px 22px 20px;
     max-width: 560px;
+    /* denser than a plain pane: the portal glows right behind this card on wide screens */
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.02) 38%, rgba(255, 255, 255, 0.04) 100%),
+      rgba(6, 8, 18, 0.7);
   }
   .scan-head {
     display: flex;
@@ -1033,6 +1061,7 @@ html.lenis body {
     max-width: 15ch;
     font-size: clamp(2.6rem, 8vw, 8.4rem);
     line-height: 0.97;
+    text-shadow: 0 0 0.45em rgba(3, 4, 10, 0.55);
   }
   @media (min-width: 900px) {
     .statement-text { max-width: 14ch; }
@@ -1190,6 +1219,20 @@ html.lenis body {
     .stage-col { order: -1; }
     html.js:not(.reveal-failsafe) .pipe-step:not([data-state='active']) { display: none; }
     .pipe-pin { padding-top: 84px; align-items: flex-start; }
+    /* stacked layouts put the copy right over the vanishing-point glow, so it gets its own pane */
+    .pipe-steps { position: relative; isolation: isolate; }
+    .pipe-steps::before {
+      content: '';
+      position: absolute;
+      inset: -8px -14px;
+      z-index: -1;
+      border-radius: 22px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(4, 6, 14, 0.8);
+      -webkit-backdrop-filter: blur(14px);
+      backdrop-filter: blur(14px);
+      pointer-events: none;
+    }
   }
 
   /* ── Pipeline: the stage (720×560 design space) ──────────────────────── */
@@ -2234,6 +2277,16 @@ html.lenis body {
   .price-hero .wrap { display: flex; flex-direction: column; gap: clamp(18px, 2.4vw, 30px); }
   .price-title { font-size: clamp(3rem, 8.4vw, 9rem); max-width: 14ch; margin: 0; }
   .price-lede { max-width: 42ch; margin: 0; }
+  /* calm ground behind the intro copy: on phones the vanishing point sits right behind it */
+  .price-hero { position: relative; }
+  .price-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(95% 75% at 30% 52%, rgba(3, 4, 10, 0.7), transparent 80%);
+  }
+  .price-hero .wrap { position: relative; }
   .plans-wrap { padding-bottom: clamp(48px, 6vw, 96px); }
   .plans { display: grid; gap: clamp(12px, 1.4vw, 20px); align-items: stretch; }
   @media (min-width: 960px) { .plans { grid-template-columns: repeat(3, minmax(0, 1fr)); } }

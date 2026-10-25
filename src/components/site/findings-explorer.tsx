@@ -75,7 +75,7 @@ export function FindingsExplorer() {
           end: "bottom 40%",
           onToggle: (self) => {
             setInView(self.isActive);
-            if (self.isActive) setMood({ alert: 0.25, energy: 0.65, portal: 0.5 }, 1.4);
+            if (self.isActive) setMood({ alert: 0.25, energy: 0.65, portal: 0.32 }, 1.4);
           },
         });
       });

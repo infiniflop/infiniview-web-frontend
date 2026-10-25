@@ -26,8 +26,11 @@ export function Statement() {
 
         const build = () => {
           if (cancelled) return;
-          split = SplitText.create(el, { type: "words", aria: "auto" });
-          gsap.set(split.words, { opacity: 0.14 });
+          // aria "none": the words stay real text for assistive tech (an aria-label is not allowed on a <p>).
+          // The unlit level is deliberately readable (contrast ≥ 3:1 for large text): it is "not yet read",
+          // not hidden.
+          split = SplitText.create(el, { type: "words", aria: "none" });
+          gsap.set(split.words, { opacity: 0.42 });
           const tl = gsap.timeline({
             scrollTrigger: {
               trigger: root.current!.querySelector(".statement-pin"),
@@ -37,7 +40,7 @@ export function Statement() {
               scrub: 0.6,
               anticipatePin: 1,
               refreshPriority: 1,
-              onUpdate: (self) => setMood({ portal: 0.55 + self.progress * 0.5 }, 0.6),
+              onUpdate: (self) => setMood({ portal: 0.55 + self.progress * 0.3 }, 0.6),
             },
           });
           tl.to(split.words, { opacity: 1, stagger: 0.12, ease: "none", duration: 1 });
