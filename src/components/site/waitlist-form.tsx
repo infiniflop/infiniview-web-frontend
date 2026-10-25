@@ -5,7 +5,7 @@ import { ArrowRight, Check } from "lucide-react";
 import { gsap } from "@/lib/site/gsap";
 import { cn } from "@/lib/utils";
 
-type Status = "idle" | "success" | "already" | "error" | "invalid";
+type Status = "idle" | "success" | "already" | "error" | "invalid" | "limited";
 
 /**
  * Waitlist form. Same contract as before: POST /api/waitlist {email}, optimistic
@@ -66,7 +66,7 @@ export function WaitlistForm({
         const data = await res.json();
         if (data.message === "already_registered") setStatus("already");
       } else {
-        setStatus("error");
+        setStatus(res.status === 429 ? "limited" : "error");
       }
     } catch {
       setStatus("error");
@@ -122,10 +122,10 @@ export function WaitlistForm({
           placeholder="you@company.com"
           value={email}
           aria-invalid={status === "invalid"}
-          aria-describedby={status === "invalid" || status === "error" ? `${id ?? "wl"}-msg` : undefined}
+          aria-describedby={status === "invalid" || status === "error" || status === "limited" ? `${id ?? "wl"}-msg` : undefined}
           onChange={(e) => {
             setEmail(e.target.value);
-            if (status === "invalid" || status === "error") setStatus("idle");
+            if (status === "invalid" || status === "error" || status === "limited") setStatus("idle");
           }}
           className="waitlist-input"
         />
@@ -141,6 +141,7 @@ export function WaitlistForm({
       >
         {status === "invalid" && "Enter a valid email address."}
         {status === "error" && "Something went wrong. Try again."}
+        {status === "limited" && "Too many attempts. Please try again in a few minutes."}
       </p>
     </form>
   );
