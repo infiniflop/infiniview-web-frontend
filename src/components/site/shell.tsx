@@ -110,8 +110,10 @@ export function SiteShell({ children }: { children: ReactNode }) {
     // hand control back to the reveal system (the reveal batch handles items already above the fold)
     document.documentElement.dataset.motion = "ready";
     document.documentElement.classList.remove("reveal-failsafe");
+    document.documentElement.classList.add("surface-dark"); // also covers client navigation in from /preview
 
     return () => {
+      document.documentElement.classList.remove("surface-dark");
       intro?.kill();
       gsap.ticker.lagSmoothing(500, 33); // GSAP's defaults, which this effect overrode
       gsap.ticker.remove(tick);

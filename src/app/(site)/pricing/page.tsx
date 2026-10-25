@@ -7,6 +7,8 @@ import { faqPage, jsonLd } from "@/lib/site/jsonld";
 
 export const metadata: Metadata = {
   title: "Pricing",
+  description:
+    "Infiniview plans for indie hackers, startups, and enterprise. Join the waitlist to lock in launch pricing.",
   alternates: {
     canonical: "/pricing",
   },

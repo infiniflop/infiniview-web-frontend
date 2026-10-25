@@ -1,31 +1,17 @@
 import type { ReactNode } from "react";
 import type { Viewport } from "next";
-import { Mona_Sans, JetBrains_Mono } from "next/font/google";
 import { cn } from "@/lib/utils";
+import { mona, jetbrains } from "@/lib/site/fonts";
 import { SiteShell } from "@/components/site/shell";
 import { Nav } from "@/components/site/nav";
 import { Footer } from "@/components/site/footer";
 import "./site.css";
 
-// Mona Sans is a variable family with a width axis (wdth 75–125). Headlines
-// lean on that axis; JetBrains Mono is reserved for real code and traces.
-const mona = Mona_Sans({
-  subsets: ["latin"],
-  variable: "--font-mona",
-  axes: ["wdth"],
-  display: "swap",
-});
-
-const jetbrains = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-jetbrains",
-  weight: ["400", "500", "600"],
-  display: "swap",
-});
-
 export const viewport: Viewport = {
   themeColor: "#03040a",
   colorScheme: "dark",
+  // extend under notches/home indicators; the stylesheet pads with env(safe-area-inset-*)
+  viewportFit: "cover",
 };
 
 export default function SiteLayout({ children }: { children: ReactNode }) {

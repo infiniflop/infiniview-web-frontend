@@ -8,9 +8,27 @@
    Vermilion = exploit / breach. Everything else is cool-white light.
    ────────────────────────────────────────────────────────────────────────── */
 
-html:has(.site-root) {
+/* Declare the layer order here as well as in Tailwind's entry stylesheet. Layer precedence is fixed by
+   whichever stylesheet declares a layer first; route chunks (an error boundary, a 404) can load this file
+   before Tailwind's, which would otherwise rank `components` below Tailwind's `base` reset. */
+@layer theme, base, components, utilities;
+
+
+/* The ground behind and beyond the page: html/body paint it (rubber-band overscroll, areas outside
+   the shell, the moment before CSS-driven content). `surface-dark` is set by the bootstrap script and
+   the shell, so this does not depend on :has() support. */
+html:has(.site-root),
+html.surface-dark {
   background: #03040a;
   color-scheme: dark;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.26) #03040a;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+html:has(.site-root) body,
+html.surface-dark body {
+  background: #03040a;
 }
 
 /* Lenis (https://github.com/darkroomengineering/lenis, MIT) recommended rules */
@@ -121,7 +139,8 @@ html.lenis body {
     width: 100%;
     max-width: var(--maxw);
     margin-inline: auto;
-    padding-inline: var(--gutter);
+    padding-left: max(var(--gutter), env(safe-area-inset-left));
+    padding-right: max(var(--gutter), env(safe-area-inset-right));
   }
   .chamber {
     position: relative;
@@ -492,12 +511,13 @@ html.lenis body {
   .site-nav {
     position: fixed;
     z-index: 50;
-    top: 14px;
+    top: max(14px, env(safe-area-inset-top));
     left: 0;
     right: 0;
     display: flex;
     justify-content: center;
-    padding-inline: var(--gutter);
+    padding-left: max(var(--gutter), env(safe-area-inset-left));
+    padding-right: max(var(--gutter), env(safe-area-inset-right));
     pointer-events: none;
   }
   .nav-bar {
@@ -623,7 +643,7 @@ html.lenis body {
     flex-direction: column;
     justify-content: center;
     gap: 6px;
-    padding: 100px var(--gutter) 40px;
+    padding: calc(100px + env(safe-area-inset-top)) max(var(--gutter), env(safe-area-inset-right)) calc(40px + env(safe-area-inset-bottom)) max(var(--gutter), env(safe-area-inset-left));
   }
   .nav-menu-link {
     font-size: clamp(2.4rem, 11vw, 4rem);
@@ -687,8 +707,9 @@ html.lenis body {
 
   .hero {
     position: relative;
+    min-height: 100vh;
     min-height: 100svh;
-    padding: 148px 0 72px;
+    padding: calc(148px + env(safe-area-inset-top)) 0 72px;
     display: flex;
     align-items: flex-start;
   }
@@ -773,8 +794,8 @@ html.lenis body {
   }
   .hero-cue {
     position: absolute;
-    left: var(--gutter);
-    bottom: 28px;
+    left: max(var(--gutter), env(safe-area-inset-left));
+    bottom: max(28px, calc(env(safe-area-inset-bottom) + 12px));
     display: none;
     align-items: center;
     gap: 12px;
@@ -1003,6 +1024,7 @@ html.lenis body {
   /* ── Statement + plates ──────────────────────────────────────────────── */
 
   .statement-pin {
+    min-height: 100vh;
     min-height: 100svh;
     display: flex;
     align-items: center;
@@ -1066,6 +1088,7 @@ html.lenis body {
   }
   .pipe-pin {
     position: relative;
+    min-height: 100vh;
     min-height: 100svh;
     display: flex;
     align-items: center;
@@ -1178,6 +1201,7 @@ html.lenis body {
     --k-runtime: #ff5a47;
     --k-interaction: #d2fb5a;
     position: relative;
+    width: min(100%, calc(72vh * 720 / 560));
     width: min(100%, calc(72svh * 720 / 560));
     aspect-ratio: 720 / 560;
     margin-inline: auto;
@@ -1203,7 +1227,7 @@ html.lenis body {
     transform-style: preserve-3d;
   }
   @media (max-width: 1023px) {
-    .stage { width: min(100%, 58svh); aspect-ratio: 1 / 1; }
+    .stage { width: min(100%, 58vh); width: min(100%, 58svh); aspect-ratio: 1 / 1; }
   }
   .stage-cap {
     text-align: center;
@@ -2115,9 +2139,10 @@ html.lenis body {
 
   /* ── Final CTA: the aperture opens ───────────────────────────────────── */
 
-  .cta { position: relative; min-height: 100svh; }
+  .cta { position: relative; min-height: 100vh; min-height: 100svh; }
   .cta-field {
     position: relative;
+    min-height: 100vh;
     min-height: 100svh;
     display: flex;
     align-items: center;
@@ -2196,7 +2221,7 @@ html.lenis body {
   }
   .foot-base {
     display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px;
-    padding-block: 22px 28px;
+    padding-block: 22px calc(28px + env(safe-area-inset-bottom));
     font-size: 0.9rem; color: var(--iv-ink-3);
     border-top: 1px solid rgba(255, 255, 255, 0.07);
   }
@@ -2205,7 +2230,7 @@ html.lenis body {
 @layer components {
   /* ── Pricing ─────────────────────────────────────────────────────────── */
 
-  .price-hero { padding: clamp(140px, 17vw, 240px) 0 clamp(40px, 5vw, 72px); }
+  .price-hero { padding: calc(clamp(140px, 17vw, 240px) + env(safe-area-inset-top)) 0 clamp(40px, 5vw, 72px); }
   .price-hero .wrap { display: flex; flex-direction: column; gap: clamp(18px, 2.4vw, 30px); }
   .price-title { font-size: clamp(3rem, 8.4vw, 9rem); max-width: 14ch; margin: 0; }
   .price-lede { max-width: 42ch; margin: 0; }
@@ -2332,3 +2357,152 @@ html:not(.js) .site-root .sbx-core { opacity: 1; }
 html:not(.js) .site-root .chain--run { stroke-dasharray: none; stroke-dashoffset: 0; opacity: 0.9; }
 html:not(.js) .site-root .dot--noise { opacity: 0.12; }
 html:not(.js) .site-root .dot--sig { opacity: 1; }
+
+@layer components {
+  /* ── Status pages (404 / error) ─────────────────────────────────────── */
+  .status {
+    min-height: 100vh;
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: clamp(18px, 2.4vw, 30px);
+    padding-top: calc(140px + env(safe-area-inset-top));
+    padding-bottom: 80px;
+  }
+  .status-title { margin: 0; max-width: 11ch; font-size: clamp(2.8rem, 8vw, 8rem); }
+  .status-lede { margin: 0; max-width: 44ch; }
+  .status-digest { display: block; margin-top: 10px; font-size: 0.85rem; color: var(--iv-ink-3); }
+  .status-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+
+  /* ── Form details ───────────────────────────────────────────────────── */
+  .waitlist-input { caret-color: var(--iv-lime); }
+  /* keep the browser's autofill from painting a pale field inside the dark pill */
+  .waitlist-input:-webkit-autofill,
+  .waitlist-input:autofill {
+    -webkit-text-fill-color: var(--iv-ink);
+    caret-color: var(--iv-lime);
+    box-shadow: 0 0 0 100px #0b0e1a inset;
+    transition: background-color 9999s ease-out 0s;
+  }
+  .cta .waitlist-input:-webkit-autofill,
+  .cta .waitlist-input:autofill {
+    box-shadow: 0 0 0 100px #12170a inset;
+  }
+
+  /* ── Touch ──────────────────────────────────────────────────────────── */
+  .site-root a,
+  .site-root button {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  /* ── Lime finale: a lime focus ring would disappear, so use ink ─────── */
+  .cta :focus-visible { outline-color: #070a02; }
+  .cta .waitlist:focus-within {
+    box-shadow:
+      0 0 0 3px #f3f5fa,
+      0 0 0 6px #070a02,
+      0 24px 50px -20px rgba(7, 10, 2, 0.6);
+  }
+
+  /* ── Scrollable code/terminal areas match the page ──────────────────── */
+  .site-root .term,
+  .site-root .code,
+  .site-root .rail,
+  .site-root .tabs {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
+  }
+}
+
+/* ── Preferences ────────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-transparency: reduce) {
+  .site-root .glass,
+  .site-root .btn--glass,
+  .site-root .layer-row {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background-color: rgba(8, 10, 22, 0.94);
+  }
+}
+
+@media (prefers-contrast: more) {
+  .site-root {
+    --iv-ink-2: #d3d8e6;
+    --iv-ink-3: #aab1c4;
+    --iv-line: rgba(255, 255, 255, 0.3);
+  }
+  .site-root .glass,
+  .site-root .chip,
+  .site-root .layer-row,
+  .site-root .btn--glass {
+    box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.55);
+  }
+}
+
+/* Windows high-contrast / forced colours: box-shadow "borders" are dropped, so draw real ones */
+@media (forced-colors: active) {
+  .corridor-host,
+  .corridor-fallback { display: none; }
+  .site-root .glass,
+  .site-root .chip,
+  .site-root .btn,
+  .site-root .layer-row,
+  .site-root .pane,
+  .site-root .plane-face,
+  .site-root .fchip,
+  .site-root .tile,
+  .site-root .waitlist-input {
+    border: 1px solid CanvasText;
+  }
+  .site-root :focus-visible { outline: 2px solid Highlight; }
+  .site-root .btn--lime { forced-color-adjust: none; background: Highlight; color: HighlightText; }
+}
+
+/* Print: the page, not the show */
+@media print {
+  .corridor-host,
+  .corridor-fallback,
+  .site-nav,
+  .nav-menu,
+  .skip-link,
+  .hero-cue,
+  .stage-col,
+  .stack-col,
+  .threat,
+  .iris,
+  .foot-word { display: none !important; }
+  html,
+  html.surface-dark,
+  body,
+  .site-root { background: #fff !important; color: #000 !important; }
+  .site-root *,
+  .site-root *::before,
+  .site-root *::after {
+    color: #000 !important;
+    -webkit-text-fill-color: #000 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    backdrop-filter: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+    animation: none !important;
+  }
+  .glass::before,
+  .glass::after { display: none !important; }
+  .cta-field { clip-path: none !important; background: #fff !important; min-height: 0 !important; }
+  .hero,
+  .statement-pin,
+  .pipe-pin,
+  .cta,
+  .status { min-height: 0 !important; }
+  .pipe-body,
+  .faq-a,
+  .layer-body { grid-template-rows: 1fr !important; }
+  a[href^='http']::after { content: ' (' attr(href) ')'; font-size: 0.8em; }
+}
