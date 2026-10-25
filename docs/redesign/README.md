@@ -52,6 +52,7 @@ One clock, one scroll engine, no competing animators.
 - **The corridor** (`corridor-shader.ts`) is a from-scratch fragment shader, not a library: a rounded-square tube solved analytically (superellipse radius → depth, no ray-marching), glass frames with constant z-thickness so perspective is exact, prismatic dispersion in *pixel* terms, ribbed secondary frames, agent "probes" running down the walls, and a portal at the vanishing point. Scroll sets camera depth; velocity adds roll and dispersion; each chapter nudges a shared `mood` (alert, energy, portal, width).
 - Easing is `expo.out` / `power4.out` for arrivals and `power3.inOut` for transitions; feedback on controls is ≤ 0.3 s.
 - **Performance**: the canvas renders at a fraction of device resolution with a frame-time governor that sheds pixels first and, only if that is not enough, sets `html[data-perf="low"]` which removes backdrop blur. Large, mostly-opaque panes do not blur at all. The loop pauses with the tab.
+- **Progressive enhancement**: collapsing (pipeline steps, FAQ, arsenal layers) only happens when script is running, so with no script everything stays readable; collapsed copy is also removed from the accessibility tree rather than just clipped. A failsafe in the root layout reveals all marketing content if the app bundle never boots.
 - **Reduced motion**: Lenis is off, the corridor renders one still frame, pinned scrub sequences become static layouts, everything is visible. Content is only hidden when script is present *and* will reveal it; a failsafe un-hides after 5 s.
 - **Touch**: pointer effects (tilt, magnetic buttons, rim light) are disabled on coarse pointers; the pinned pipeline restages for phones.
 
@@ -63,7 +64,7 @@ One clock, one scroll engine, no competing animators.
 - Two hydration traps found and fixed: trig-derived SVG coordinates differ between Node and browsers in the last float digits (rounded), and ScrollTriggers created *before* pinned sections measure wrong unless the pins refresh first (`refreshPriority`).
 - Illustrative content is labelled ("Sample run", "Sample data", "Illustration with sample data") and derived from the existing `/preview` fixtures. No customers, quotes, logos or new metrics.
 - Social images and favicon were regenerated from the new hero.
-- `package.json` gains three dependencies (`gsap`, `@gsap/react`, `lenis`). The lockfile was regenerated with pnpm 10 so the diff is only those packages.
+- `package.json` gains three dependencies (`gsap`, `@gsap/react`, `lenis`), and every dependency is at its latest release (Next 16.4.3, React 19.3.1, ESLint 10.13, lucide-react 1.61, `@neondatabase/serverless` 1.2, `tailwind-merge` 3.7, `@types/*`). The lockfile is regenerated with pnpm 10. ESLint 10 prints unmet-peer warnings from `eslint-config-next`'s bundled `jsx-a11y` and `react` plugins (they have not declared ESLint 10 yet); all rule families still run (verified against a deliberately broken file).
 
 ### Weight (production build, gzip)
 

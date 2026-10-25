@@ -28,14 +28,9 @@ export const viewport: Viewport = {
   colorScheme: "dark",
 };
 
-// If the motion layer never boots (blocked script, hydration error), reveal
-// everything after a grace period instead of leaving the page invisible.
-const failsafe = `setTimeout(function(){if(document.documentElement.dataset.motion!=='ready')document.documentElement.classList.add('reveal-failsafe')},5000);`;
-
 export default function SiteLayout({ children }: { children: ReactNode }) {
   return (
     <div className={cn(mona.variable, jetbrains.variable)}>
-      <script dangerouslySetInnerHTML={{ __html: failsafe }} />
       <a href="#main" className="skip-link">
         Skip to content
       </a>
