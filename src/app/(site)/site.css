@@ -80,18 +80,25 @@ html.lenis body {
   outline-offset: 3px;
   border-radius: 6px;
 }
+/* containers we focus programmatically (skip link, in-page jumps) are not controls: no ring */
+.site-root [tabindex='-1']:focus,
+.site-root [tabindex='-1']:focus-visible {
+  outline: none;
+}
 
 @layer components {
   /* ── Canvas layers ───────────────────────────────────────────────────── */
 
-  .corridor {
+  .corridor-host {
     position: fixed;
     inset: 0;
     z-index: 0;
+    pointer-events: none;
+  }
+  .corridor {
+    display: block;
     width: 100%;
     height: 100%;
-    pointer-events: none;
-    display: block;
   }
   /* The fallback sits under the canvas; it is what you see with no WebGL. */
   .corridor-fallback {
@@ -594,9 +601,11 @@ html.lenis body {
     inset: 0;
     z-index: 45; /* under .site-nav (50) so the bar and its close button stay reachable */
     visibility: hidden;
-    -webkit-backdrop-filter: blur(30px) saturate(1.4);
-    backdrop-filter: blur(30px) saturate(1.4);
-    background: rgba(3, 4, 10, 0.86);
+    /* no backdrop blur: it would re-composite a full-screen blur every frame on phones,
+       and at this opacity it adds nothing visible */
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: rgba(3, 4, 10, 0.94);
   }
   .nav-menu::after { display: none; }
   .nav-menu-inner {
@@ -2208,4 +2217,20 @@ html.lenis body {
     .pipe-tag { margin-bottom: 3px; font-size: 0.8rem; }
     .pipe-step[data-state='active'] .pipe-body > p { padding-top: 8px; font-size: 0.93rem; line-height: 1.45; }
   }
+}
+
+/* ── Reduced motion: stop every decorative loop and show each illustration finished ── */
+@media (prefers-reduced-motion: reduce) {
+  .site-root *,
+  .site-root *::before,
+  .site-root *::after {
+    animation: none !important;
+  }
+  /* bento tiles: their looping states are only revealed by animation, so draw the resolved frame */
+  .site-root .sbx-f { opacity: 1; transform: none; }
+  .site-root .sbx-core { opacity: 1; }
+  .site-root .chain--run { stroke-dasharray: none; stroke-dashoffset: 0; opacity: 0.9; }
+  .site-root .dot--noise { opacity: 0.12; }
+  .site-root .dot--sig { opacity: 1; }
+  .site-root .zterm p { opacity: 1; transform: none; }
 }

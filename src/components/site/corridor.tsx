@@ -12,11 +12,30 @@ import { FRAG, VERT } from "@/components/site/corridor-shader";
  * trade pixels for a steady frame rate before we ever trade motion.
  */
 export function Corridor() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const hostRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    const host = hostRef.current;
+    if (!host) return;
+
+    // A fresh canvas per mount. A released WebGL context can never be reused, so
+    // the canvas has to live exactly as long as this effect run (StrictMode
+    // remounts and route changes included).
+    const canvas = document.createElement("canvas");
+    canvas.className = "corridor";
+    canvas.setAttribute("aria-hidden", "true");
+    host.appendChild(canvas);
+
+    const cleanups: Array<() => void> = [() => canvas.remove()];
+    const dispose = () => {
+      for (const fn of cleanups.reverse()) {
+        try {
+          fn();
+        } catch {
+          /* context may already be gone */
+        }
+      }
+    };
 
     const gl = canvas.getContext("webgl", {
       alpha: false,
@@ -25,10 +44,13 @@ export function Corridor() {
       stencil: false,
       powerPreference: "high-performance",
     });
-    if (!gl) return;
+    if (!gl) return dispose; // the CSS backdrop underneath carries the page
+
+    cleanups.push(() => gl.getExtension("WEBGL_lose_context")?.loseContext());
 
     const compile = (type: number, src: string) => {
       const sh = gl.createShader(type)!;
+      cleanups.push(() => gl.deleteShader(sh));
       gl.shaderSource(sh, src);
       gl.compileShader(sh);
       if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) {
@@ -39,19 +61,21 @@ export function Corridor() {
     };
     const vs = compile(gl.VERTEX_SHADER, VERT);
     const fs = compile(gl.FRAGMENT_SHADER, FRAG);
-    if (!vs || !fs) return;
+    if (!vs || !fs) return dispose;
 
     const prog = gl.createProgram()!;
+    cleanups.push(() => gl.deleteProgram(prog));
     gl.attachShader(prog, vs);
     gl.attachShader(prog, fs);
     gl.linkProgram(prog);
     if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
       console.warn("[corridor] link error", gl.getProgramInfoLog(prog));
-      return;
+      return dispose;
     }
     gl.useProgram(prog);
 
     const buf = gl.createBuffer();
+    cleanups.push(() => gl.deleteBuffer(buf));
     gl.bindBuffer(gl.ARRAY_BUFFER, buf);
     gl.bufferData(
       gl.ARRAY_BUFFER,
@@ -100,6 +124,8 @@ export function Corridor() {
 
     const render = () => {
       if (lostContext) return;
+      // the mobile menu covers the page at ~94% opacity: no need to burn frames under it
+      if (document.documentElement.dataset.menuOpen === "true") return;
       const now = performance.now();
       const t = (now - t0) / 1000;
       const aspect = window.innerWidth / window.innerHeight;
@@ -185,23 +211,19 @@ export function Corridor() {
     };
     canvas.addEventListener("webglcontextlost", onLost);
 
-    const raf = requestAnimationFrame(() => {
-      canvas.dataset.ready = "true";
-    });
-
-    return () => {
-      cancelAnimationFrame(raf);
+    cleanups.push(() => {
       stop();
       mqReduce.removeEventListener("change", apply);
       window.removeEventListener("resize", onResize);
       canvas.removeEventListener("webglcontextlost", onLost);
-    };
+    });
+    return dispose;
   }, []);
 
   return (
     <>
       <div className="corridor-fallback" aria-hidden />
-      <canvas ref={canvasRef} className="corridor" aria-hidden />
+      <div ref={hostRef} className="corridor-host" aria-hidden />
     </>
   );
 }

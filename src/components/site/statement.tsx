@@ -52,6 +52,7 @@ export function Statement() {
           split?.revert();
         };
       });
+      return () => mm.revert();
     },
     { scope: root },
   );

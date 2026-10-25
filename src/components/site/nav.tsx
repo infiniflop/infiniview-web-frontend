@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowRight, Menu, X } from "lucide-react";
-import { gsap, ScrollTrigger, useGSAP } from "@/lib/site/gsap";
+import { gsap, ScrollTrigger, useGSAP, prefersReducedMotion } from "@/lib/site/gsap";
 import { getLenis, scrollToTarget } from "@/lib/site/scroll";
 import { Mark, Magnetic } from "@/components/site/ui";
 
@@ -38,7 +38,10 @@ export function Nav() {
   const linksRef = useRef<HTMLDivElement>(null);
   const pillRef = useRef<HTMLSpanElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const burgerRef = useRef<HTMLButtonElement>(null);
   const activeRef = useRef<string | null>(null);
+  // only hand focus back to the burger when the menu was dismissed with the keyboard
+  const returnFocus = useRef(false);
 
   /* ── sliding pill ───────────────────────────────────────────────────── */
   const movePill = useCallback((target: HTMLElement | null, instant = false) => {
@@ -116,25 +119,71 @@ export function Nav() {
 
   /* ── mobile menu ────────────────────────────────────────────────────── */
   useEffect(() => {
+    if (!open) return;
     const lenis = getLenis();
-    if (open) {
-      lenis?.stop();
-      document.body.style.overflow = "hidden";
-      const m = menuRef.current;
-      if (m) {
+    const reduced = prefersReducedMotion();
+    lenis?.stop();
+    document.body.style.overflow = "hidden";
+    document.documentElement.dataset.menuOpen = "true";
+
+    // the menu is aria-modal: make everything behind it inert so Tab cannot wander off
+    const behind = [document.getElementById("main"), document.querySelector<HTMLElement>(".foot")].filter(
+      (el): el is HTMLElement => !!el,
+    );
+    behind.forEach((el) => el.setAttribute("inert", ""));
+
+    const m = menuRef.current;
+    const burger = burgerRef.current; // captured: the ref may be cleared by the time cleanup runs
+    let focusTimer: number | undefined;
+    if (m) {
+      const items = m.querySelectorAll("[data-m]");
+      if (reduced) {
+        gsap.set([m, items], { autoAlpha: 1 });
+      } else {
         gsap.fromTo(m, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.35, ease: "power2.out" });
         gsap.fromTo(
-          m.querySelectorAll("[data-m]"),
+          items,
           { y: 44, autoAlpha: 0 },
           { y: 0, autoAlpha: 1, duration: 0.9, ease: "expo.out", stagger: 0.07, delay: 0.1 },
         );
       }
-      return () => {
-        lenis?.start();
-        document.body.style.overflow = "";
-      };
+      // wait until the first link is actually visible: hidden elements cannot take focus
+      focusTimer = window.setTimeout(
+        () => m.querySelector<HTMLElement>("[data-m]")?.focus({ preventScroll: true }),
+        reduced ? 0 : 260,
+      );
     }
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      returnFocus.current = true;
+      setOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+
+    return () => {
+      window.clearTimeout(focusTimer);
+      document.removeEventListener("keydown", onKey);
+      behind.forEach((el) => el.removeAttribute("inert"));
+      lenis?.start();
+      document.body.style.overflow = "";
+      delete document.documentElement.dataset.menuOpen;
+      if (returnFocus.current) {
+        returnFocus.current = false;
+        burger?.focus();
+      }
+    };
   }, [open]);
+
+  // a menu opened on a phone must not linger (with its trigger hidden) after rotating to desktop width
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const onChange = () => {
+      if (mq.matches) setOpen(false);
+    };
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
 
   useEffect(() => {
     // close the menu on navigation
@@ -143,6 +192,17 @@ export function Nav() {
   }, [pathname]);
 
   const hrefFor = (id: string) => (isHome ? `#${id}` : `/#${id}`);
+
+  // The header CTA stays reachable while the menu is open: close the menu first so the form is not
+  // focused behind an overlay, and give scrolling a moment to resume (Lenis is stopped while open).
+  const earlyAccess = () => {
+    if (open) {
+      setOpen(false);
+      window.setTimeout(() => focusWaitlist(router), 350);
+    } else {
+      focusWaitlist(router);
+    }
+  };
 
   return (
     <>
@@ -206,17 +266,19 @@ export function Nav() {
               <button
                 type="button"
                 className="btn btn--lime btn--sm"
-                onClick={() => focusWaitlist(router)}
+                onClick={earlyAccess}
               >
                 Early access
                 <ArrowRight className="arrow" size={15} strokeWidth={2.6} />
               </button>
             </Magnetic>
             <button
+              ref={burgerRef}
               type="button"
               className="nav-burger"
               aria-label={open ? "Close menu" : "Open menu"}
               aria-expanded={open}
+              aria-controls="site-menu"
               onClick={() => setOpen((v) => !v)}
             >
               {open ? <X size={20} /> : <Menu size={20} />}
@@ -226,7 +288,7 @@ export function Nav() {
       </header>
 
       {open && (
-        <div ref={menuRef} className="nav-menu glass glass--deep" style={{ ["--r" as string]: "0px" }} role="dialog" aria-modal="true" aria-label="Menu">
+        <div id="site-menu" ref={menuRef} className="nav-menu glass glass--deep" style={{ ["--r" as string]: "0px" }} role="dialog" aria-modal="true" aria-label="Menu">
           <div className="nav-menu-inner">
             {LINKS.map((l) => (
               <Link key={l.id} data-m href={hrefFor(l.id)} className="nav-menu-link" onClick={() => setOpen(false)}>
@@ -240,10 +302,7 @@ export function Nav() {
               <button
                 type="button"
                 className="btn btn--lime"
-                onClick={() => {
-                  setOpen(false);
-                  window.setTimeout(() => focusWaitlist(router), 350);
-                }}
+                onClick={earlyAccess}
               >
                 Get early access
                 <ArrowRight className="arrow" size={17} strokeWidth={2.6} />

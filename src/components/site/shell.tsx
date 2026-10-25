@@ -80,17 +80,28 @@ export function SiteShell({ children }: { children: ReactNode }) {
       scene.intro = 0;
     }
 
-    // in-page anchors share Lenis' feel
+    // in-page anchors share Lenis' feel, and still move keyboard focus like a native jump
+    const FOCUSABLE = "a[href],button,input,select,textarea,[tabindex]";
     const onClick = (e: MouseEvent) => {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
       const a = (e.target as HTMLElement).closest<HTMLAnchorElement>('a[href^="#"]');
-      if (!a || e.defaultPrevented || e.metaKey || e.ctrlKey) return;
-      const id = a.getAttribute("href")!;
-      if (id === "#" || id.length < 2) return;
-      const el = document.querySelector<HTMLElement>(id);
+      if (!a) return;
+      const raw = a.getAttribute("href")!;
+      if (raw.length < 2) return;
+      let id: string;
+      try {
+        id = decodeURIComponent(raw.slice(1));
+      } catch {
+        return; // malformed escape: let the browser handle it
+      }
+      const el = document.getElementById(id); // not querySelector: ids like "1-step" are not valid selectors
       if (!el) return;
       e.preventDefault();
       scrollToTarget(el, { offset: -20 });
-      history.replaceState(null, "", id);
+      history.replaceState(null, "", raw);
+      // preventDefault cancelled the native focus move; do it ourselves so Tab continues from the target
+      if (!el.matches(FOCUSABLE)) el.setAttribute("tabindex", "-1");
+      el.focus({ preventScroll: true });
     };
     document.addEventListener("click", onClick);
 

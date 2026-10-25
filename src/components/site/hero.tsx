@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { gsap, SplitText, useGSAP, isCoarsePointer } from "@/lib/site/gsap";
+import { gsap, SplitText, useGSAP, isCoarsePointer, prefersReducedMotion } from "@/lib/site/gsap";
 import { HERO } from "@/lib/site/content";
 import { WaitlistForm } from "@/components/site/waitlist-form";
 import { ScanCard } from "@/components/site/scan-card";
@@ -75,25 +75,29 @@ export function Hero() {
         };
       });
 
-      // card tilts toward the pointer — depth you can feel
-      if (!isCoarsePointer()) {
-        const card = cardWrap.current;
-        if (card) {
-          gsap.set(card, { transformPerspective: 1100, transformOrigin: "50% 60%" });
-          const rx = gsap.quickTo(card, "rotationX", { duration: 0.9, ease: "power3.out" });
-          const ry = gsap.quickTo(card, "rotationY", { duration: 0.9, ease: "power3.out" });
-          const tz = gsap.quickTo(card, "y", { duration: 1.1, ease: "power3.out" });
-          const move = (e: PointerEvent) => {
-            const nx = (e.clientX / window.innerWidth) * 2 - 1;
-            const ny = (e.clientY / window.innerHeight) * 2 - 1;
-            ry(nx * 6);
-            rx(-ny * 5);
-            tz(ny * -6);
-          };
-          window.addEventListener("pointermove", move, { passive: true });
-          return () => window.removeEventListener("pointermove", move);
-        }
+      // card tilts toward the pointer — depth you can feel (fine pointers, full motion only)
+      let removeTilt: (() => void) | undefined;
+      const card = cardWrap.current;
+      if (card && !isCoarsePointer() && !prefersReducedMotion()) {
+        gsap.set(card, { transformPerspective: 1100, transformOrigin: "50% 60%" });
+        const rx = gsap.quickTo(card, "rotationX", { duration: 0.9, ease: "power3.out" });
+        const ry = gsap.quickTo(card, "rotationY", { duration: 0.9, ease: "power3.out" });
+        const tz = gsap.quickTo(card, "y", { duration: 1.1, ease: "power3.out" });
+        const move = (e: PointerEvent) => {
+          const nx = (e.clientX / window.innerWidth) * 2 - 1;
+          const ny = (e.clientY / window.innerHeight) * 2 - 1;
+          ry(nx * 6);
+          rx(-ny * 5);
+          tz(ny * -6);
+        };
+        window.addEventListener("pointermove", move, { passive: true });
+        removeTilt = () => window.removeEventListener("pointermove", move);
       }
+
+      return () => {
+        removeTilt?.();
+        mm.revert(); // also reverts the SplitText and timeline created inside
+      };
     },
     { scope: root },
   );

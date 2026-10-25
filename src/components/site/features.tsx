@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { Check } from "lucide-react";
-import { ScrollTrigger, useGSAP } from "@/lib/site/gsap";
+import { ScrollTrigger, useGSAP, prefersReducedMotion } from "@/lib/site/gsap";
 import { FEATURES, ZERO_CONFIG } from "@/lib/site/content";
 
 const FAN = [
@@ -157,11 +157,12 @@ function Terminal() {
 export function Features() {
   const root = useRef<HTMLElement>(null);
 
-  // loops only run while the bento is on screen
+  // loops only run while the bento is on screen, and never under reduced motion
+  // (the stylesheet shows each tile's finished static state instead)
   useGSAP(
     () => {
       const el = root.current?.querySelector(".bento");
-      if (!el) return;
+      if (!el || prefersReducedMotion()) return;
       const st = ScrollTrigger.create({
         trigger: el,
         start: "top 90%",
