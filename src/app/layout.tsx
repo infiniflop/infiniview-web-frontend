@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
+import { jsonLd } from "@/lib/site/jsonld";
 
 const SITE_URL = "https://infiniview.dev";
 const SITE_DESCRIPTION =
@@ -57,59 +58,6 @@ const structuredData = {
       url: SITE_URL,
       description: SITE_DESCRIPTION,
     },
-    {
-      "@type": "FAQPage",
-      mainEntity: [
-        {
-          "@type": "Question",
-          name: "How is this different from Snyk or SonarQube?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Snyk and SonarQube are static analysis tools - they scan code without running it. Infiniview deploys your app in a sandbox and tests it at runtime with AI agents that attempt real attacks, test interactions, and review code.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "Do I need to write any configuration or test cases?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "No. Connect your GitHub repo and Infiniview handles everything - it discovers your attack surface, generates test plans, and executes them autonomously.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "Is my code safe?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Your code runs inside isolated cloud sandboxes that are torn down after every scan. We never store your source code. Only findings, proof bundles, and scan metadata persist.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "What languages and frameworks do you support?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Infiniview supports any language or framework that can be built and deployed in a container. Static scanners cover JavaScript/TypeScript, Python, Go, Ruby, Java, PHP, and Rust. Runtime and interaction testing works with any web application.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "How long does a scan take?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Agents run in parallel with a 10-minute timeout per phase. You see real-time progress in the dashboard as each agent completes.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "How do I get access?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Join the waitlist and we'll invite you as spots open. Early members get priority access and free scans during the beta period.",
-          },
-        },
-      ],
-    },
   ],
 };
 
@@ -132,7 +80,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+          dangerouslySetInnerHTML={{ __html: jsonLd(structuredData) }}
         />
       </head>
       <body>

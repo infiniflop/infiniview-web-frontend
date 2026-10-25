@@ -168,56 +168,52 @@ export function Arsenal() {
         </div>
 
         <div className="arsenal-grid">
-          <div className="arsenal-list" role="tablist" aria-label="Layers of coverage" aria-orientation="vertical">
+          {/* An always-one-open accordion: heading + button[aria-expanded] + a sibling region.
+              (A tabpanel inside a tab button is invalid ARIA.) */}
+          <div className="arsenal-list">
             {ARSENAL.map((a, i) => (
-              <button
+              <div
                 key={a.id}
-                role="tab"
-                id={`layer-${a.id}`}
-                aria-selected={i === active}
-                aria-controls={`layer-panel-${a.id}`}
-                tabIndex={i === active ? 0 : -1}
                 className="layer-row"
+                data-on={i === active}
                 data-reveal
-                onClick={() => choose(i)}
                 onPointerEnter={() => {
                   setHover(true);
                   setActive(i);
                 }}
                 onPointerLeave={() => setHover(false)}
-                onFocus={() => setActive(i)}
-                onKeyDown={(e) => {
-                  if (e.key === "ArrowDown" || e.key === "ArrowRight") {
-                    e.preventDefault();
-                    choose((i + 1) % ARSENAL.length);
-                    (e.currentTarget.parentElement?.children[(i + 1) % ARSENAL.length] as HTMLElement)?.focus();
-                  } else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
-                    e.preventDefault();
-                    const n = (i - 1 + ARSENAL.length) % ARSENAL.length;
-                    choose(n);
-                    (e.currentTarget.parentElement?.children[n] as HTMLElement)?.focus();
-                  }
-                }}
               >
-                <span className="layer-num">
-                  <Counter value={a.count} />
-                </span>
-                <span className="layer-meta">
-                  <span className="layer-name">{a.unit}</span>
-                  <span className="layer-sub">{a.sub}</span>
-                  <span
-                    id={`layer-panel-${a.id}`}
-                    role="tabpanel"
-                    aria-labelledby={`layer-${a.id}`}
-                    className="layer-body"
+                <h3 className="layer-head">
+                  <button
+                    type="button"
+                    id={`layer-${a.id}`}
+                    aria-expanded={i === active}
+                    aria-controls={`layer-panel-${a.id}`}
+                    className="layer-tab"
+                    onClick={() => choose(i)}
+                    onFocus={() => setActive(i)}
                   >
-                    <span>
-                      <b className="layer-title">{a.title}</b>
-                      <span className="layer-text">{a.body}</span>
+                    <span className="layer-num">
+                      <Counter value={a.count} />
                     </span>
+                    <span className="layer-meta">
+                      <span className="layer-name">{a.unit}</span>
+                      <span className="layer-sub">{a.sub}</span>
+                    </span>
+                  </button>
+                </h3>
+                <div
+                  id={`layer-panel-${a.id}`}
+                  role="region"
+                  aria-labelledby={`layer-${a.id}`}
+                  className="layer-body"
+                >
+                  <span>
+                    <b className="layer-title">{a.title}</b>
+                    <span className="layer-text">{a.body}</span>
                   </span>
-                </span>
-              </button>
+                </div>
+              </div>
             ))}
           </div>
 

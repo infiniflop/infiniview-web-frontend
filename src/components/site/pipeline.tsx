@@ -87,8 +87,15 @@ export function Pipeline() {
         items.forEach((li) => li.setAttribute("data-state", "active"));
       });
 
-      mm.add("(prefers-reduced-motion: no-preference)", () => {
-        const isSmall = window.matchMedia("(max-width: 1023px)").matches;
+      // the breakpoint is a condition, so crossing 1023px (rotating a tablet, resizing a window)
+      // tears this setup down and rebuilds it with the right offsets, pin length and tilt
+      mm.add(
+        {
+          full: "(min-width: 1024px) and (prefers-reduced-motion: no-preference)",
+          small: "(max-width: 1023px) and (prefers-reduced-motion: no-preference)",
+        },
+        (ctx) => {
+        const isSmall = !!ctx.conditions?.small;
         const P = gsap.utils.toArray<HTMLElement>(".pane", root.current!);
         gsap.set(P, { xPercent: -50, yPercent: -50, autoAlpha: 0 });
 
@@ -253,7 +260,8 @@ export function Pipeline() {
           st.kill();
           tl.kill();
         };
-      });
+        },
+      );
 
       return () => {
         ro.disconnect();

@@ -454,12 +454,19 @@ html.lenis body {
      Content is only hidden when script is present *and* will reveal it. A
      failsafe class on <html> shows everything if the motion layer fails. */
 
+  /* Opacity only, never visibility: gated content must stay focusable and readable by assistive
+     tech. Focus inside it shows it immediately. */
   html.js:not(.reveal-failsafe) .site-root [data-reveal],
   html.js:not(.reveal-failsafe) .site-root [data-split],
   html.js:not(.reveal-failsafe) .site-root [data-hero-title],
+  html.js:not(.reveal-failsafe) .site-root [data-cta],
   html.js:not(.reveal-failsafe) .site-root [data-intro] {
     opacity: 0;
-    visibility: hidden;
+  }
+  html.js:not(.reveal-failsafe) .site-root [data-reveal]:focus-within,
+  html.js:not(.reveal-failsafe) .site-root [data-cta]:focus-within,
+  html.js:not(.reveal-failsafe) .site-root [data-intro]:focus-within {
+    opacity: 1;
   }
   /* masked split lines: leave room for descenders under tight leading */
   .split-mask {
@@ -471,6 +478,7 @@ html.lenis body {
     html.js .site-root [data-reveal],
     html.js .site-root [data-split],
     html.js .site-root [data-hero-title],
+    html.js .site-root [data-cta],
     html.js .site-root [data-intro] {
       opacity: 1 !important;
       visibility: visible !important;
@@ -1751,27 +1759,34 @@ html.lenis body {
   .arsenal-list { display: flex; flex-direction: column; gap: 10px; }
   .layer-row {
     position: relative;
-    display: grid;
-    grid-template-columns: clamp(76px, 9vw, 130px) minmax(0, 1fr);
-    gap: 18px;
-    align-items: start;
-    padding: clamp(14px, 1.8vw, 22px) clamp(16px, 2vw, 26px);
-    border: 0;
     border-radius: 26px;
     background: rgba(8, 11, 24, 0.58);
     -webkit-backdrop-filter: blur(14px);
     backdrop-filter: blur(14px);
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07);
     color: var(--iv-ink-2);
-    text-align: left;
-    font: inherit;
-    cursor: pointer;
     transition: background-color 0.4s var(--ease-out), box-shadow 0.4s var(--ease-out), color 0.3s;
   }
-  .layer-row[aria-selected='true'] {
+  .layer-row[data-on='true'] {
     color: var(--iv-ink);
     background: linear-gradient(rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.07)), rgba(8, 11, 24, 0.62);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), inset 0 0 0 1px rgba(210, 251, 90, 0.35), 0 20px 50px -24px rgba(210, 251, 90, 0.25);
+  }
+  .layer-head { margin: 0; }
+  .layer-tab {
+    width: 100%;
+    display: grid;
+    grid-template-columns: clamp(76px, 9vw, 130px) minmax(0, 1fr);
+    gap: 18px;
+    align-items: start;
+    padding: clamp(14px, 1.8vw, 22px) clamp(16px, 2vw, 26px);
+    border: 0;
+    border-radius: inherit;
+    background: none;
+    color: inherit;
+    text-align: left;
+    font: inherit;
+    cursor: pointer;
   }
   .layer-num {
     font-size: clamp(2.8rem, 5.2vw, 5rem);
@@ -1781,7 +1796,7 @@ html.lenis body {
     color: var(--iv-ink-3);
     transition: color 0.4s;
   }
-  .layer-row[aria-selected='true'] .layer-num { color: var(--iv-lime); }
+  .layer-row[data-on='true'] .layer-num { color: var(--iv-lime); }
   .layer-meta { display: flex; flex-direction: column; gap: 3px; padding-top: 6px; min-width: 0; }
   .layer-name { font-size: clamp(1.02rem, 1.3vw, 1.2rem); font-weight: 600; letter-spacing: -0.025em; color: var(--iv-ink); }
   .layer-sub { font-size: 0.9rem; color: var(--iv-ink-3); }
@@ -1789,14 +1804,17 @@ html.lenis body {
     display: grid;
     grid-template-rows: 1fr;
     transition: grid-template-rows 0.6s var(--ease-out);
+    /* align the copy under the label column, past the big number */
+    padding: 0 clamp(16px, 2vw, 26px) 0 calc(clamp(16px, 2vw, 26px) + clamp(76px, 9vw, 130px) + 18px);
   }
-  .layer-body > span { overflow: hidden; display: block; }
-  html.js:not(.reveal-failsafe) .layer-row[aria-selected='false'] .layer-body { grid-template-rows: 0fr; }
-  html.js:not(.reveal-failsafe) .layer-row[aria-selected='false'] .layer-body > span {
+  .layer-body > span { overflow: hidden; display: block; padding-bottom: 20px; }
+  html.js:not(.reveal-failsafe) .layer-row[data-on='false'] .layer-body { grid-template-rows: 0fr; }
+  html.js:not(.reveal-failsafe) .layer-row[data-on='false'] .layer-body > span {
     visibility: hidden;
+    padding-bottom: 0;
     transition: visibility 0s linear 0.6s;
   }
-  .layer-title { display: block; margin-top: 14px; font-size: 1.06rem; font-weight: 600; color: var(--iv-ink); letter-spacing: -0.02em; }
+  .layer-title { display: block; margin-top: 0; font-size: 1.06rem; font-weight: 600; color: var(--iv-ink); letter-spacing: -0.02em; }
   .layer-text { display: block; margin-top: 6px; font-size: 0.97rem; line-height: 1.55; color: var(--iv-ink-2); max-width: 46ch; }
 
   .stack-col { position: relative; min-height: 380px; }

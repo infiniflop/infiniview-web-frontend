@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { ArrowRight } from "lucide-react";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/site/gsap";
-import { setMood } from "@/lib/site/scene";
+import { scene, setMood } from "@/lib/site/scene";
 import { CTA, DOCS_URL } from "@/lib/site/content";
 import { WaitlistForm } from "@/components/site/waitlist-form";
 import { Magnetic } from "@/components/site/ui";
@@ -39,26 +39,45 @@ export function FinalCta() {
             },
           },
         );
-        gsap.fromTo(
-          f.querySelectorAll("[data-cta]"),
-          { y: 60, autoAlpha: 0 },
-          {
-            y: 0,
-            autoAlpha: 1,
-            duration: 1.2,
-            ease: "expo.out",
-            stagger: 0.12,
-            scrollTrigger: { trigger: root.current, start: "top 38%", once: true },
+        // the content arrives once the aperture is mostly open (opacity only: it stays focusable)
+        ScrollTrigger.create({
+          trigger: root.current,
+          start: "top 38%",
+          once: true,
+          onEnter: () => {
+            const els = gsap.utils.toArray<HTMLElement>("[data-cta]:not([data-revealed])", f);
+            els.forEach((el) => el.setAttribute("data-revealed", ""));
+            gsap.fromTo(
+              els,
+              { y: 60, opacity: 0 },
+              { y: 0, opacity: 1, duration: 1.2, ease: "expo.out", stagger: 0.12, clearProps: "transform" },
+            );
           },
-        );
-        // concentric frames keep receding — the loop is the point
-        gsap.to(f.querySelectorAll(".iris-f"), {
+        });
+        // concentric frames keep receding — the loop is the point — but only while the finale is on screen
+        const iris = gsap.to(f.querySelectorAll(".iris-f"), {
           scale: 0.12,
           duration: 7,
           ease: "none",
           repeat: -1,
           stagger: { each: -1.4, from: "start" },
           opacity: 0,
+          paused: true,
+        });
+        ScrollTrigger.create({
+          trigger: root.current,
+          start: "top bottom",
+          end: "bottom top",
+          onToggle: (self) => (self.isActive ? iris.play() : iris.pause()),
+        });
+        // once the aperture is fully open the lime field covers every pixel: the corridor can rest
+        ScrollTrigger.create({
+          trigger: root.current,
+          start: "top 3%",
+          end: "bottom 97%",
+          onToggle: (self) => {
+            scene.occluded = self.isActive;
+          },
         });
         ScrollTrigger.create({
           trigger: root.current,
@@ -69,6 +88,9 @@ export function FinalCta() {
           onLeave: () => setMood({ portal: 0.3, energy: 0.7, alert: 0 }, 1.4),
           onEnterBack: () => setMood({ portal: 1.6, energy: 1.4 }, 0.6),
         });
+        return () => {
+          scene.occluded = false;
+        };
       });
       return () => mm.revert();
     },

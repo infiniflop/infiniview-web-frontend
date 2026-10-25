@@ -40,7 +40,7 @@ export function ScanCard() {
         return;
       }
 
-      gsap.set([...rows, posted], { autoAlpha: 0, y: 10 });
+      gsap.set([...rows, posted], { opacity: 0, y: 10 });
       gsap.set(bar, { scaleX: 0, transformOrigin: "0 50%" });
 
       const tl = gsap.timeline({
@@ -57,16 +57,16 @@ export function ScanCard() {
       tl.set(live, { textContent: "Scanning" }, 0);
       rows.forEach((row, i) => {
         const at = 0.35 + i * 0.7;
-        tl.to(row, { autoAlpha: 1, y: 0, duration: 0.55 }, at);
+        tl.to(row, { opacity: 1, y: 0, duration: 0.55 }, at);
         tl.to(bar, { scaleX: (i + 1) / rows.length, duration: 0.6, ease: "power2.out" }, at);
         if (i === 2) tl.call(() => { crit.textContent = "1"; }, [], at + 0.1);
         if (i === 3) tl.call(() => { high.textContent = "1"; }, [], at + 0.1);
       });
       const end = 0.35 + rows.length * 0.7;
-      tl.to(posted, { autoAlpha: 1, y: 0, duration: 0.6 }, end);
+      tl.to(posted, { opacity: 1, y: 0, duration: 0.6 }, end);
       tl.call(() => { live.textContent = "Complete"; }, [], end);
       // hold the finished scan, then quickly clear and replay
-      tl.to([...rows, posted], { autoAlpha: 0, y: -6, duration: 0.35, ease: "power1.in" }, end + 7);
+      tl.to([...rows, posted], { opacity: 0, y: -6, duration: 0.35, ease: "power1.in" }, end + 7);
       tl.to(bar, { scaleX: 0, duration: 0.35, ease: "power1.in" }, end + 7);
       tl.set(rows, { y: 10 }, end + 7.4);
       tl.set(posted, { y: 10 }, end + 7.4);

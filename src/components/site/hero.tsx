@@ -61,13 +61,13 @@ export function Hero() {
         const tl = gsap.timeline({ defaults: { ease: "expo.out" }, delay: 0.15 });
         tl.fromTo(
           document.querySelector(".site-nav"),
-          { autoAlpha: 0, y: -36 },
-          { autoAlpha: 1, y: 0, duration: 1.2 },
+          { opacity: 0, y: -36 },
+          { opacity: 1, y: 0, duration: 1.2 },
           0.3,
         ).fromTo(
           root.current!.querySelectorAll("[data-intro]"),
-          { autoAlpha: 0, y: 34 },
-          { autoAlpha: 1, y: 0, duration: 1.2, stagger: 0.11 },
+          { opacity: 0, y: 34 },
+          { opacity: 1, y: 0, duration: 1.2, stagger: 0.11 },
           0.95,
         );
 

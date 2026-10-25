@@ -1,6 +1,7 @@
 "use client";
 
 import type Lenis from "lenis";
+import { prefersReducedMotion } from "@/lib/site/gsap";
 
 // The shell owns the Lenis instance; everything else scrolls through here so
 // nav links, CTAs and anchors all share the same feel (and degrade to a plain
@@ -14,16 +15,13 @@ export function getLenis() {
   return instance;
 }
 
-const reducedMotion = () =>
-  typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
 export function scrollToTarget(
   target: string | HTMLElement | number,
   opts: { offset?: number; duration?: number; immediate?: boolean; onComplete?: () => void } = {},
 ) {
   const { offset = 0, duration = 1.5, onComplete } = opts;
   // travel is motion: under reduced motion every jump is instant
-  const immediate = opts.immediate || reducedMotion();
+  const immediate = opts.immediate || prefersReducedMotion();
 
   if (instance) {
     // Lenis resolves an element target as `rect.top + its own internal scroll value`. Programmatic

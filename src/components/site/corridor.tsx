@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { gsap } from "@/lib/site/gsap";
 import { scene } from "@/lib/site/scene";
 import { FRAG, VERT } from "@/components/site/corridor-shader";
@@ -13,6 +13,9 @@ import { FRAG, VERT } from "@/components/site/corridor-shader";
  */
 export function Corridor() {
   const hostRef = useRef<HTMLDivElement>(null);
+  // bumped to rebuild the canvas (and a fresh GL context) after a lost context
+  const [generation, setGeneration] = useState(0);
+  const retries = useRef(0);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -106,9 +109,14 @@ export function Corridor() {
     const minScale = 0.34;
     let frameCount = 0;
     let slow = 0;
+    let ema = 16; // smoothed frame time (ms)
+    let probe: { prevScale: number; dt: number; left: number } | null = null;
+    let locked = false; // frame time is not GPU-bound (capped refresh, busy main thread): stop shedding pixels
     let last = performance.now();
+    let sizedW = 0;
+    let sizedH = 0;
 
-    const resize = () => {
+    const applySize = () => {
       const w = Math.max(2, Math.floor(window.innerWidth * scale));
       const h = Math.max(2, Math.floor(window.innerHeight * scale));
       if (canvas.width !== w || canvas.height !== h) {
@@ -116,16 +124,21 @@ export function Corridor() {
         canvas.height = h;
       }
       gl.viewport(0, 0, w, h);
+      sizedW = window.innerWidth;
+      sizedH = window.innerHeight;
     };
-    resize();
+    applySize();
 
     const t0 = performance.now();
     let lostContext = false;
 
     const render = () => {
       if (lostContext) return;
-      // the mobile menu covers the page at ~94% opacity: no need to burn frames under it
-      if (document.documentElement.dataset.menuOpen === "true") return;
+      // nothing to see: the mobile menu or the full-screen finale covers the canvas
+      if (scene.occluded || document.documentElement.dataset.menuOpen === "true") {
+        last = performance.now();
+        return;
+      }
       const now = performance.now();
       const t = (now - t0) / 1000;
       const aspect = window.innerWidth / window.innerHeight;
@@ -153,25 +166,42 @@ export function Corridor() {
       gl.uniform1f(U.still, reduced ? 1 : 0);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
 
-      // frame-time governor: shed pixels if we are consistently slow
+      // frame-time governor: shed pixels if we are consistently slow — but verify it helps. If a
+      // lower resolution does not speed frames up, the limit is elsewhere (a capped refresh rate
+      // such as Low Power Mode, or the main thread), so restore quality and stop trying.
       const dt = now - last;
       last = now;
       frameCount++;
-      if (frameCount > 40 && !reduced) {
-        if (dt > 24) slow++;
-        else slow = Math.max(0, slow - 1);
-        if (slow > 18) {
-          if (scale > minScale) {
-            scale = Math.max(minScale, scale * 0.82);
+      ema += (Math.min(dt, 100) - ema) * 0.1;
+      if (frameCount > 40 && !reduced && !locked) {
+        if (probe) {
+          if (--probe.left <= 0) {
+            if (ema > probe.dt * 0.88) {
+              scale = probe.prevScale;
+              applySize();
+              locked = true;
+            }
+            probe = null;
             slow = 0;
-            resize();
-          } else if (document.documentElement.dataset.perf !== "low") {
-            // pixels are already minimal: shed the blur on glass as well
-            document.documentElement.dataset.perf = "low";
-            slow = 0;
+          }
+        } else {
+          if (dt > 24) slow++;
+          else slow = Math.max(0, slow - 1);
+          if (slow > 18) {
+            if (scale > minScale) {
+              probe = { prevScale: scale, dt: ema, left: 40 };
+              scale = Math.max(minScale, scale * 0.82);
+              applySize();
+              slow = 0;
+            } else if (document.documentElement.dataset.perf !== "low") {
+              // pixels are already minimal and frames are still slow: shed the glass blur too
+              document.documentElement.dataset.perf = "low";
+              slow = 0;
+            }
           }
         }
       }
+      if (frameCount > 120) retries.current = 0; // a healthy context: forgive earlier losses
     };
 
     let tick: (() => void) | null = null;
@@ -197,28 +227,47 @@ export function Corridor() {
     apply();
     mqReduce.addEventListener("change", apply);
 
+    // Debounced; and a height-only change of under 20% (the mobile URL bar collapsing while you
+    // scroll) is ignored so the drawing buffer is not reallocated mid-scroll. The corridor is soft
+    // light, so a slightly stretched buffer is invisible.
+    let resizeTimer: number | undefined;
     const onResize = () => {
-      resize();
-      if (reduced) render();
+      window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(() => {
+        const widthChanged = window.innerWidth !== sizedW;
+        const heightJump = Math.abs(window.innerHeight - sizedH) > sizedH * 0.2;
+        if (widthChanged || heightJump) {
+          applySize();
+          if (reduced) render();
+        }
+      }, 140);
     };
     window.addEventListener("resize", onResize);
 
-    const onLost = (e: Event) => {
-      e.preventDefault();
+    // A lost context is not restored in place: the canvas is rebuilt from scratch (a fresh
+    // context), a few times at most, and the CSS backdrop underneath carries the page meanwhile.
+    let rebuildTimer: number | undefined;
+    const onLost = () => {
       lostContext = true;
       stop();
-      canvas.style.opacity = "0"; // fall back to the CSS backdrop underneath
+      canvas.style.opacity = "0";
+      if (retries.current < 3) {
+        retries.current += 1;
+        rebuildTimer = window.setTimeout(() => setGeneration((g) => g + 1), 400);
+      }
     };
     canvas.addEventListener("webglcontextlost", onLost);
 
     cleanups.push(() => {
       stop();
+      window.clearTimeout(resizeTimer);
+      window.clearTimeout(rebuildTimer);
       mqReduce.removeEventListener("change", apply);
       window.removeEventListener("resize", onResize);
       canvas.removeEventListener("webglcontextlost", onLost);
     });
     return dispose;
-  }, []);
+  }, [generation]);
 
   return (
     <>

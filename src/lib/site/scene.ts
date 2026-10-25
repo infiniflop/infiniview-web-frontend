@@ -20,6 +20,8 @@ export const scene = {
   ty: 0,
   px: 0,
   py: 0,
+  /** set while something opaque covers the whole viewport (the lime finale): skip drawing */
+  occluded: false,
   mood: {
     /** 0 lime/white light → 1 attack red */
     alert: 0,

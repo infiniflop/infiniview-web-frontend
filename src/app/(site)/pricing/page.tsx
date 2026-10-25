@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowRight, Check } from "lucide-react";
 import { Faq } from "@/components/site/faq";
 import { WaitlistForm } from "@/components/site/waitlist-form";
+import { faqPage, jsonLd } from "@/lib/site/jsonld";
 
 export const metadata: Metadata = {
   title: "Pricing",
@@ -105,6 +106,7 @@ const FAQS = [
 export default function PricingPage() {
   return (
     <main id="main">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqPage(FAQS)) }} />
       <section className="price-hero" aria-labelledby="price-title">
         <div className="wrap">
           <p className="kicker" data-intro-soft data-reveal>

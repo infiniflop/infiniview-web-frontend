@@ -326,7 +326,7 @@ export function FindingsExplorer() {
                     <div className="code-file" data-line>{f.code.file}</div>
                     {f.code.lines.map((ln, i) => {
                       const n = f.code.from + i;
-                      const hot = n === f.code.hot || (f.code.hot && n === f.code.hot + 1 && false);
+                      const hot = n === f.code.hot;
                       return (
                         <div key={i} data-line className={`code-line${hot ? " code-line--hot" : ""}`}>
                           <span className="code-n">{n}</span>

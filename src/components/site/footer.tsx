@@ -2,6 +2,8 @@ import Link from "next/link";
 import { Mark } from "@/components/site/ui";
 import { FOOTER_LINKS } from "@/lib/site/content";
 
+const INTERNAL = new Set(["/pricing", "/preview"]);
+
 const COLS = [
   {
     title: "Product",
@@ -38,7 +40,9 @@ export function Footer() {
                 <ul>
                   {c.links.map((l) => (
                     <li key={l.label}>
-                      {l.href.startsWith("/") ? (
+                      {/* /privacy and /terms are not routes of this app: a plain anchor, so Next does not
+                          prefetch (and 404) them */}
+                      {INTERNAL.has(l.href) || l.href.startsWith("/#") ? (
                         <Link href={l.href} prefetch={l.href === "/preview" ? false : undefined} className="foot-link">
                           {l.label}
                         </Link>

@@ -33,6 +33,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
     const reduced = prefersReducedMotion();
     const coarse = isCoarsePointer();
     let lenis: Lenis | null = null;
+    let intro: gsap.core.Tween | null = null;
 
     if (!reduced) {
       lenis = new Lenis({
@@ -71,7 +72,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
 
     // intro: fly the camera in from far away (the page's opening shot)
     if (!reduced) {
-      gsap.fromTo(
+      intro = gsap.fromTo(
         scene,
         { intro: -6 },
         { intro: 0, duration: 3.4, ease: "expo.out", delay: 0.05 },
@@ -105,9 +106,14 @@ export function SiteShell({ children }: { children: ReactNode }) {
     };
     document.addEventListener("click", onClick);
 
+    // the motion layer is up: if the 5s failsafe already un-hid the page because hydration was slow,
+    // hand control back to the reveal system (the reveal batch handles items already above the fold)
     document.documentElement.dataset.motion = "ready";
+    document.documentElement.classList.remove("reveal-failsafe");
 
     return () => {
+      intro?.kill();
+      gsap.ticker.lagSmoothing(500, 33); // GSAP's defaults, which this effect overrode
       gsap.ticker.remove(tick);
       window.removeEventListener("pointermove", onMove);
       document.removeEventListener("click", onClick);
@@ -171,12 +177,26 @@ export function SiteShell({ children }: { children: ReactNode }) {
     let queued = false;
     const paint = () => {
       queued = false;
-      visible.forEach((el) => {
-        const r = el.getBoundingClientRect();
+      // read every rect first, then write: interleaving reads and writes forces a synchronous
+      // layout per element on every pointer/scroll frame
+      const els = [...visible];
+      const rects = els.map((el) => el.getBoundingClientRect());
+      els.forEach((el, i) => {
+        const r = rects[i];
         const near =
           px > r.left - 140 && px < r.right + 140 && py > r.top - 140 && py < r.bottom + 140;
-        el.style.setProperty("--lit", near ? "1" : "0");
-        if (!near) return;
+        const was = el.dataset.lit === "1";
+        if (!near) {
+          if (was) {
+            el.style.setProperty("--lit", "0");
+            el.dataset.lit = "0";
+          }
+          return;
+        }
+        if (!was) {
+          el.style.setProperty("--lit", "1");
+          el.dataset.lit = "1";
+        }
         el.style.setProperty("--mx", `${px - r.left}px`);
         el.style.setProperty("--my", `${py - r.top}px`);
         const cx = r.left + r.width / 2;
@@ -220,15 +240,19 @@ export function SiteShell({ children }: { children: ReactNode }) {
           batchMax: 8,
           interval: 0.08,
           onEnter: (batch) => {
+            // opacity (not visibility): unrevealed content stays focusable and in the a11y tree, so
+            // keyboard and screen-reader users are never locked out of what has not scrolled in yet
+            const els = (batch as HTMLElement[]).filter((el) => !el.hasAttribute("data-revealed"));
+            els.forEach((el) => el.setAttribute("data-revealed", ""));
             gsap.fromTo(
-              batch,
+              els,
               {
-                autoAlpha: 0,
+                opacity: 0,
                 y: (_i, el: HTMLElement) => (el.dataset.reveal === "fade" ? 0 : 40),
                 scale: (_i, el: HTMLElement) => (el.dataset.reveal === "scale" ? 0.94 : 1),
               },
               {
-                autoAlpha: 1,
+                opacity: 1,
                 y: 0,
                 scale: 1,
                 duration: 1.1,
@@ -240,6 +264,17 @@ export function SiteShell({ children }: { children: ReactNode }) {
             );
           },
         });
+
+        // Keyboard focus lands inside something that has not scrolled in yet (Tab, skip links, find in
+        // page): show it at once, and keep the scroll-reveal from replaying over it.
+        const onFocusIn = (e: FocusEvent) => {
+          const el = (e.target as Element | null)?.closest<HTMLElement>("[data-reveal],[data-cta]");
+          if (!el || el.hasAttribute("data-revealed")) return;
+          el.setAttribute("data-revealed", "");
+          gsap.killTweensOf(el);
+          gsap.set(el, { opacity: 1, y: 0, scale: 1, clearProps: "transform" });
+        };
+        document.addEventListener("focusin", onFocusIn);
 
         // 2. split headings: lines rise out of masks. autoSplit re-splits once the web font arrives,
         // so line breaks are never frozen at fallback-font metrics; every split is reverted with the
@@ -276,12 +311,13 @@ export function SiteShell({ children }: { children: ReactNode }) {
 
         return () => {
           cancelled = true;
+          document.removeEventListener("focusin", onFocusIn);
           splits.forEach((sp) => sp.revert());
         };
       });
 
       mm.add("(prefers-reduced-motion: reduce)", () => {
-        gsap.set("[data-reveal], [data-split], [data-intro]", { autoAlpha: 1, clearProps: "transform" });
+        gsap.set("[data-reveal], [data-split], [data-intro], [data-cta]", { opacity: 1, clearProps: "transform" });
       });
 
       const onLoad = () => ScrollTrigger.refresh();

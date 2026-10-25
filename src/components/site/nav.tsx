@@ -7,8 +7,7 @@ import { ArrowRight, Menu, X } from "lucide-react";
 import { gsap, ScrollTrigger, useGSAP, prefersReducedMotion } from "@/lib/site/gsap";
 import { getLenis, scrollToTarget } from "@/lib/site/scroll";
 import { Mark, Magnetic } from "@/components/site/ui";
-
-const DOCS_URL = process.env.NEXT_PUBLIC_DOCS_URL ?? "https://docs.infiniview.dev";
+import { DOCS_URL } from "@/lib/site/content";
 
 const LINKS = [
   { id: "how-it-works", label: "How it works" },
