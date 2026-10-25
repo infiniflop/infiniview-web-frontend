@@ -152,24 +152,9 @@
 .light .text-teal { color: #0f766e; }
 .light .hover\:text-lime:hover { color: #5e7c0f; }
 
-.light .text-glow-lime {
-  text-shadow: 0 0 24px rgba(94, 124, 15, 0.28), 0 0 56px rgba(94, 124, 15, 0.12);
-}
-
-.light .hero-broken { color: #6b6f78; }
-
-.light .hero-broken::after {
-  background: #5e7c0f;
-  box-shadow: 0 0 18px rgba(94, 124, 15, 0.45);
-}
-
 .light ::selection {
   background: var(--color-lime);
   color: #07080b;
-}
-
-html {
-  scroll-behavior: smooth;
 }
 
 body {
@@ -191,78 +176,16 @@ button {
   color: var(--color-bg);
 }
 
-/* Grid background */
+/* The /preview route loads its own fonts (next/font variables live on this
+   wrapper, so the theme font stacks are re-declared here to resolve them). */
 
-.adv-grid-bg {
-  background-image:
-    linear-gradient(var(--color-border) 1px, transparent 1px),
-    linear-gradient(90deg, var(--color-border) 1px, transparent 1px);
-  background-size: 80px 80px;
-  background-position: -1px -1px;
+.preview-root {
+  --font-sans: var(--font-inter-tight), 'Inter Tight', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: var(--font-jetbrains), 'JetBrains Mono', ui-monospace, monospace;
+  font-family: var(--font-sans);
 }
 
-/* Ticker / Marquee */
-
-@keyframes ticker {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
-
-.animate-ticker {
-  animation: ticker 62s linear infinite;
-}
-
-/* Hero headline animation */
-
-@keyframes broken-in {
-  from { opacity: 0; transform: translateY(0.12em); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes strike-through {
-  from { right: 102%; }
-  to { right: -2%; }
-}
-
-@keyframes broken-fade {
-  from { opacity: 1; }
-  to { opacity: 0.45; }
-}
-
-@keyframes ready-in {
-  from { opacity: 0; transform: translateY(0.18em); filter: blur(6px); }
-  to { opacity: 1; transform: translateY(0); filter: blur(0); }
-}
-
-.hero-broken {
-  color: var(--color-text-muted);
-  position: relative;
-  display: inline-block;
-  opacity: 0;
-  animation: broken-in 0.4s ease-out 0.3s forwards, broken-fade 0.5s ease-in 2.4s forwards;
-}
-
-.hero-broken::after {
-  content: '';
-  position: absolute;
-  left: -2%;
-  right: 102%;
-  top: 52%;
-  height: 8px;
-  background: var(--color-lime);
-  box-shadow: 0 0 18px rgba(210, 251, 90, 0.55);
-  animation: strike-through 0.27s cubic-bezier(0.65, 0.05, 0.36, 1) 0.95s forwards;
-}
-
-.hero-ready {
-  display: block;
-  font-style: italic;
-  opacity: 0;
-  transform: translateY(0.18em);
-  animation: ready-in 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) 1.7s forwards;
-}
-
-/* Buttons */
+/* Preview primary button */
 
 .btn-lime {
   display: inline-flex;
@@ -279,112 +202,6 @@ button {
 .btn-lime:hover {
   transform: translate(-2px, -2px);
   box-shadow: 4px 4px 0 var(--color-bg), 4px 4px 0 1px var(--color-lime);
-}
-
-.btn-ghost {
-  display: inline-flex;
-  align-items: center;
-  background: transparent;
-  color: var(--color-text);
-  border: 1px solid var(--color-border-accent);
-  font-family: var(--font-mono);
-  font-size: 12.5px;
-  cursor: pointer;
-  text-decoration: none;
-  transition: border-color 0.12s ease, color 0.12s ease;
-}
-
-.btn-ghost:hover {
-  border-color: var(--color-lime);
-  color: var(--color-lime);
-}
-
-/* Glow */
-
-.text-glow-lime {
-  text-shadow: 0 0 28px rgba(210, 251, 90, 0.42), 0 0 60px rgba(210, 251, 90, 0.18);
-}
-
-/* Scroll-triggered reveal */
-
-.reveal {
-  opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-}
-.reveal.revealed {
-  opacity: 1;
-  transform: translateY(0);
-}
-.reveal-scale {
-  transform: translateY(20px) scale(0.95);
-}
-.reveal-scale.revealed {
-  transform: translateY(0) scale(1);
-}
-
-/* Hero hook delayed entrance */
-
-@keyframes fadeSlideIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.hero-hook {
-  opacity: 0;
-  animation: fadeSlideIn 0.5s ease-out 0.15s forwards;
-}
-
-/* Pipeline row stagger */
-
-.pipeline-row {
-  opacity: 0;
-  animation: fadeSlideIn 0.35s ease-out forwards;
-}
-
-/* Border accent animation for hero feature card */
-
-.border-animate {
-  position: relative;
-  border-left-color: transparent !important;
-}
-.border-animate::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: var(--color-lime);
-  transform: scaleY(0);
-  transform-origin: top;
-  transition: transform 0.6s ease-out;
-}
-.border-animate.revealed::before {
-  transform: scaleY(1);
-}
-
-/* CTA pulse */
-
-@keyframes subtlePulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.02); }
-}
-.pulse-cta {
-  animation: subtlePulse 2.5s ease-in-out infinite;
-}
-
-/* FAQ smooth accordion */
-
-.faq-content {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows 0.3s ease-out;
-}
-.faq-content[data-open="true"] {
-  grid-template-rows: 1fr;
-}
-.faq-content > div {
-  overflow: hidden;
 }
 
 /* ── Product dashboard demo (/preview) ─────────────────────────────────────
@@ -471,14 +288,3 @@ button {
   border: 1.5px solid #07080b;
 }
 .light .brand-mark::after { border-color: #fafaf6; }
-
-/* Reduced motion */
-
-@media (prefers-reduced-motion: reduce) {
-  .reveal { opacity: 1; transform: none; transition: none; }
-  .reveal-scale { transform: none; }
-  .hero-hook { opacity: 1; animation: none; }
-  .pipeline-row { opacity: 1; animation: none; }
-  .pulse-cta { animation: none; }
-  .border-animate::before { transform: scaleY(1); transition: none; }
-}

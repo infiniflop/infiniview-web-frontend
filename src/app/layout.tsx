@@ -1,24 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Inter_Tight, JetBrains_Mono } from "next/font/google";
-import { cn } from "@/lib/utils";
 import { Analytics } from "@vercel/analytics/next";
 
 const SITE_URL = "https://infiniview.dev";
 const SITE_DESCRIPTION =
   "AI-powered code review, SAST, DAST, and penetration testing — fully automated in cloud sandboxes. Proof-backed security findings for every vulnerability.";
-
-const interTight = Inter_Tight({
-  subsets: ["latin"],
-  variable: "--font-inter-tight",
-  weight: ["400", "500", "600", "700", "800", "900"],
-});
-
-const jetbrains = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-jetbrains",
-  weight: ["400", "500", "600"],
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -129,8 +115,9 @@ const structuredData = {
 
 // Runs before paint to set the initial theme - avoids a flash of the wrong
 // palette on first load. Reads the saved preference, then falls back to the
-// OS preference. Kept tiny and inlined; no React state involved.
-const themeInitScript = `(function(){try{var c=document.cookie.match(/(?:^|; )theme=(light|dark)/);var s=localStorage.getItem('theme');var t=(c?c[1]:null)||(s==='light'||s==='dark'?s:null)||(window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');if(t==='light')document.documentElement.classList.add('light');}catch(e){}})();`;
+// OS preference. Also flags `js` so scroll-reveal content is only hidden when
+// script can reveal it. Kept tiny and inlined; no React state involved.
+const themeInitScript = `(function(){try{var c=document.cookie.match(/(?:^|; )theme=(light|dark)/);var s=localStorage.getItem('theme');var t=(c?c[1]:null)||(s==='light'||s==='dark'?s:null)||(window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');if(t==='light')document.documentElement.classList.add('light');}catch(e){}document.documentElement.classList.add('js');})();`;
 
 export default function RootLayout({
   children,
@@ -138,11 +125,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html
-      lang="en"
-      className={cn(interTight.variable, jetbrains.variable)}
-      suppressHydrationWarning
-    >
+    <html lang="en" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <script
