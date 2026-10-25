@@ -16,5 +16,5 @@ export const metadata: Metadata = {
 };
 
 export default function PreviewLayout({ children }: { children: ReactNode }) {
-  return <div className="dark">{children}</div>;
+  return <div className="dark product-demo min-h-screen">{children}</div>;
 }

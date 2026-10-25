@@ -1,29 +1,31 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Inter_Tight, JetBrains_Mono } from "next/font/google";
+import { Schibsted_Grotesk, JetBrains_Mono } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { Analytics } from "@vercel/analytics/next";
 
 const SITE_URL = "https://infiniview.dev";
 const SITE_DESCRIPTION =
-  "AI-powered code review, SAST, DAST, and penetration testing — fully automated in cloud sandboxes. Proof-backed security findings for every vulnerability.";
+  "Infiniview deploys your branch in an isolated sandbox and sends AI agents to attack it: code review, 26 static scanners, runtime attackers, and interaction testers. Every finding ships with proof.";
 
-const interTight = Inter_Tight({
+const schibsted = Schibsted_Grotesk({
   subsets: ["latin"],
-  variable: "--font-inter-tight",
-  weight: ["400", "500", "600", "700", "800", "900"],
+  variable: "--font-schibsted",
+  style: ["normal", "italic"],
+  display: "swap",
 });
 
 const jetbrains = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-jetbrains",
   weight: ["400", "500", "600"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Infiniview - attack your code before anyone else does",
+    default: "Infiniview — red-team every pull request",
     template: "%s | Infiniview",
   },
   description: SITE_DESCRIPTION,
@@ -127,9 +129,9 @@ const structuredData = {
   ],
 };
 
-// Runs before paint to set the initial theme - avoids a flash of the wrong
-// palette on first load. Reads the saved preference, then falls back to the
-// OS preference. Kept tiny and inlined; no React state involved.
+// Runs before paint to set the initial theme for the product demo (/preview),
+// which shares a theme preference with the product via cookie. Marketing
+// pages are dark by design and ignore the class.
 const themeInitScript = `(function(){try{var c=document.cookie.match(/(?:^|; )theme=(light|dark)/);var s=localStorage.getItem('theme');var t=(c?c[1]:null)||(s==='light'||s==='dark'?s:null)||(window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');if(t==='light')document.documentElement.classList.add('light');}catch(e){}})();`;
 
 export default function RootLayout({
@@ -140,7 +142,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={cn(interTight.variable, jetbrains.variable)}
+      className={cn(schibsted.variable, jetbrains.variable)}
       suppressHydrationWarning
     >
       <head>
