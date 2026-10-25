@@ -100,7 +100,7 @@ export function Pipeline() {
         const pr = q(".pane--pr");
         const cm = q(".pane--comment");
 
-        const prX = isSmall ? -165 : -240;
+        const prX = isSmall ? -128 : -240;
         const cmX = isSmall ? 120 : 150;
         gsap.set(prod, { x: 0, y: 44, z: -170 });
         gsap.set(sb, { x: 0, y: 0, z: -170 });

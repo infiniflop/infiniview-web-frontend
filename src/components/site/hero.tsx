@@ -22,30 +22,23 @@ export function Hero() {
       });
 
       mm.add("(prefers-reduced-motion: no-preference)", () => {
-        let split: SplitText | null = null;
-        let tl: gsap.core.Timeline | null = null;
-        let cancelled = false;
+        const el = h1.current;
+        if (!el) return;
 
-        const run = () => {
-          if (cancelled || !h1.current) return;
-          split = SplitText.create(h1.current, {
-            type: "lines",
-            mask: "lines",
-            linesClass: "split-line",
-            maskClass: "split-mask",
-            aria: "auto",
-          });
-          gsap.set(h1.current, { autoAlpha: 1 });
-
-          tl = gsap.timeline({ defaults: { ease: "expo.out" }, delay: 0.15 });
-          tl.fromTo(
-            document.querySelector(".site-nav"),
-            { autoAlpha: 0, y: -36 },
-            { autoAlpha: 1, y: 0, duration: 1.2 },
-            0.3,
-          )
-            .fromTo(
-              split.lines,
+        // The headline is split into masked lines. autoSplit re-splits when the web font finishes
+        // loading or the width changes, so line breaks are never frozen at fallback-font metrics
+        // (document.fonts.status can read "loaded" before the font was even requested).
+        const split = SplitText.create(el, {
+          type: "lines",
+          mask: "lines",
+          autoSplit: true,
+          linesClass: "split-line",
+          maskClass: "split-mask",
+          aria: "auto",
+          onSplit(self) {
+            gsap.set(el, { autoAlpha: 1 });
+            return gsap.fromTo(
+              self.lines,
               { yPercent: 118, rotate: 3.5, fontVariationSettings: "'wdth' 72" },
               {
                 yPercent: 0,
@@ -53,25 +46,35 @@ export function Hero() {
                 fontVariationSettings: "'wdth' 100",
                 transformOrigin: "0% 100%",
                 duration: 1.7,
+                ease: "expo.out",
                 stagger: 0.14,
+                delay: 0.5,
               },
-              0.35,
-            )
-            .fromTo(
-              root.current!.querySelectorAll("[data-intro]"),
-              { autoAlpha: 0, y: 34 },
-              { autoAlpha: 1, y: 0, duration: 1.2, stagger: 0.11 },
-              0.95,
             );
-        };
+          },
+        });
 
-        if (document.fonts?.status === "loaded") run();
-        else document.fonts?.ready.then(run);
+        // never leave the headline invisible if the split is somehow delayed
+        const reveal = window.setTimeout(() => gsap.set(el, { autoAlpha: 1 }), 3000);
+
+        // everything else arrives around the headline
+        const tl = gsap.timeline({ defaults: { ease: "expo.out" }, delay: 0.15 });
+        tl.fromTo(
+          document.querySelector(".site-nav"),
+          { autoAlpha: 0, y: -36 },
+          { autoAlpha: 1, y: 0, duration: 1.2 },
+          0.3,
+        ).fromTo(
+          root.current!.querySelectorAll("[data-intro]"),
+          { autoAlpha: 0, y: 34 },
+          { autoAlpha: 1, y: 0, duration: 1.2, stagger: 0.11 },
+          0.95,
+        );
 
         return () => {
-          cancelled = true;
-          tl?.kill();
-          split?.revert();
+          window.clearTimeout(reveal);
+          tl.kill();
+          split.revert();
         };
       });
 
@@ -115,8 +118,8 @@ export function Hero() {
             {HERO.kicker}
           </p>
           <h1 id="hero-title" ref={h1} className="t-display hero-h1" data-hero-title>
-            Attack your code
-            <br className="hidden md:inline" /> before anyone else does.
+            {/* block only on wide screens; a <br> would be honoured by SplitText at every width */}
+            <span className="md:block">Attack your code</span> <span>before anyone else does.</span>
           </h1>
         </div>
 

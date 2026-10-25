@@ -12,7 +12,7 @@ import {
   isCoarsePointer,
 } from "@/lib/site/gsap";
 import { scene } from "@/lib/site/scene";
-import { setLenis, scrollToTarget } from "@/lib/site/scroll";
+import { setLenis, scrollToTarget, focusWhenReady } from "@/lib/site/scroll";
 import { Corridor } from "@/components/site/corridor";
 
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
@@ -97,11 +97,11 @@ export function SiteShell({ children }: { children: ReactNode }) {
       const el = document.getElementById(id); // not querySelector: ids like "1-step" are not valid selectors
       if (!el) return;
       e.preventDefault();
-      scrollToTarget(el, { offset: -20 });
       history.replaceState(null, "", raw);
-      // preventDefault cancelled the native focus move; do it ourselves so Tab continues from the target
+      // focus once the travel is done: the target may be hidden until the scroll reveals it, and
+      // preventDefault cancelled the native focus move, so Tab would otherwise continue from the link
       if (!el.matches(FOCUSABLE)) el.setAttribute("tabindex", "-1");
-      el.focus({ preventScroll: true });
+      scrollToTarget(el, { offset: -20, onComplete: () => focusWhenReady(el) });
     };
     document.addEventListener("click", onClick);
 
@@ -115,6 +115,34 @@ export function SiteShell({ children }: { children: ReactNode }) {
       setLenis(null);
     };
   }, []);
+
+  /* ── Deep links: `/#faq` (direct load or arriving from /pricing) ────────
+     The browser/Next jump happens before fonts load and before the pinned
+     sections add their spacers, so it lands in the wrong place. Once layout has
+     settled, go to the right one. The hash is read when the jump runs, not when
+     this effect runs: on a client-side navigation Next updates the URL *after*
+     layout effects. */
+  useEffect(() => {
+    let cancelled = false;
+    const go = () => {
+      if (cancelled) return;
+      let id = "";
+      try {
+        id = decodeURIComponent(window.location.hash.slice(1));
+      } catch {
+        return;
+      }
+      const el = id ? document.getElementById(id) : null;
+      if (!el) return;
+      ScrollTrigger.refresh();
+      scrollToTarget(el, { offset: -20, immediate: true });
+    };
+    const ready = document.fonts?.ready ?? Promise.resolve();
+    ready.then(() => requestAnimationFrame(() => requestAnimationFrame(() => window.setTimeout(go, 60))));
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname]);
 
   /* ── Pointer-lit glass ──────────────────────────────────────────────── */
   useEffect(() => {

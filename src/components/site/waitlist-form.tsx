@@ -127,7 +127,7 @@ export function WaitlistForm({
             setEmail(e.target.value);
             if (status === "invalid" || status === "error") setStatus("idle");
           }}
-          className="min-w-0 flex-1 bg-transparent px-5 text-[1.02rem] text-[var(--iv-ink)] outline-none placeholder:text-[var(--iv-ink-3)]"
+          className="waitlist-input"
         />
         <button type="submit" className="btn btn--lime">
           Get early access

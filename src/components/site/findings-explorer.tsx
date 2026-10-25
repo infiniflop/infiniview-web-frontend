@@ -164,14 +164,18 @@ export function FindingsExplorer() {
     setAuto(false);
     setTab(t);
   };
-  const arrow = (e: React.KeyboardEvent, n: number, cur: number, set: (i: number) => void) => {
-    if (e.key === "ArrowRight" || e.key === "ArrowDown") {
-      e.preventDefault();
-      set((cur + 1) % n);
-    } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
-      e.preventDefault();
-      set((cur - 1 + n) % n);
-    }
+  // roving tabindex: arrow keys change the selection *and* move DOM focus with it
+  const arrow = (e: React.KeyboardEvent<HTMLElement>, n: number, cur: number, set: (i: number) => void) => {
+    let next = -1;
+    if (e.key === "ArrowRight" || e.key === "ArrowDown") next = (cur + 1) % n;
+    else if (e.key === "ArrowLeft" || e.key === "ArrowUp") next = (cur - 1 + n) % n;
+    else if (e.key === "Home") next = 0;
+    else if (e.key === "End") next = n - 1;
+    if (next < 0) return;
+    e.preventDefault();
+    const tabs = e.currentTarget.parentElement?.querySelectorAll<HTMLElement>('[role="tab"]');
+    set(next);
+    tabs?.[next]?.focus();
   };
 
   return (

@@ -28,6 +28,31 @@ export function focusWaitlist(router?: { push: (href: string) => void }) {
   if (input) window.setTimeout(() => input.focus({ preventScroll: true }), 900);
 }
 
+/**
+ * Same-page section links are plain anchors: next/link would call preventDefault and do its own
+ * instant jump, bypassing the shell's smooth, offset-aware scroll (and its focus handoff).
+ * Cross-page links (from /pricing) stay next/link so routing is client-side.
+ */
+function SectionLink({
+  isHome,
+  href,
+  children,
+  ...rest
+}: { isHome: boolean; href: string } & Omit<React.ComponentProps<"a">, "href">) {
+  if (isHome) {
+    return (
+      <a href={href} {...rest}>
+        {children}
+      </a>
+    );
+  }
+  return (
+    <Link href={href} {...rest}>
+      {children}
+    </Link>
+  );
+}
+
 export function Nav() {
   const pathname = usePathname();
   const router = useRouter();
@@ -234,8 +259,9 @@ export function Nav() {
           >
             <span ref={pillRef} className="nav-pill" aria-hidden />
             {LINKS.map((l) => (
-              <Link
+              <SectionLink
                 key={l.id}
+                isHome={isHome}
                 href={hrefFor(l.id)}
                 data-nav={l.id}
                 aria-current={active === l.id ? "location" : undefined}
@@ -245,7 +271,7 @@ export function Nav() {
                 onBlur={() => restPill()}
               >
                 {l.label}
-              </Link>
+              </SectionLink>
             ))}
             <a
               href={DOCS_URL}
@@ -291,9 +317,16 @@ export function Nav() {
         <div id="site-menu" ref={menuRef} className="nav-menu glass glass--deep" style={{ ["--r" as string]: "0px" }} role="dialog" aria-modal="true" aria-label="Menu">
           <div className="nav-menu-inner">
             {LINKS.map((l) => (
-              <Link key={l.id} data-m href={hrefFor(l.id)} className="nav-menu-link" onClick={() => setOpen(false)}>
+              <SectionLink
+                key={l.id}
+                isHome={isHome}
+                data-m
+                href={hrefFor(l.id)}
+                className="nav-menu-link"
+                onClick={() => setOpen(false)}
+              >
                 {l.label}
-              </Link>
+              </SectionLink>
             ))}
             <a data-m href={DOCS_URL} className="nav-menu-link">
               Docs

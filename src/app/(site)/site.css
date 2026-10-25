@@ -512,6 +512,7 @@ html.lenis body {
   .nav-bar--ink .nav-link { color: rgba(243, 245, 250, 0.72); }
   .nav-bar--ink .nav-link:hover { color: #fff; }
   .nav-brand {
+    position: relative; /* anchors its enlarged hit area */
     display: inline-flex;
     align-items: center;
     gap: 11px;
@@ -627,9 +628,19 @@ html.lenis body {
 
   /* ── Waitlist ───────────────────────────────────────────────────────── */
 
-  .waitlist input {
+  .waitlist-input {
+    flex: 1 1 0%;
+    min-width: 0;
     height: 52px;
+    padding: 0 20px;
+    border: 0;
+    background: transparent;
+    color: var(--iv-ink);
+    font: inherit;
+    font-size: 1.02rem;
+    outline: none;
   }
+  .waitlist-input::placeholder { color: var(--iv-ink-3); }
   .waitlist--lg {
     max-width: 560px;
   }
@@ -653,13 +664,12 @@ html.lenis body {
     .waitlist .btn {
       width: 100%;
     }
-    .waitlist input {
-      text-align: left;
+    .waitlist-input {
+      flex: none; /* stacked layout: size by height, not flex-basis */
+      width: 100%;
       border-radius: 20px;
       background: rgba(255, 255, 255, 0.07);
       box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
-      flex: none;
-      width: 100%;
     }
   }
 }
@@ -1503,9 +1513,10 @@ html.lenis body {
   }
   .console-top {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    gap: 8px 12px;
     padding: 18px 24px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   }
@@ -2108,7 +2119,7 @@ html.lenis body {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }
-  .cta .waitlist input { color: #f3f5fa; }
+  .cta .waitlist-input { color: #f3f5fa; }
   .cta .waitlist .btn--lime { box-shadow: none; }
   .cta [id$='-msg'] { color: #5b1208; font-weight: 600; }
   .btn--ink { background: transparent; color: #070a02; box-shadow: inset 0 0 0 2px #070a02; }
@@ -2194,6 +2205,45 @@ html.lenis body {
 
 @layer components {
   /* ── Viewport-specific overrides (kept last so they beat the base rules above) ── */
+
+  /* portrait tablets are tall: centre the first screen instead of leaving its lower third empty */
+  @media (min-width: 768px) and (max-width: 1023px) and (min-height: 900px) {
+    .hero { align-items: center; padding-top: 120px; }
+  }
+
+  /* 1024–1279: the stack's column is narrower than the stack, so it would spill over the list;
+     and the finale's form column needs room for its placeholder */
+  @media (min-width: 1024px) and (max-width: 1279px) {
+    .stack-fit { --s: 0.78; }
+    .cta-inner { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); }
+  }
+
+  /* smallest phones: keep the mono terminal lines readable instead of cutting them off */
+  @media (max-width: 420px) {
+    .zterm { font-size: 0.7rem; }
+    .zterm p { white-space: normal; overflow-wrap: anywhere; align-items: flex-start; }
+    .zterm svg { margin-top: 0.35em; }
+    .rail-item { min-width: 0; width: min(280px, 78vw); }
+  }
+
+  /* phones: size display type to the width so the hero reads in 3–4 lines, not 5 */
+  @media (max-width: 767px) {
+    .hero-h1, .price-title, .cta-title {
+      font-size: clamp(2.5rem, 11vw, 3.4rem);
+      text-wrap: pretty; /* balance would shred a 40-character headline into 5 narrow lines */
+    }
+    .cta-title { max-width: none; } /* the 11ch cap orphans "is" onto its own line */
+  }
+
+  /* generous invisible hit areas for small text links (tap targets without changing the layout) */
+  .link::after,
+  .foot-link::after,
+  .nav-brand::after {
+    content: '';
+    position: absolute;
+    inset: -10px -6px;
+  }
+  .foot-link { position: relative; display: inline-block; }
 
   /* mid-width laptops: give the scan card an extra column so its rows stay on one line */
   @media (min-width: 1024px) and (max-width: 1439px) {
