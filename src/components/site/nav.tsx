@@ -119,7 +119,7 @@ export function Nav() {
       );
       return () => triggers.forEach((t) => t.kill());
     },
-    { dependencies: [isHome, pathname] },
+    { dependencies: [isHome, pathname], revertOnUpdate: true },
   );
 
   /* ── ink variant while the nav floats over the lime finale ──────────── */
@@ -139,7 +139,7 @@ export function Nav() {
         bar.classList.remove("nav-bar--ink");
       };
     },
-    { dependencies: [pathname] },
+    { dependencies: [pathname], revertOnUpdate: true },
   );
 
   /* ── mobile menu ────────────────────────────────────────────────────── */

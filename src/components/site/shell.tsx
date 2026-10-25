@@ -241,10 +241,14 @@ export function SiteShell({ children }: { children: ReactNode }) {
           },
         });
 
-        // 2. split headings: lines rise out of masks
-        const heads = gsap.utils.toArray<HTMLElement>("[data-split]");
-        const run = () => {
-          heads.forEach((el) => {
+        // 2. split headings: lines rise out of masks. autoSplit re-splits once the web font arrives,
+        // so line breaks are never frozen at fallback-font metrics; every split is reverted with the
+        // route (this callback's cleanup), so nothing outlives the page that created it.
+        const splits: SplitText[] = [];
+        let cancelled = false;
+        gsap.utils.toArray<HTMLElement>("[data-split]").forEach((el) => {
+          if (cancelled) return;
+          splits.push(
             SplitText.create(el, {
               type: "lines",
               mask: "lines",
@@ -253,6 +257,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
               maskClass: "split-mask",
               aria: "auto",
               onSplit(self) {
+                if (cancelled) return;
                 gsap.set(el, { visibility: "visible", opacity: 1 });
                 return gsap.from(self.lines, {
                   yPercent: 112,
@@ -264,12 +269,15 @@ export function SiteShell({ children }: { children: ReactNode }) {
                   scrollTrigger: { trigger: el, start: "top 88%", once: true },
                 });
               },
-            });
-          });
-          ScrollTrigger.refresh();
+            }),
+          );
+        });
+        ScrollTrigger.refresh();
+
+        return () => {
+          cancelled = true;
+          splits.forEach((sp) => sp.revert());
         };
-        if (document.fonts?.status === "loaded") run();
-        else document.fonts?.ready.then(run);
       });
 
       mm.add("(prefers-reduced-motion: reduce)", () => {

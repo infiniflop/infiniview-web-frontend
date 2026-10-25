@@ -1133,25 +1133,31 @@ html.lenis body {
     font-size: clamp(1.3rem, 2vw, 1.9rem);
     max-width: 22ch;
   }
+  /* Collapsing is an enhancement: with no script (or a failed motion layer) every step stays open.
+     Collapsed copy is also hidden from assistive tech, not just clipped. */
   .pipe-body {
     display: grid;
-    grid-template-rows: 0fr;
+    grid-template-rows: 1fr;
     transition: grid-template-rows 0.6s var(--ease-out);
   }
   .pipe-body > p {
     overflow: hidden;
     margin: 0;
+    padding-top: 12px;
     max-width: 44ch;
   }
-  .pipe-step[data-state='active'] .pipe-body {
-    grid-template-rows: 1fr;
+  html.js:not(.reveal-failsafe) .pipe-step:not([data-state='active']) .pipe-body {
+    grid-template-rows: 0fr;
   }
-  .pipe-step[data-state='active'] .pipe-body > p {
-    padding-top: 12px;
+  /* the visibility flip is delayed only when *closing* (the delay lives on the closed state), so
+     copy is visible immediately while a step opens and leaves the a11y tree after it has closed */
+  html.js:not(.reveal-failsafe) .pipe-step:not([data-state='active']) .pipe-body > p {
+    visibility: hidden;
+    transition: visibility 0s linear 0.6s;
   }
   @media (max-width: 1023px) {
     .stage-col { order: -1; }
-    .pipe-step:not([data-state='active']) { display: none; }
+    html.js:not(.reveal-failsafe) .pipe-step:not([data-state='active']) { display: none; }
     .pipe-pin { padding-top: 84px; align-items: flex-start; }
   }
 
@@ -1781,11 +1787,15 @@ html.lenis body {
   .layer-sub { font-size: 0.9rem; color: var(--iv-ink-3); }
   .layer-body {
     display: grid;
-    grid-template-rows: 0fr;
+    grid-template-rows: 1fr;
     transition: grid-template-rows 0.6s var(--ease-out);
   }
   .layer-body > span { overflow: hidden; display: block; }
-  .layer-row[aria-selected='true'] .layer-body { grid-template-rows: 1fr; }
+  html.js:not(.reveal-failsafe) .layer-row[aria-selected='false'] .layer-body { grid-template-rows: 0fr; }
+  html.js:not(.reveal-failsafe) .layer-row[aria-selected='false'] .layer-body > span {
+    visibility: hidden;
+    transition: visibility 0s linear 0.6s;
+  }
   .layer-title { display: block; margin-top: 14px; font-size: 1.06rem; font-weight: 600; color: var(--iv-ink); letter-spacing: -0.02em; }
   .layer-text { display: block; margin-top: 6px; font-size: 0.97rem; line-height: 1.55; color: var(--iv-ink-2); max-width: 46ch; }
 
@@ -2074,10 +2084,16 @@ html.lenis body {
     transition: transform 0.5s var(--ease-out), background-color 0.3s, color 0.3s;
   }
   .faq-item[data-open='true'] .faq-plus { transform: rotate(135deg); background: var(--iv-lime); color: #070a02; }
-  .faq-a { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.55s var(--ease-out); }
+  .faq-a { display: grid; grid-template-rows: 1fr; transition: grid-template-rows 0.55s var(--ease-out); }
   .faq-a > div { overflow: hidden; }
   .faq-a p { margin: 0; padding: 0 56px 26px 0; max-width: 62ch; }
-  .faq-item[data-open='true'] .faq-a { grid-template-rows: 1fr; }
+  /* collapsed answers leave the accessibility tree and tab order (visibility flips after the close
+     animation); with no script every answer simply stays open */
+  html.js:not(.reveal-failsafe) .faq-item[data-open='false'] .faq-a { grid-template-rows: 0fr; }
+  html.js:not(.reveal-failsafe) .faq-item[data-open='false'] .faq-a > div {
+    visibility: hidden;
+    transition: visibility 0s linear 0.55s;
+  }
 
   /* ── Final CTA: the aperture opens ───────────────────────────────────── */
 
@@ -2284,3 +2300,17 @@ html.lenis body {
   .site-root .dot--sig { opacity: 1; }
   .site-root .zterm p { opacity: 1; transform: none; }
 }
+
+/* ── No script (or a failed motion layer): hide decorative 3D stages that only make sense when
+   animated, and show the looping bento tiles in their resolved state ── */
+html:not(.js) .site-root .stage-col,
+html:not(.js) .site-root .stack-col,
+html.reveal-failsafe .site-root .stage-col,
+html.reveal-failsafe .site-root .stack-col {
+  display: none;
+}
+html:not(.js) .site-root .sbx-f { opacity: 1; }
+html:not(.js) .site-root .sbx-core { opacity: 1; }
+html:not(.js) .site-root .chain--run { stroke-dasharray: none; stroke-dashoffset: 0; opacity: 0.9; }
+html:not(.js) .site-root .dot--noise { opacity: 0.12; }
+html:not(.js) .site-root .dot--sig { opacity: 1; }
