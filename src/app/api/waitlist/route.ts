@@ -10,19 +10,47 @@ const MAX_BODY_BYTES = 2048;
 // (e.g. a Vercel WAF rate-limit rule on POST /api/waitlist) and/or a bot challenge.
 const WINDOW_MS = 10 * 60 * 1000;
 const MAX_HITS = 8;
-const hits = new Map<string, number[]>();
+const MAX_TRACKED = 5000; // distinct clients remembered at once
+const hits = new Map<string, number[]>(); // insertion order = recency of the last accepted request
 
 function rateLimited(ip: string, now = Date.now()): boolean {
   const recent = (hits.get(ip) ?? []).filter((t) => now - t < WINDOW_MS);
-  recent.push(now);
-  hits.set(ip, recent);
-  if (hits.size > 5000) {
-    // keep memory bounded: drop clients whose last hit is outside the window
-    for (const [key, times] of hits) {
-      if (now - times[times.length - 1] >= WINDOW_MS) hits.delete(key);
-    }
+  // Only accepted requests are recorded: a client that keeps hammering after a 429 cannot grow its
+  // own history (it is capped at MAX_HITS) or make each check more expensive.
+  if (recent.length >= MAX_HITS) {
+    hits.set(ip, recent);
+    return true;
   }
-  return recent.length > MAX_HITS;
+  recent.push(now);
+  hits.delete(ip); // re-insert so the Map stays ordered oldest → newest
+  hits.set(ip, recent);
+  // Hard bound on memory: if a flood of distinct addresses fills the map, forget the stalest first.
+  while (hits.size > MAX_TRACKED) {
+    const oldest = hits.keys().next().value;
+    if (oldest === undefined) break;
+    hits.delete(oldest);
+  }
+  return false;
+}
+
+// Read at most MAX_BODY_BYTES: a request with no Content-Length (chunked) must not be buffered whole
+// before the size check. Returns null once the limit is crossed and cancels the rest of the stream.
+async function readLimited(request: Request): Promise<string | null> {
+  const reader = request.body?.getReader();
+  if (!reader) return "";
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    size += value.byteLength;
+    if (size > MAX_BODY_BYTES) {
+      await reader.cancel().catch(() => {});
+      return null;
+    }
+    chunks.push(value);
+  }
+  return Buffer.concat(chunks).toString("utf8");
 }
 
 const fail = (error: string, status: number, headers?: HeadersInit) =>
@@ -40,8 +68,8 @@ export async function POST(request: Request) {
     if (Number(request.headers.get("content-length") ?? 0) > MAX_BODY_BYTES) {
       return fail("payload_too_large", 413);
     }
-    const raw = await request.text();
-    if (raw.length > MAX_BODY_BYTES) return fail("payload_too_large", 413);
+    const raw = await readLimited(request);
+    if (raw === null) return fail("payload_too_large", 413);
 
     let body: unknown;
     try {

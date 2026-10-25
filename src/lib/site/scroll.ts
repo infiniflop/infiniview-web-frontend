@@ -45,6 +45,9 @@ export function scrollToTarget(
       offset,
       duration,
       immediate,
+      // a jump the user asked for works even if Lenis is stopped at that instant (the mobile menu
+      // stops it while open and starts it again as it closes)
+      force: true,
       easing: (t: number) => 1 - Math.pow(1 - t, 4),
       onComplete: onComplete ? () => onComplete() : undefined,
     });

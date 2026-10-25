@@ -98,13 +98,21 @@ export function SiteShell({ children }: { children: ReactNode }) {
       const el = document.getElementById(id); // not querySelector: ids like "1-step" are not valid selectors
       if (!el) return;
       e.preventDefault();
-      history.replaceState(null, "", raw);
+      // like a native anchor jump: a new fragment is a history entry (Back returns to where the
+      // visitor was), and following the link already in the URL does not add a duplicate one
+      if (window.location.hash !== raw) history.pushState(null, "", raw);
       // focus once the travel is done: the target may be hidden until the scroll reveals it, and
       // preventDefault cancelled the native focus move, so Tab would otherwise continue from the link
       if (!el.matches(FOCUSABLE)) el.setAttribute("tabindex", "-1");
       scrollToTarget(el, { offset: -20, onComplete: () => focusWhenReady(el) });
     };
     document.addEventListener("click", onClick);
+
+    // Back/Forward in the middle of a smooth jump: halt Lenis' animation where it is, so it does not
+    // drag the page on to the target the visitor just left (the browser restores the saved scroll
+    // position right after popstate, and Lenis then follows the native scroll again)
+    const onPop = () => lenis?.scrollTo(window.scrollY, { immediate: true, force: true });
+    window.addEventListener("popstate", onPop);
 
     // the motion layer is up: if the 5s failsafe already un-hid the page because hydration was slow,
     // hand control back to the reveal system (the reveal batch handles items already above the fold)
@@ -119,6 +127,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
       gsap.ticker.remove(tick);
       window.removeEventListener("pointermove", onMove);
       document.removeEventListener("click", onClick);
+      window.removeEventListener("popstate", onPop);
       lenis?.destroy();
       setLenis(null);
     };

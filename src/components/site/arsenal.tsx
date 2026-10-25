@@ -191,7 +191,7 @@ export function Arsenal() {
                     aria-controls={`layer-panel-${a.id}`}
                     className="layer-tab"
                     onClick={() => choose(i)}
-                    onFocus={() => setActive(i)}
+                    onFocus={() => choose(i)}
                   >
                     <span className="layer-num">
                       <Counter value={a.count} />

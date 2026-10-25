@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { gsap, SplitText, useGSAP, isCoarsePointer, prefersReducedMotion } from "@/lib/site/gsap";
+import { gsap, SplitText, useGSAP } from "@/lib/site/gsap";
 import { HERO } from "@/lib/site/content";
 import { WaitlistForm } from "@/components/site/waitlist-form";
 import { ScanCard } from "@/components/site/scan-card";
@@ -78,10 +78,12 @@ export function Hero() {
         };
       });
 
-      // card tilts toward the pointer — depth you can feel (fine pointers, full motion only)
-      let removeTilt: (() => void) | undefined;
-      const card = cardWrap.current;
-      if (card && !isCoarsePointer() && !prefersReducedMotion()) {
+      // The card tilts toward the pointer: depth you can feel. It is a media condition of its own, so
+      // if the motion or pointer preference changes while the page is open the listener is removed
+      // and the card is released.
+      mm.add("(prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine)", () => {
+        const card = cardWrap.current;
+        if (!card) return;
         gsap.set(card, { transformPerspective: 1100, transformOrigin: "50% 60%" });
         const rx = gsap.quickTo(card, "rotationX", { duration: 0.9, ease: "power3.out" });
         const ry = gsap.quickTo(card, "rotationY", { duration: 0.9, ease: "power3.out" });
@@ -94,13 +96,10 @@ export function Hero() {
           tz(ny * -6);
         };
         window.addEventListener("pointermove", move, { passive: true });
-        removeTilt = () => window.removeEventListener("pointermove", move);
-      }
+        return () => window.removeEventListener("pointermove", move);
+      });
 
-      return () => {
-        removeTilt?.();
-        mm.revert(); // also reverts the SplitText and timeline created inside
-      };
+      return () => mm.revert(); // also reverts the SplitText, timelines and tilt created inside
     },
     { scope: root },
   );

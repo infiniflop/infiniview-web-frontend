@@ -134,8 +134,10 @@ export function Corridor() {
 
     const render = () => {
       if (lostContext) return;
-      // nothing to see: the mobile menu or the full-screen finale covers the canvas
-      if (scene.occluded || document.documentElement.dataset.menuOpen === "true") {
+      // nothing to see: the mobile menu or the full-screen finale covers the canvas. Only while frames
+      // are continuous: under reduced motion they are drawn on demand (resize, preference change), and
+      // skipping one would leave a resized, cleared canvas blank when the menu closes.
+      if (!reduced && (scene.occluded || document.documentElement.dataset.menuOpen === "true")) {
         last = performance.now();
         return;
       }
