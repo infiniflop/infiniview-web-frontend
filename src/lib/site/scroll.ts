@@ -41,6 +41,30 @@ export function settleScroll() {
   window.setTimeout(() => scrollToTarget(j.target, { offset: j.offset, immediate: true, onComplete: j.onComplete }), 350);
 }
 
+/**
+ * Where an element sits in the document, from layout alone. getBoundingClientRect includes any
+ * transform in flight (the hero intro translates its blocks by 34px for a second), which would
+ * aim a scroll jump at a position the element no longer occupies once the animation ends.
+ */
+export function documentTop(el: HTMLElement): number {
+  let y = 0;
+  for (let n: HTMLElement | null = el; n; n = n.offsetParent as HTMLElement | null) y += n.offsetTop;
+  return y;
+}
+
+/**
+ * How an in-page jump to `el` should land. Sections have generous top padding, so their top edge
+ * goes just under the fixed nav; a form (the waitlist) is centred in the viewport and the jump
+ * focuses its email field, so it is never left hidden behind the nav bar.
+ */
+export function anchorPlan(el: HTMLElement): { offset: number; focusEl: HTMLElement } {
+  if (el instanceof HTMLFormElement) {
+    const input = el.querySelector<HTMLElement>("input:not([type=hidden]), textarea, select, button");
+    return { offset: -(window.innerHeight / 2 - el.offsetHeight / 2), focusEl: input ?? el };
+  }
+  return { offset: -20, focusEl: el };
+}
+
 export function scrollToTarget(
   target: string | HTMLElement | number,
   opts: { offset?: number; duration?: number; immediate?: boolean; onComplete?: () => void } = {},
@@ -64,7 +88,7 @@ export function scrollToTarget(
     if (typeof target === "number") absolute = target;
     else {
       const el = typeof target === "string" ? document.querySelector<HTMLElement>(target) : target;
-      absolute = el ? el.getBoundingClientRect().top + window.scrollY : null;
+      absolute = el ? documentTop(el) : null;
     }
     if (absolute === null) return;
     inflight = immediate ? null : { target, offset, onComplete };
@@ -94,7 +118,7 @@ export function scrollToTarget(
     typeof target === "number"
       ? target + offset
       : el
-        ? el.getBoundingClientRect().top + window.scrollY + offset
+        ? documentTop(el) + offset
         : null;
   if (top === null) return;
   window.scrollTo({ top, behavior: immediate ? "auto" : "smooth" });

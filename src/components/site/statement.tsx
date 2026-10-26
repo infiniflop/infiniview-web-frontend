@@ -23,6 +23,7 @@ export function Statement() {
         let split: SplitText | null = null;
         let st: ScrollTrigger | undefined;
         let cancelled = false;
+        let lastMoodStep = -1;
 
         const build = () => {
           if (cancelled) return;
@@ -40,7 +41,14 @@ export function Statement() {
               scrub: 0.6,
               anticipatePin: 1,
               refreshPriority: 1,
-              onUpdate: (self) => setMood({ portal: 0.55 + self.progress * 0.3 }, 0.6),
+              onUpdate: (self) => {
+                // a new tween per scroll tick is needless churn: only when the value actually moves a step
+                const q = Math.round(self.progress * 20);
+                if (q !== lastMoodStep) {
+                  lastMoodStep = q;
+                  setMood({ portal: 0.55 + (q / 20) * 0.3 }, 0.6);
+                }
+              },
             },
           });
           tl.to(split.words, { opacity: 1, stagger: 0.12, ease: "none", duration: 1 });

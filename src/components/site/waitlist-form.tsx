@@ -2,7 +2,7 @@
 
 import { useRef, useState, type FormEvent } from "react";
 import { ArrowRight, Check } from "lucide-react";
-import { gsap } from "@/lib/site/gsap";
+import { gsap, prefersReducedMotion } from "@/lib/site/gsap";
 import { cn } from "@/lib/utils";
 
 type Status = "idle" | "success" | "already" | "error" | "invalid" | "limited";
@@ -26,7 +26,7 @@ export function WaitlistForm({
   const formRef = useRef<HTMLFormElement>(null);
 
   const shake = () => {
-    if (!formRef.current) return;
+    if (!formRef.current || prefersReducedMotion()) return;
     gsap.fromTo(
       formRef.current,
       { x: 0 },
@@ -47,11 +47,14 @@ export function WaitlistForm({
     // the background and only rolls back to an error if it actually fails.
     setStatus("success");
     requestAnimationFrame(() => {
-      if (doneRef.current) {
+      // the form is replaced by the confirmation: move focus to it (and announce it) instead of losing it
+      doneRef.current?.focus({ preventScroll: true });
+      if (doneRef.current && !prefersReducedMotion()) {
         gsap.fromTo(
           doneRef.current,
-          { autoAlpha: 0, y: 14, scale: 0.97 },
-          { autoAlpha: 1, y: 0, scale: 1, duration: 0.7, ease: "expo.out" },
+          // opacity, not autoAlpha: visibility:hidden would make the browser drop focus from the element
+          { opacity: 0, y: 14, scale: 0.97 },
+          { opacity: 1, y: 0, scale: 1, duration: 0.7, ease: "expo.out" },
         );
       }
     });
@@ -63,8 +66,9 @@ export function WaitlistForm({
         body: JSON.stringify({ email }),
       });
       if (res.ok) {
-        const data = await res.json();
-        if (data.message === "already_registered") setStatus("already");
+        // the address is saved once the response is ok; an unreadable body must not turn that into an error
+        const data = await res.json().catch(() => null);
+        if (data?.message === "already_registered") setStatus("already");
       } else {
         setStatus(res.status === 429 ? "limited" : "error");
       }
@@ -79,6 +83,7 @@ export function WaitlistForm({
         id={id}
         ref={doneRef}
         role="status"
+        tabIndex={-1}
         className={cn("waitlist-done glass glass--lime flex items-center gap-4 px-6 py-4", className)}
         style={{ ["--r" as string]: "999px" }}
       >

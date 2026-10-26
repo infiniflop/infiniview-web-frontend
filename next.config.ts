@@ -20,6 +20,10 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  experimental: {
+    // a 404 document of its own (see src/app/global-not-found.tsx): the marketing CSS stays off /preview
+    globalNotFound: true,
+  },
   turbopack: {
     root: process.cwd(),
   },

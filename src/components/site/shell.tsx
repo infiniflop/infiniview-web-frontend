@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import Lenis from "lenis";
 import {
@@ -12,10 +12,13 @@ import {
   isCoarsePointer,
 } from "@/lib/site/gsap";
 import { scene } from "@/lib/site/scene";
-import { setLenis, scrollToTarget, settleScroll, dropInflight, focusWhenReady } from "@/lib/site/scroll";
+import { setLenis, scrollToTarget, settleScroll, dropInflight, focusWhenReady, anchorPlan } from "@/lib/site/scroll";
 import { Corridor } from "@/components/site/corridor";
 
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
+
+// the header's entrance plays once per page load, however many times the shell remounts
+let navIntroPlayed = false;
 
 /**
  * SiteShell — the single owner of time on this site.
@@ -25,7 +28,6 @@ const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
  *   · scroll reveals + split-text headings
  */
 export function SiteShell({ children }: { children: ReactNode }) {
-  const rootRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
 
   /* ── Engine: Lenis + damping + pointer. Mounted once. ───────────────── */
@@ -86,6 +88,18 @@ export function SiteShell({ children }: { children: ReactNode }) {
     };
     if (!coarse) window.addEventListener("pointermove", onMove, { passive: true });
 
+    // the header arrives with the opening shot, once per page load (not on every client-side return)
+    let navIntro: gsap.core.Tween | null = null;
+    const navEl = document.querySelector(".site-nav");
+    if (!reduced && !navIntroPlayed && navEl) {
+      navIntroPlayed = true;
+      navIntro = gsap.fromTo(
+        navEl,
+        { opacity: 0, y: -36 },
+        { opacity: 1, y: 0, duration: 1.2, ease: "expo.out", delay: 0.45, clearProps: "transform" },
+      );
+    }
+
     // intro: fly the camera in from far away (the page's opening shot)
     if (!reduced) {
       intro = gsap.fromTo(
@@ -119,8 +133,9 @@ export function SiteShell({ children }: { children: ReactNode }) {
       if (window.location.hash !== raw) history.pushState(null, "", raw);
       // focus once the travel is done: the target may be hidden until the scroll reveals it, and
       // preventDefault cancelled the native focus move, so Tab would otherwise continue from the link
-      if (!el.matches(FOCUSABLE)) el.setAttribute("tabindex", "-1");
-      scrollToTarget(el, { offset: -20, onComplete: () => focusWhenReady(el) });
+      const plan = anchorPlan(el);
+      if (!plan.focusEl.matches(FOCUSABLE)) plan.focusEl.setAttribute("tabindex", "-1");
+      scrollToTarget(el, { offset: plan.offset, onComplete: () => focusWhenReady(plan.focusEl) });
     };
     document.addEventListener("click", onClick);
 
@@ -138,6 +153,9 @@ export function SiteShell({ children }: { children: ReactNode }) {
 
     return () => {
       document.documentElement.classList.remove("surface-dark");
+      if (navIntro && navIntro.progress() < 1) navIntroPlayed = false; // an interrupted entrance (StrictMode) plays again
+      navIntro?.kill();
+      if (navEl?.isConnected) gsap.set(navEl, { clearProps: "opacity,transform" });
       intro?.kill();
       gsap.ticker.lagSmoothing(500, 33); // GSAP's defaults, which this effect overrode
       gsap.ticker.remove(tick);
@@ -171,7 +189,8 @@ export function SiteShell({ children }: { children: ReactNode }) {
       const el = id ? document.getElementById(id) : null;
       if (!el) return;
       ScrollTrigger.refresh();
-      scrollToTarget(el, { offset: -20, immediate: true });
+      const plan = anchorPlan(el);
+      scrollToTarget(el, { offset: plan.offset, immediate: true });
     };
     const ready = document.fonts?.ready ?? Promise.resolve();
     ready.then(() => requestAnimationFrame(() => requestAnimationFrame(() => window.setTimeout(go, 60))));
@@ -374,7 +393,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
   );
 
   return (
-    <div ref={rootRef} className="site-root">
+    <div className="site-root">
       <Corridor />
       <div className="site-content">{children}</div>
     </div>

@@ -5,7 +5,6 @@
 export const DOCS_URL = process.env.NEXT_PUBLIC_DOCS_URL ?? "https://docs.infiniview.dev";
 
 export const HERO = {
-  title: "Attack your code before anyone else does.",
   lede: "Connect your repo and Infiniview runs a full security audit, code review, and interaction stress test on every pull request and on demand, inside isolated cloud sandboxes.",
   assurances: ["Isolated cloud sandboxes", "No test cases to write", "Nothing touches production"],
 };

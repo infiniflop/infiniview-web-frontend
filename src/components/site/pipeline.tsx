@@ -89,6 +89,12 @@ export function Pipeline() {
         gsap.set(world, { rotationX: 14, rotationY: -18 });
         gsap.set(qa("[data-probe]"), { autoAlpha: 0 });
         items.forEach((li) => li.setAttribute("data-state", "active"));
+        // leaving this layout (a phone rotated back to portrait, motion switched on) must hand the
+        // steps back in their opening state, or every body stays expanded inside the pinned stage
+        return () => {
+          items.forEach((li, i) => li.setAttribute("data-state", i === 0 ? "active" : "todo"));
+          list.setAttribute("data-idx", "0");
+        };
       });
 
       // the breakpoint is a condition, so crossing 1023px (rotating a tablet, resizing a window)

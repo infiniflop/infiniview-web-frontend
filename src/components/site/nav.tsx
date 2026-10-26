@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowRight, Menu, X } from "lucide-react";
 import { gsap, ScrollTrigger, useGSAP, prefersReducedMotion } from "@/lib/site/gsap";
-import { getLenis, scrollToTarget } from "@/lib/site/scroll";
+import { getLenis, scrollToTarget, anchorPlan } from "@/lib/site/scroll";
 import { Mark, Magnetic } from "@/components/site/ui";
 import { DOCS_URL } from "@/lib/site/content";
 
@@ -17,13 +17,25 @@ const LINKS = [
 ];
 
 export function focusWaitlist(router?: { push: (href: string) => void }) {
-  const form = document.getElementById("waitlist");
+  // The page can hold two waitlist forms (the hero's and the finale's). Prefer the one that is
+  // already on screen, so the header button never throws a visitor 12,000px back up the page.
+  const forms = [...document.querySelectorAll<HTMLFormElement>("form[id^='waitlist']")];
+  const visible = forms.find((f) => {
+    const r = f.getBoundingClientRect();
+    return r.top < window.innerHeight * 0.85 && r.bottom > window.innerHeight * 0.15;
+  });
+  const form = visible ?? document.getElementById("waitlist");
   if (!form) {
     router?.push("/#waitlist");
     return;
   }
-  scrollToTarget(form, { offset: -(window.innerHeight / 2 - 60), duration: 1.6 });
   const input = form.querySelector<HTMLInputElement>("input[type='email']");
+  if (visible) {
+    input?.focus({ preventScroll: true });
+    return;
+  }
+  const plan = anchorPlan(form);
+  scrollToTarget(form, { offset: plan.offset, duration: 1.6 });
   if (input) window.setTimeout(() => input.focus({ preventScroll: true }), 900);
 }
 
@@ -97,6 +109,21 @@ export function Nav() {
     activeRef.current = active;
     restPill();
   }, [active, restPill]);
+
+  // The links are display:none below 1024px, so a pill measured there is zero-wide. Re-place it
+  // whenever the layout changes (rotating a tablet, resizing a window).
+  useEffect(() => {
+    let raf = 0;
+    const onResize = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => restPill(true));
+    };
+    window.addEventListener("resize", onResize);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", onResize);
+    };
+  }, [restPill]);
 
   /* ── scroll-spy (home only) ─────────────────────────────────────────── */
   useGSAP(

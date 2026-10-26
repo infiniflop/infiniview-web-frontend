@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Pause, Play } from "lucide-react";
 import { gsap, ScrollTrigger, useGSAP, prefersReducedMotion } from "@/lib/site/gsap";
 import { SAMPLE_FINDINGS } from "@/lib/site/content";
 import { setMood } from "@/lib/site/scene";
@@ -47,7 +47,11 @@ export function FindingsExplorer() {
   const [tab, setTab] = useState(0);
   const [auto, setAuto] = useState(true);
   const [inView, setInView] = useState(false);
-  const [paused, setPaused] = useState(false);
+  // the autoplay holds while the pointer is over the console, focus is inside it, or the visitor paused it
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const [userPaused, setUserPaused] = useState(false);
+  const running = auto && inView && !hovered && !focused && !userPaused;
 
   const f: Finding = SAMPLE_FINDINGS[fi];
 
@@ -142,18 +146,17 @@ export function FindingsExplorer() {
     };
   }, [fi]);
 
-  /* ── autoplay: walk the evidence until the visitor takes over ────────── */
-  useEffect(() => {
-    if (!auto || !inView || paused) return;
-    const id = window.setTimeout(() => {
-      if (tab < TABS.length - 1) setTab(tab + 1);
-      else {
-        setTab(0);
-        setFi((fi + 1) % SAMPLE_FINDINGS.length);
-      }
-    }, DWELL * 1000);
-    return () => window.clearTimeout(id);
-  }, [auto, inView, paused, tab, fi]);
+  /* ── autoplay: walk the evidence until the visitor takes over ──────────
+     One clock: the progress bar's CSS animation. The next tab is shown when it ends, so pausing
+     (animation-play-state) pauses both, and they can never drift apart. */
+  const advance = () => {
+    if (!auto) return;
+    if (tab < TABS.length - 1) setTab(tab + 1);
+    else {
+      setTab(0);
+      setFi((fi + 1) % SAMPLE_FINDINGS.length);
+    }
+  };
 
   const pick = (i: number) => {
     setAuto(false);
@@ -199,8 +202,12 @@ export function FindingsExplorer() {
         <div
           ref={consoleRef}
           className="console glass glass--deep"
-          onPointerEnter={() => setPaused(true)}
-          onPointerLeave={() => setPaused(false)}
+          onPointerEnter={() => setHovered(true)}
+          onPointerLeave={() => setHovered(false)}
+          onFocusCapture={() => setFocused(true)}
+          onBlurCapture={(e) => {
+            if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setFocused(false);
+          }}
         >
           <div className="console-top">
             <div className="flex items-center gap-3">
@@ -208,7 +215,19 @@ export function FindingsExplorer() {
               <span className="text-[0.95rem] font-semibold tracking-[-0.02em]">Review</span>
               <span className="t-small">acme/web-app</span>
             </div>
-            <span className="chip">Sample data</span>
+            <div className="flex items-center gap-3">
+              {auto && (
+                <button
+                  type="button"
+                  className="console-pause"
+                  aria-label={userPaused ? "Resume auto-play" : "Pause auto-play"}
+                  onClick={() => setUserPaused((v) => !v)}
+                >
+                  {userPaused ? <Play size={13} strokeWidth={2.6} aria-hidden /> : <Pause size={13} strokeWidth={2.6} aria-hidden />}
+                </button>
+              )}
+              <span className="chip">Sample data</span>
+            </div>
           </div>
 
           <div className="console-grid">
@@ -355,10 +374,11 @@ export function FindingsExplorer() {
 
           <div className="console-bar" aria-hidden>
             <i
-              key={`${fi}-${tab}-${auto}-${inView}`}
+              key={`${fi}-${tab}`}
+              onAnimationEnd={advance}
               style={{
                 animationDuration: `${DWELL}s`,
-                animationPlayState: auto && inView && !paused ? "running" : "paused",
+                animationPlayState: running ? "running" : "paused",
                 opacity: auto ? 1 : 0,
               }}
             />

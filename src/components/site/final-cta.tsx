@@ -23,6 +23,7 @@ export function FinalCta() {
         const f = field.current!;
         // iris opens from where the portal sits on wide screens
         const wide = window.matchMedia("(min-width: 1024px)").matches;
+        let lastMoodStep = -1;
         const origin = wide ? "74% 46%" : "50% 30%";
         gsap.fromTo(
           f,
@@ -35,7 +36,13 @@ export function FinalCta() {
               start: "top 85%",
               end: "top 5%",
               scrub: 0.7,
-              onUpdate: (self) => setMood({ portal: 0.5 + self.progress * 1.1, energy: 1 + self.progress * 0.4 }, 0.4),
+              onUpdate: (self) => {
+                // one mood tween per step of progress, not one per scroll tick
+                const q = Math.round(self.progress * 25);
+                if (q === lastMoodStep) return;
+                lastMoodStep = q;
+                setMood({ portal: 0.5 + (q / 25) * 1.1, energy: 1 + (q / 25) * 0.4 }, 0.4);
+              },
             },
           },
         );

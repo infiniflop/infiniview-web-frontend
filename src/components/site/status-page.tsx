@@ -1,5 +1,4 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
 import { ArrowRight } from "lucide-react";
 
 /** Content for the 404 page: on-brand, with a real way back. Rendered inside the marketing shell. */
@@ -20,15 +19,5 @@ export function NotFoundContent() {
         </Link>
       </div>
     </main>
-  );
-}
-
-/** Shell-free frame used by the error boundary: it must render even if the marketing shell is what failed. */
-export function StatusFrame({ children }: { children: ReactNode }) {
-  return (
-    <div className="site-root status-frame">
-      <div className="corridor-fallback" aria-hidden />
-      <div className="site-content">{children}</div>
-    </div>
   );
 }

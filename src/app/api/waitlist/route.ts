@@ -58,7 +58,11 @@ const fail = (error: string, status: number, headers?: HeadersInit) =>
 
 export async function POST(request: Request) {
   try {
-    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    // On Vercel the platform sets these from the connection (a client-sent value is overwritten), so
+    // they are safe to key on there. Behind a proxy that merely appends, the left-most
+    // x-forwarded-for entry is client-controlled: do not rely on this limiter off-platform.
+    const h = request.headers;
+    const ip = h.get("x-real-ip")?.trim() || h.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
     if (rateLimited(ip)) return fail("rate_limited", 429, { "Retry-After": "600" });
 
     // JSON only (a text/plain "simple" cross-site request must not be accepted), and a small body

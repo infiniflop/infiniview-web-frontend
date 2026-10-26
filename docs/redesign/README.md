@@ -74,7 +74,7 @@ The details at the edge of the viewport are part of the design, not leftovers:
 - **Overscroll and rubber-banding.** `html`, `body` and the canvas fallback are all the same `#03040a` (set by CSS *and* by the inline bootstrap script before first paint, for every path except the legacy `/preview`), so pulling past either end of the page, or an iOS bounce, never flashes white. `color-scheme: dark` themes native scrollbars, form controls and the overscroll area; `theme-color` colours the mobile browser chrome. `/preview` keeps its own light/dark surface.
 - **Safe areas.** `viewport-fit=cover` with `env(safe-area-inset-*)` on the nav, gutters and footer, so nothing sits under a notch, the Dynamic Island or the home indicator; `100vh` has an `svh` upgrade so phone URL bars do not cut heroes off.
 - **Platform polish.** Themed scrollbars, autofill and caret colours, tap-highlight off, `text-size-adjust`, `prefers-reduced-transparency`, `prefers-contrast`, `forced-colors` and print styles.
-- **Not-found, error and global-error pages** are designed (same shell; `global-error` is dependency-free inline styles), plus a web manifest, maskable and Apple touch icons, and alt text for the social images.
+- **404, error and global-error pages** are designed. The 404 is a document of its own (`global-not-found`, server-rendered, real 404 status) so the marketing stylesheet is loaded by the site routes only and never by `/preview`; the error page renders inside the site layout (nav and footer stay up); `global-error` is dependency-free inline styles. Plus a web manifest, maskable and Apple touch icons, and alt text for the social images.
 
 ### Security notes
 
@@ -85,6 +85,7 @@ The details at the edge of the viewport are part of the design, not leftovers:
 
 ### Accessibility and QA
 
+- **Rendered states**: focus rings keep each control's shape (pills stay pills; Arsenal rows, FAQ questions and the mobile menu get rings that match their containers), the skip link is a readable lime pill, and every waitlist form state (idle, focus, typed, invalid, success, duplicate, error, rate-limited) was captured and reviewed on the dark pages, the lime finale and a phone. Split headings keep the tails of g, j, p, q, y and J (checked from pixels in Chromium, WebKit and Firefox).
 - **Keyboard**: one tab walk covers every control on both routes; accordions and tabs have real roles, roving focus and Escape/focus-return for the menu. The e2e suite (about 60 real-input tests, run against a production build and the dev server under StrictMode) is green.
 - **axe-core 4.14**: no violations on `/pricing`, the 404 page or the open mobile menu; the home findings (statement `aria-label`, hero cue label, unlit-word contrast) are fixed.
 - **Contrast over a moving background** is something axe cannot evaluate (the corridor is a canvas), so it is measured from pixels: scroll in 0.3-viewport steps, screenshot, screenshot again with all text made transparent (so the true background under every glyph is sampled), and compare against WCAG AA at the 90th-percentile worst pixel. Phones (320, 390), tablet, 1280×720, 1440×900 and 1920×1080, both routes. That audit found and fixed: the nav glass being washed out by headlines scrolling under it, phone/tablet pipeline copy sitting on the portal (now on its own pane), body copy and the scan card over the portal's glow (denser tint, a soft halo on body copy, a dimmer portal in those chapters) and a few muted greys that sat just under 4.5:1.
@@ -123,7 +124,7 @@ Not done / worth knowing:
 
 - **Dark only.** The old light theme is dropped on the marketing pages (the glass-over-light-field look needs its own design pass). `/preview` keeps its theme toggle.
 - **Frame rate was not measured on real GPUs.** Visual QA ran in headless Chromium (software GL). The adaptive governor and the `data-perf="low"` fallback exist for that reason; they should be checked on a mid-range laptop and a phone.
-- **Chromium only.** Safari and Firefox were not tested. `backdrop-filter`, `mask-composite` and `text-wrap` all have fallbacks, but they are unverified.
+- **Real devices.** The site was checked in Chromium, WebKit (the Safari engine, 27.2) and Firefox 157 on desktop and phone sizes (layout, glass, WebGL, fonts, descenders, focus), but not on real iPhones or Androids: rubber-banding and notch behaviour are built to spec, not seen.
 - The waitlist API was not exercised end to end (no `DATABASE_URL` locally); the client states (invalid, optimistic success, rollback on error) were.
 - `/privacy` and `/terms` are linked as before but do not exist in this repo.
 - Pricing figures remain "Free / TBD / Custom", as before.

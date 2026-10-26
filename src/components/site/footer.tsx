@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Mark } from "@/components/site/ui";
+import { HashLink } from "@/components/site/hash-link";
 import { FOOTER_LINKS } from "@/lib/site/content";
 
 const INTERNAL = new Set(["/pricing", "/preview"]);
@@ -42,7 +43,11 @@ export function Footer() {
                     <li key={l.label}>
                       {/* /privacy and /terms are not routes of this app: a plain anchor, so Next does not
                           prefetch (and 404) them */}
-                      {INTERNAL.has(l.href) || l.href.startsWith("/#") ? (
+                      {l.href.startsWith("/#") ? (
+                        <HashLink href={l.href} className="foot-link">
+                          {l.label}
+                        </HashLink>
+                      ) : INTERNAL.has(l.href) ? (
                         <Link href={l.href} prefetch={l.href === "/preview" ? false : undefined} className="foot-link">
                           {l.label}
                         </Link>

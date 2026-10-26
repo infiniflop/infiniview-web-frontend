@@ -28,10 +28,3 @@ export const isCoarsePointer = () =>
   typeof window !== "undefined" &&
   window.matchMedia("(hover: none), (pointer: coarse)").matches;
 
-/** Easing tokens used across the site. */
-export const EASE = {
-  out: "expo.out",
-  snap: "power4.out",
-  inOut: "power3.inOut",
-  soft: "power2.out",
-} as const;

@@ -147,10 +147,6 @@ html.lenis body {
     padding-left: max(var(--gutter), env(safe-area-inset-left));
     padding-right: max(var(--gutter), env(safe-area-inset-right));
   }
-  .chamber {
-    position: relative;
-    padding-block: clamp(96px, 14vw, 220px);
-  }
 
   /* ── Type ────────────────────────────────────────────────────────────── */
 
@@ -1659,6 +1655,20 @@ html.lenis body {
     padding: 18px 24px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   }
+  .console-pause {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+    color: var(--iv-ink-2);
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+  }
+  .console-pause:hover { background: rgba(255, 255, 255, 0.12); color: var(--iv-ink); }
   .console-dots { display: inline-flex; gap: 5px; }
   .console-dots i { width: 9px; height: 9px; border-radius: 3px; background: rgba(255, 255, 255, 0.2); display: block; }
   .console-dots i:first-child { background: var(--iv-lime); }

@@ -58,12 +58,9 @@ export function Hero() {
 
         // everything else arrives around the headline
         const tl = gsap.timeline({ defaults: { ease: "expo.out" }, delay: 0.15 });
+        // (the nav's own entrance lives in the shell: it is layout, and must not replay each time the
+        // visitor comes back to this page)
         tl.fromTo(
-          document.querySelector(".site-nav"),
-          { opacity: 0, y: -36 },
-          { opacity: 1, y: 0, duration: 1.2 },
-          0.3,
-        ).fromTo(
           root.current!.querySelectorAll("[data-intro]"),
           { opacity: 0, y: 34 },
           { opacity: 1, y: 0, duration: 1.2, stagger: 0.11 },
@@ -86,13 +83,11 @@ export function Hero() {
         gsap.set(card, { transformPerspective: 1100, transformOrigin: "50% 60%" });
         const rx = gsap.quickTo(card, "rotationX", { duration: 0.9, ease: "power3.out" });
         const ry = gsap.quickTo(card, "rotationY", { duration: 0.9, ease: "power3.out" });
-        const tz = gsap.quickTo(card, "y", { duration: 1.1, ease: "power3.out" });
         const move = (e: PointerEvent) => {
           const nx = (e.clientX / window.innerWidth) * 2 - 1;
           const ny = (e.clientY / window.innerHeight) * 2 - 1;
           ry(nx * 6);
           rx(-ny * 5);
-          tz(ny * -6);
         };
         window.addEventListener("pointermove", move, { passive: true });
         return () => window.removeEventListener("pointermove", move);
