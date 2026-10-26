@@ -287,7 +287,7 @@ export const FEATURES = {
   },
   compliance: {
     title: "Compliance reports",
-    body: "Generate security compliance reports for SOC 2, ISO 27001, and internal audit requirements.",
+    body: "Generate security compliance reports for SOC 2, ISO 27001, and internal audit requirements.",
   },
 };
 

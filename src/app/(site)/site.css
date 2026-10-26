@@ -117,6 +117,17 @@ html.lenis body {
   outline: none;
 }
 
+/* Per-component ring adjustments live here, unlayered and after the global rule: a layered rule loses to an
+   unlayered one whatever its specificity, so the same tweak written inside a layer silently does nothing. */
+.site-root .link:focus-visible { outline-offset: 5px; }
+.site-root .layer-tab:focus-visible { outline-offset: -4px; }
+/* the lime finale: a lime ring would disappear on it, so the ring is ink */
+.site-root .cta :focus-visible { outline-color: #070a02; }
+.skip-link:focus-visible {
+  outline: 2px solid #070a02;
+  outline-offset: -5px; /* an inner ring: it stays readable on the dark page and over the lime pill */
+}
+
 @layer components {
   /* ── Canvas layers ───────────────────────────────────────────────────── */
 
@@ -712,7 +723,6 @@ html.lenis body {
     .nav-menu-inner { padding-top: calc(92px + env(safe-area-inset-top)); padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
   }
   html:not(.js) .nav-burger { display: none; } /* no script: nothing to open it */
-  .link:focus-visible { outline-offset: 5px; }
   .nav-menu-link[aria-current='page'] { color: var(--iv-lime); }
   .nav-menu-link {
     font-size: clamp(1.7rem, min(11vw, 9vh), 4rem); /* shrinks on short landscape screens */
@@ -1025,8 +1035,6 @@ html.lenis body {
   }
   .skip-link:focus-visible {
     top: 16px;
-    outline: 2px solid #070a02;
-    outline-offset: -5px; /* an inner ring: it stays readable on the dark page and over the lime pill */
     box-shadow: 0 0 0 3px #f3f5fa, 0 10px 30px -8px rgba(0, 0, 0, 0.7);
   }
   .sr-only {
@@ -1253,7 +1261,7 @@ html.lenis body {
   .pipe-title {
     margin: 0;
     font-size: clamp(1.3rem, 2vw, 1.9rem);
-    max-width: 22ch;
+    max-width: 30ch; /* wide enough that the longest title balances into two lines, not three with a short middle one */
   }
   /* Collapsing is an enhancement: with no script (or a failed motion layer) every step stays open.
      Collapsed copy is clipped, not removed: a screen-reader user cannot drive the scroll-scrubbed
@@ -1614,15 +1622,15 @@ html.lenis body {
     width: 290px;
     height: 300px;
   }
-  .pane--report ul { list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+  .pane--report ul { list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
   .file {
     display: flex; align-items: center; gap: 10px;
-    padding: 9px 12px; border-radius: 12px; font-size: 14px;
+    padding: 8px 12px; border-radius: 12px; font-size: 14px;
     background: rgba(255, 255, 255, 0.06);
   }
   .file svg:first-child { color: var(--iv-ink-2); }
   .file-ok { margin-left: auto; color: var(--iv-lime); }
-  .torn { position: absolute; left: 16px; right: 16px; bottom: 14px; margin: 0; font-size: 13px; color: var(--iv-lime); }
+  .torn { position: absolute; left: 28px; right: 16px; bottom: 13px; margin: 0; font-size: 13px; color: var(--iv-lime); }
   .torn::before { content: '✓ '; }
 
   .pane--pr {
@@ -1962,7 +1970,6 @@ html.lenis body {
     font: inherit;
     cursor: pointer;
   }
-  .layer-tab:focus-visible { outline-offset: -4px; }
   .layer-num {
     font-size: clamp(2.8rem, 5.2vw, 5rem);
     line-height: 0.95;
@@ -2252,7 +2259,9 @@ html.lenis body {
     .faq-grid { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); align-items: start; }
     .faq-side { position: sticky; top: 120px; }
   }
-  .faq-side { display: flex; flex-direction: column; gap: 22px; }
+  .faq-side { display: flex; flex-direction: column; gap: 22px; container-type: inline-size; }
+  /* "Questions?" is about 5.2em wide: capped to its own column, it stays whole at every screen width */
+  .faq-side .t-h2 { font-size: min(clamp(2.5rem, 6.4vw, 6.6rem), 17vw, 18.5cqi); }
   .faq-contact { max-width: 32ch; margin: 0; }
   .faq-list { --r: 32px; padding: clamp(6px, 1vw, 14px) clamp(18px, 2.4vw, 34px); }
   .faq-item { border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
@@ -2371,7 +2380,7 @@ html.lenis body {
     font-size: clamp(4rem, 21.6vw, 26rem);
     line-height: 0.74;
     font-weight: 640;
-    letter-spacing: -0.065em;
+    letter-spacing: -0.055em; /* the hook of the f clears the dot of the next i */
     font-variation-settings: 'wdth' 112;
     text-align: center;
     white-space: nowrap;
@@ -2383,7 +2392,7 @@ html.lenis body {
     stroke-linejoin: round;
     paint-order: stroke fill;
     user-select: none;
-    padding-bottom: 0.04em;
+    padding-bottom: 0.1em;
   }
   .foot-base {
     display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px;
@@ -2589,7 +2598,6 @@ html:not(.js) .site-root .dot--sig { opacity: 1; }
   }
 
   /* ── Lime finale: a lime focus ring would disappear, so use ink ─────── */
-  .cta :focus-visible { outline-color: #070a02; }
   .cta .waitlist:focus-within {
     box-shadow:
       0 0 0 3px #f3f5fa,
@@ -2753,5 +2761,21 @@ html:not(.js) .site-root .dot--sig { opacity: 1; }
   .pipe-body,
   .faq-a,
   .layer-body { grid-template-rows: 1fr !important; }
-  a[href^='http']::after { content: ' (' attr(href) ')'; font-size: 0.8em; }
+  /* the findings console is a stack of states shown one at a time: print the one on screen, not all of them over each other */
+  .plates { margin-top: 28px !important; }
+  .detail-head:not([data-on='true']),
+  .panel:not([data-on='true']) { display: none !important; }
+  .rail { overflow: visible !important; flex-wrap: wrap !important; }
+  /* the evidence fan is decoration built from overlapping cards: its names print as the plain list */
+  .fan { display: none !important; }
+  .fan-legend { display: flex !important; }
+  .fan-legend li { padding: 0 !important; }
+  /* the attack path's line is a pale stroke on a dark ground: draw it in ink */
+  .chain { stroke: #000 !important; }
+  .chain--run { display: none !important; }
+  .decoy { fill: #999 !important; }
+  .node { fill: #fff !important; stroke: #000 !important; }
+  .node-t { fill: #000 !important; }
+  /* links print their address, except where it would be set in a narrow column (footer) or is a button */
+  a[href^='http']:not(.foot-link):not(.btn)::after { content: ' (' attr(href) ')'; font-size: 0.8em; }
 }

@@ -139,7 +139,7 @@ function Report() {
         <b>Security compliance report</b>
       </div>
       <ul>
-        {["SOC 2", "ISO 27001", "Internal audit"].map((x) => (
+        {["SOC 2", "ISO 27001", "Internal audit"].map((x) => (
           <li key={x}>
             <Check size={14} strokeWidth={3} />
             {x}

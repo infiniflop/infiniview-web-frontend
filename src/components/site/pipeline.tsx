@@ -208,6 +208,7 @@ export function Pipeline() {
           .to(qa(".file"), { autoAlpha: 1, y: 0, stagger: 0.08, duration: 0.4 }, 4.5)
           .to(sb, { scaleY: 0.02, autoAlpha: 0, duration: 0.55, ease: "power3.in" }, 4.35)
           .to(ag, { autoAlpha: 0, duration: 0.3 }, 4.3)
+          .to(prod, { autoAlpha: 0.16, duration: 0.5 }, 4.3) // the bundle sits in front of it: its label must not read as a collision
           .fromTo(cm, { autoAlpha: 0, y: 260, z: 300 }, { autoAlpha: 1, y: 206, z: 210, duration: 0.7, ease: "back.out(1.3)" }, 4.55)
           .to(pr, { z: 210, duration: 0.4 }, 4.5)
           .fromTo(qa(".torn"), { autoAlpha: 0, y: 8 }, { autoAlpha: 1, y: 0, duration: 0.4 }, 4.5)

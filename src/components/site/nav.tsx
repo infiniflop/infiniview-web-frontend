@@ -28,6 +28,11 @@ export function focusWaitlist() {
   if (!form) {
     // no form on this page: go to the page that has one. A full load, not the router: the 404 (a document
     // of its own) cannot navigate client-side, and this is rare enough that it costs nothing elsewhere.
+    try {
+      sessionStorage.setItem("iv:focus-waitlist", "1"); // the page we land on puts the cursor in the field
+    } catch {
+      /* storage can be unavailable: the visitor still lands on the form */
+    }
     // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- deliberately a full load (see above)
     window.location.assign("/#waitlist");
     return;

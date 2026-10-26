@@ -4,6 +4,19 @@ import { useState } from "react";
 import { Plus } from "lucide-react";
 import { FAQS } from "@/lib/site/content";
 
+/** A numeric range ("4-5") must not break at its hyphen (the display face has no non-breaking hyphen). */
+function keepRanges(text: string) {
+  return text.split(/(\d+-\d+)/).map((part, i) =>
+    i % 2 ? (
+      <span key={i} className="whitespace-nowrap">
+        {part}
+      </span>
+    ) : (
+      part
+    ),
+  );
+}
+
 export function Faq({
   items = FAQS,
   id = "faq",
@@ -52,7 +65,7 @@ export function Faq({
                 </h3>
                 <div id={`${id}-a-${i}`} className="faq-a">
                   <div>
-                    <p className="t-body">{f.a}</p>
+                    <p className="t-body">{keepRanges(f.a)}</p>
                   </div>
                 </div>
               </div>

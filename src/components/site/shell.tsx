@@ -334,6 +334,15 @@ export function SiteShell({ children }: { children: ReactNode }) {
       ScrollTrigger.refresh();
       const plan = anchorPlan(el);
       scrollToTarget(el, { offset: plan.offset, immediate: true });
+      // "Early access" pressed on a page without a form (the 404) sent the visitor here: finish the job
+      try {
+        if (sessionStorage.getItem("iv:focus-waitlist")) {
+          sessionStorage.removeItem("iv:focus-waitlist");
+          el.querySelector<HTMLInputElement>("input[type='email']")?.focus({ preventScroll: true });
+        }
+      } catch {
+        /* storage can be unavailable */
+      }
     };
     const ready = document.fonts?.ready ?? Promise.resolve();
     ready.then(() => requestAnimationFrame(() => requestAnimationFrame(() => window.setTimeout(go, 60))));
