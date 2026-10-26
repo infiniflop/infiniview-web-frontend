@@ -254,6 +254,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
             // opacity (not visibility): unrevealed content stays focusable and in the a11y tree, so
             // keyboard and screen-reader users are never locked out of what has not scrolled in yet
             const els = (batch as HTMLElement[]).filter((el) => !el.hasAttribute("data-revealed"));
+            if (!els.length) return; // all already shown (by focus, or before a context rebuild)
             els.forEach((el) => el.setAttribute("data-revealed", ""));
             gsap.fromTo(
               els,

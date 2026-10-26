@@ -46,6 +46,7 @@ export function FinalCta() {
           once: true,
           onEnter: () => {
             const els = gsap.utils.toArray<HTMLElement>("[data-cta]:not([data-revealed])", f);
+            if (!els.length) return;
             els.forEach((el) => el.setAttribute("data-revealed", ""));
             gsap.fromTo(
               els,

@@ -503,6 +503,13 @@ html.lenis body {
   html.js:not(.reveal-failsafe) .site-root [data-intro]:focus-within {
     opacity: 1;
   }
+  /* Once revealed (by scroll or focus) stays visible by marker, not only by GSAP's inline style: a
+     motion context that is torn down and rebuilt (reduced motion switched off again without a
+     reload) reverts those inline styles, and the rebuilt reveal skips marked elements. */
+  html.js:not(.reveal-failsafe) .site-root [data-reveal][data-revealed],
+  html.js:not(.reveal-failsafe) .site-root [data-cta][data-revealed] {
+    opacity: 1;
+  }
   /* masked split lines: leave room for descenders under tight leading */
   .split-mask {
     padding-bottom: 0.16em;
