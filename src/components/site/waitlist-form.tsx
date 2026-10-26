@@ -79,7 +79,7 @@ export function WaitlistForm({
         id={id}
         ref={doneRef}
         role="status"
-        className={cn("glass glass--lime flex items-center gap-4 px-6 py-4", className)}
+        className={cn("waitlist-done glass glass--lime flex items-center gap-4 px-6 py-4", className)}
         style={{ ["--r" as string]: "999px" }}
       >
         <span className="grid h-9 w-9 flex-none place-items-center rounded-full bg-[var(--iv-lime)] text-[#070a02]">
@@ -107,6 +107,7 @@ export function WaitlistForm({
           "waitlist glass glass--thin flex items-center gap-2 p-[7px]",
           size === "lg" ? "waitlist--lg" : "waitlist--md",
         )}
+        data-status={status}
         style={{ ["--r" as string]: "999px" }}
       >
         <label htmlFor={id ? `${id}-email` : undefined} className="sr-only">
@@ -137,7 +138,7 @@ export function WaitlistForm({
       <p
         id={`${id ?? "wl"}-msg`}
         aria-live="polite"
-        className="mt-3 min-h-[1.25rem] pl-5 text-sm text-[#ff8a7a]"
+        className="waitlist-msg mt-3 min-h-[1.25rem] pl-5 text-sm"
       >
         {status === "invalid" && "Enter a valid email address."}
         {status === "error" && "Something went wrong. Try again."}

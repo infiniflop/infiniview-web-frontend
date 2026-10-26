@@ -33,13 +33,12 @@ export function Hero() {
           mask: "lines",
           autoSplit: true,
           linesClass: "split-line",
-          maskClass: "split-mask",
           aria: "auto",
           onSplit(self) {
             gsap.set(el, { autoAlpha: 1 });
             return gsap.fromTo(
               self.lines,
-              { yPercent: 118, rotate: 3.5, fontVariationSettings: "'wdth' 72" },
+              { yPercent: 135, rotate: 3.5, fontVariationSettings: "'wdth' 72" },
               {
                 yPercent: 0,
                 rotate: 0,

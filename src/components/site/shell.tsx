@@ -333,13 +333,12 @@ export function SiteShell({ children }: { children: ReactNode }) {
               mask: "lines",
               autoSplit: true,
               linesClass: "split-line",
-              maskClass: "split-mask",
               aria: "auto",
               onSplit(self) {
                 if (cancelled) return;
                 gsap.set(el, { visibility: "visible", opacity: 1 });
                 return gsap.from(self.lines, {
-                  yPercent: 112,
+                  yPercent: 135,
                   rotate: 2.5,
                   transformOrigin: "0% 100%",
                   duration: 1.25,

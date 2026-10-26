@@ -93,10 +93,15 @@ html.lenis body {
   color: #06070d;
 }
 
+/* The ring follows each control's own shape (outlines follow border-radius in every current engine).
+   This rule is unlayered, so it must never set a radius: it would override every component's own. */
 .site-root :focus-visible {
   outline: 2px solid var(--iv-lime);
   outline-offset: 3px;
-  border-radius: 6px;
+}
+/* a field inside a pill: the pill draws one ring (.waitlist:focus-within), not a second one on the input */
+.site-root .waitlist-input:focus-visible {
+  outline: none;
 }
 /* containers we focus programmatically (skip link, in-page jumps) are not controls: no ring */
 .site-root [tabindex='-1']:focus,
@@ -412,6 +417,7 @@ html.lenis body {
     background-position: 0 100%;
     transition: background-size 0.4s var(--ease-out), color 0.2s;
     padding-bottom: 2px;
+    border-radius: 6px;
   }
   .link:hover {
     color: var(--iv-lime);
@@ -490,10 +496,13 @@ html.lenis body {
     opacity: 1;
   }
   /* masked split lines: leave room for descenders under tight leading */
-  .split-mask {
-    padding-bottom: 0.16em;
-    margin-bottom: -0.16em;
-    padding-right: 0.06em;
+  /* SplitText wraps every line in a mask (.split-line-mask, overflow: clip) that is exactly one
+     line-height tall: shorter than the glyph box, so it shaved the descenders off g, j, p, q, y and J.
+     Give the mask the room and take the same room back with a negative margin: the layout does not
+     move. (The mask also needs a little air at the sides for overhanging glyphs.) */
+  .split-line-mask {
+    padding: 0.08em 0.1em 0.3em;
+    margin: -0.08em -0.1em -0.3em;
   }
   @media (prefers-reduced-motion: reduce) {
     html.js .site-root [data-reveal],
@@ -556,6 +565,7 @@ html.lenis body {
     color: var(--iv-ink);
     text-decoration: none;
     flex: none;
+    border-radius: 14px; /* the focus ring follows it */
   }
   .nav-word {
     font-size: 1.08rem;
@@ -656,7 +666,7 @@ html.lenis body {
        and at this opacity it adds nothing visible */
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
-    background: rgba(3, 4, 10, 0.94);
+    background: rgba(3, 4, 10, 0.985); /* near-opaque: the page's own headline must not ghost through the links */
     /* page scroll is locked while the menu is open, so the menu must scroll by itself */
     overflow-y: auto;
     overscroll-behavior: contain;
@@ -680,6 +690,11 @@ html.lenis body {
     line-height: 1.08;
     color: var(--iv-ink);
     text-decoration: none;
+    /* the ring hugs the word (not the whole row) and is rounded */
+    align-self: flex-start;
+    padding: 0.04em 0.28em;
+    margin-left: -0.28em;
+    border-radius: 0.34em;
   }
 
   /* ── Waitlist ───────────────────────────────────────────────────────── */
@@ -697,6 +712,17 @@ html.lenis body {
     outline: none;
   }
   .waitlist-input::placeholder { color: var(--iv-ink-3); }
+  /* something is wrong with what was entered: the field says so, not only the line under it */
+  .waitlist.glass[data-status='invalid'],
+  .waitlist.glass[data-status='error'],
+  .waitlist.glass[data-status='limited'] {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.2),
+      0 0 0 1.5px rgba(255, 138, 122, 0.85),
+      0 0 40px -6px rgba(255, 90, 71, 0.35),
+      0 40px 90px -40px rgba(0, 0, 0, 0.85);
+  }
+  .waitlist-msg { color: #ff8a7a; }
   .waitlist--lg {
     max-width: 560px;
   }
@@ -826,6 +852,9 @@ html.lenis body {
     gap: 12px;
     background: none;
     border: 0;
+    border-radius: 14px;
+    padding: 8px 14px;
+    margin-left: -14px; /* the label itself stays on the page gutter */
     color: var(--iv-ink-3);
     font: inherit;
     font-size: 0.85rem;
@@ -963,15 +992,25 @@ html.lenis body {
     left: 16px;
     top: -80px;
     z-index: 100;
-    padding: 12px 20px;
+    padding: 12px 22px;
     border-radius: 999px;
-    background: var(--iv-lime);
+    /* outside .site-root, so none of the --iv-* tokens exist here: literal values */
+    background: #d2fb5a;
     color: #070a02;
+    font-family: var(--font-mona), system-ui, sans-serif;
+    font-size: 0.95rem;
     font-weight: 600;
+    letter-spacing: -0.01em;
     text-decoration: none;
-    transition: top 0.25s var(--ease-out);
+    box-shadow: 0 10px 30px -8px rgba(0, 0, 0, 0.7);
+    transition: top 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   }
-  .skip-link:focus-visible { top: 16px; }
+  .skip-link:focus-visible {
+    top: 16px;
+    outline: 2px solid #070a02;
+    outline-offset: -5px; /* an inner ring: it stays readable on the dark page and over the lime pill */
+    box-shadow: 0 0 0 3px #f3f5fa, 0 10px 30px -8px rgba(0, 0, 0, 0.7);
+  }
   .sr-only {
     position: absolute;
     width: 1px;
@@ -993,9 +1032,18 @@ html.lenis body {
     -webkit-mask-image: linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent);
     mask-image: linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent);
   }
+  .threat {
+    --threat-fs: clamp(3.4rem, 9vw, 9.5rem);
+  }
   .threat-row {
     display: flex;
     overflow: hidden;
+  }
+  /* the big outlined row clips at its line box, which cuts the tails of g, j, p, y in "API fuzzing",
+     "Session hijacking": add the descender room and take it back so the spacing is unchanged */
+  .threat-row:not(.threat-row--small) {
+    padding-bottom: calc(var(--threat-fs) * 0.3);
+    margin-bottom: calc(var(--threat-fs) * -0.3);
   }
   .threat-row--small {
     margin-top: clamp(10px, 1.4vw, 22px);
@@ -1019,7 +1067,7 @@ html.lenis body {
     white-space: nowrap;
   }
   .threat-run--big .threat-item {
-    font-size: clamp(3.4rem, 9vw, 9.5rem);
+    font-size: var(--threat-fs);
     line-height: 1;
     font-weight: 640;
     letter-spacing: -0.05em;
@@ -1858,13 +1906,14 @@ html.lenis body {
     align-items: start;
     padding: clamp(14px, 1.8vw, 22px) clamp(16px, 2vw, 26px);
     border: 0;
-    border-radius: inherit;
+    border-radius: 26px; /* = .layer-row (inherit would resolve to the heading's 0) */
     background: none;
     color: inherit;
     text-align: left;
     font: inherit;
     cursor: pointer;
   }
+  .layer-tab:focus-visible { outline-offset: -4px; }
   .layer-num {
     font-size: clamp(2.8rem, 5.2vw, 5rem);
     line-height: 0.95;
@@ -2150,13 +2199,15 @@ html.lenis body {
   .faq-item:last-child { border-bottom: 0; }
   .faq-item h3 { margin: 0; }
   .faq-q {
-    width: 100%;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 20px;
-    padding: clamp(18px, 2vw, 26px) 0;
+    padding: clamp(18px, 2vw, 26px) 14px;
+    margin-inline: -14px; /* room for the ring; the text stays where it was */
+    width: calc(100% + 28px);
     border: 0;
+    border-radius: 18px;
     background: none;
     color: var(--iv-ink);
     font: inherit;
@@ -2253,7 +2304,7 @@ html.lenis body {
   .foot-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
   .foot-col h2 { margin: 0 0 14px; font-size: 0.9rem; font-weight: 500; color: var(--iv-ink-3); }
   .foot-col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
-  .foot-link { color: var(--iv-ink); text-decoration: none; font-size: 1rem; transition: color 0.2s; }
+  .foot-link { color: var(--iv-ink); text-decoration: none; font-size: 1rem; transition: color 0.2s; border-radius: 6px; }
   .foot-link:hover { color: var(--iv-lime); }
   .foot-word {
     margin-top: clamp(40px, 6vw, 96px);
@@ -2467,6 +2518,22 @@ html:not(.js) .site-root .dot--sig { opacity: 1; }
       0 0 0 3px #f3f5fa,
       0 0 0 6px #070a02,
       0 24px 50px -20px rgba(7, 10, 2, 0.6);
+  }
+  /* on lime, coral text is unreadable (~1.6:1) and a coral ring vanishes: dark red, same ring shape */
+  .cta .waitlist.glass[data-status='invalid'],
+  .cta .waitlist.glass[data-status='error'],
+  .cta .waitlist.glass[data-status='limited'] {
+    box-shadow:
+      0 0 0 3px #f3f5fa,
+      0 0 0 6px #8a1a0e,
+      0 24px 50px -20px rgba(7, 10, 2, 0.6);
+  }
+  .cta .waitlist-msg { color: #7a1409; font-weight: 600; text-shadow: none; }
+  /* the confirmation on lime is a dark pill like the field it replaces (a lime tint on lime goes olive) */
+  .cta .waitlist-done {
+    background: #0a0d03;
+    color: #f3f5fa;
+    box-shadow: 0 24px 50px -20px rgba(7, 10, 2, 0.6);
   }
 
   /* ── Scrollable code/terminal areas match the page ──────────────────── */
