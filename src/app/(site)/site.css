@@ -547,7 +547,7 @@ html.lenis body {
     transition: background-color 0.4s ease, box-shadow 0.4s ease;
   }
   .nav-bar--ink {
-    background: linear-gradient(145deg, rgba(7, 10, 2, 0.94), rgba(7, 10, 2, 0.86));
+    background: linear-gradient(145deg, rgba(7, 10, 2, 0.98), rgba(7, 10, 2, 0.96));
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }
@@ -719,6 +719,10 @@ html.lenis body {
       0 40px 90px -40px rgba(0, 0, 0, 0.85);
   }
   .waitlist-msg { color: #ff8a7a; }
+  /* the button has its own ring when it is keyboard-focused: the pill does not add a second one */
+  .waitlist.glass[data-status='idle']:has(.btn:focus-visible) {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 40px 90px -40px rgba(0, 0, 0, 0.85);
+  }
   .waitlist--lg {
     max-width: 560px;
   }
@@ -1095,7 +1099,7 @@ html.lenis body {
     padding: clamp(18px, 2.2vw, 30px);
   }
   .plate-num {
-    font-size: clamp(3.4rem, 7.4vw, 8rem);
+    font-size: clamp(3.4rem, 7.4vw, 6.2rem); /* "100%" must fit its tile at every width */
     letter-spacing: -0.06em;
     line-height: 0.9;
     color: var(--iv-ink);
@@ -1713,7 +1717,11 @@ html.lenis body {
     gap: 22px;
     min-width: 0;
   }
-  .detail-head { display: flex; flex-direction: column; gap: 14px; }
+  /* every finding's header shares one grid cell, so the console is always as tall as the tallest and
+     the page below does not jump (about 40px) each time the finding changes */
+  .detail-heads { display: grid; }
+  .detail-head { grid-area: 1 / 1; display: flex; flex-direction: column; gap: 14px; visibility: hidden; }
+  .detail-head[data-on='true'] { visibility: visible; }
   .detail-title { margin: 0; font-size: clamp(1.5rem, 2.6vw, 2.4rem); max-width: 26ch; }
   .detail-chips { display: flex; flex-wrap: wrap; gap: 8px; }
   .detail-sum { margin: 0; max-width: 64ch; }
@@ -1848,7 +1856,7 @@ html.lenis body {
   @media (min-width: 1024px) {
     .arsenal-grid { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); }
   }
-  .arsenal-list { display: flex; flex-direction: column; gap: 10px; }
+  .arsenal-list { position: relative; z-index: 2; display: flex; flex-direction: column; gap: 10px; } /* above the 3D plane, which overhangs it on narrower desktops */
   .layer-row {
     position: relative;
     border-radius: 26px;
@@ -2048,6 +2056,9 @@ html.lenis body {
   .ecard:hover { z-index: 9 !important; }
   .ecard-body { flex: 1; border-radius: 12px; background: rgba(2, 3, 9, 0.7); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07); padding: 10px; overflow: hidden; }
   .ecard-label { font-size: 0.82rem; font-weight: 600; color: var(--iv-ink-2); text-align: center; letter-spacing: -0.01em; }
+  /* neighbours overlap a card's inner edge: keep its label on the outer, visible side */
+  .ecard-label.is-l { text-align: left; padding-left: 6px; }
+  .ecard-label.is-r { text-align: right; padding-right: 6px; }
   .e-shot { height: 100%; position: relative; display: flex; flex-direction: column; gap: 6px; }
   .e-shot span { height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.16); }
   .e-shot span:nth-child(2) { width: 70%; }
@@ -2072,11 +2083,11 @@ html.lenis body {
   .e-diff .del { background: rgba(255, 90, 71, 0.6); width: 58%; }
 
   /* sandbox: frames recede, then the sandbox is gone */
-  .sbx { position: relative; height: 190px; margin-top: auto; display: grid; place-items: center; padding-bottom: 40px; }
+  .sbx { position: relative; height: 190px; margin-top: auto; display: grid; place-items: center; padding-bottom: 52px; }
   .sbx-f { position: absolute; border-radius: 28%; border: 2px solid var(--iv-lime); opacity: 0; }
-  .sbx-f1 { width: 150px; height: 150px; }
-  .sbx-f2 { width: 100px; height: 100px; }
-  .sbx-f3 { width: 56px; height: 56px; }
+  .sbx-f1 { width: 126px; height: 126px; }
+  .sbx-f2 { width: 84px; height: 84px; }
+  .sbx-f3 { width: 46px; height: 46px; }
   .sbx-core { width: 14px; height: 14px; border-radius: 4px; background: var(--iv-lime); box-shadow: 0 0 24px var(--iv-lime); }
   .sbx-tag {
     position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); white-space: nowrap;
@@ -2239,7 +2250,7 @@ html.lenis body {
   @media (min-width: 1024px) {
     .cta-inner { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); align-items: end; }
   }
-  .cta-title { font-size: clamp(3rem, 8.2vw, 9.2rem); line-height: 0.9; letter-spacing: -0.055em; margin: 0; max-width: 11ch; color: #070a02; }
+  .cta-title { font-size: clamp(3rem, 8.2vw, 7.4rem); /* capped: its longest word must end inside its column at every width */ line-height: 0.9; letter-spacing: -0.055em; margin: 0; max-width: 11ch; color: #070a02; }
   .cta-side { display: flex; flex-direction: column; gap: 26px; align-items: flex-start; }
   .cta-body { margin: 0; font-size: clamp(1.1rem, 1.5vw, 1.4rem); line-height: 1.5; max-width: 34ch; color: rgba(7, 10, 2, 0.82); font-weight: 500; }
   .cta-form { width: 100%; }
@@ -2262,7 +2273,7 @@ html.lenis body {
     padding-top: clamp(72px, 9vw, 140px);
     overflow: hidden;
     /* the corridor ends behind the finale; keep the footer ground calm and legible */
-    background: linear-gradient(180deg, rgba(3, 4, 10, 0.92), rgba(3, 4, 10, 0.66) 70%, rgba(3, 4, 10, 0.5));
+    background: linear-gradient(180deg, rgba(3, 4, 10, 0), rgba(3, 4, 10, 0.92) clamp(60px, 8vw, 140px), rgba(3, 4, 10, 0.66) 70%, rgba(3, 4, 10, 0.5));
   }
   .foot-top { display: grid; gap: 48px; }
   @media (min-width: 900px) { .foot-top { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); } }
@@ -2287,6 +2298,8 @@ html.lenis body {
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-stroke: 1px rgba(255, 255, 255, 0.16);
+    stroke-linejoin: round;
+    paint-order: stroke fill;
     user-select: none;
     padding-bottom: 0.04em;
   }
@@ -2328,7 +2341,7 @@ html.lenis body {
   .plan-amount { font-size: clamp(3.4rem, 6vw, 5.6rem); line-height: 0.95; font-weight: 620; letter-spacing: -0.06em; }
   .plan-cta { width: 100%; margin-top: 4px; }
   .plan-list { list-style: none; margin: 10px 0 0; padding: 22px 0 0; border-top: 1px solid rgba(255, 255, 255, 0.09); display: flex; flex-direction: column; gap: 12px; }
-  .plan-list li { display: flex; align-items: flex-start; gap: 12px; font-size: 0.97rem; line-height: 1.4; color: var(--iv-ink); }
+  .plan-list li { display: flex; align-items: flex-start; gap: 12px; font-size: 0.97rem; line-height: 1.4; color: var(--iv-ink); text-wrap: pretty; }
   .plan-list svg { flex: none; margin-top: 2px; color: var(--iv-lime); }
   .plan-notes {
     list-style: none; margin: clamp(16px, 2vw, 28px) auto 0; padding: 14px 28px;
@@ -2356,6 +2369,8 @@ html.lenis body {
   @media (min-width: 1024px) and (max-width: 1279px) {
     .stack-fit { --s: 0.78; }
     .cta-inner { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); }
+    /* its column is narrower here (5fr): "unbreakable?" (about 6em wide) has to fit it */
+    .cta-title { font-size: clamp(3rem, 6.3vw, 7.4rem); }
   }
 
   /* smallest phones: keep the mono terminal lines readable instead of cutting them off */
@@ -2387,6 +2402,7 @@ html.lenis body {
 
   /* mid-width laptops: give the scan card an extra column so its rows stay on one line */
   @media (min-width: 1024px) and (max-width: 1439px) {
+    .hero-assure { font-size: 0.85rem; gap: 8px 16px; }
     .hero-card { grid-column: 7 / span 6; }
     .hero-sub { grid-column: 1 / span 6; }
   }
@@ -2484,6 +2500,9 @@ html:not(.js) .site-root .dot--sig { opacity: 1; }
       0 0 0 3px #f3f5fa,
       0 0 0 6px #070a02,
       0 24px 50px -20px rgba(7, 10, 2, 0.6);
+  }
+  .cta .waitlist.glass[data-status='idle']:has(.btn:focus-visible) {
+    box-shadow: 0 24px 50px -20px rgba(7, 10, 2, 0.6);
   }
   /* on lime, coral text is unreadable (~1.6:1) and a coral ring vanishes: dark red, same ring shape */
   .cta .waitlist.glass[data-status='invalid'],

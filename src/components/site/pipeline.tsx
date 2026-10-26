@@ -412,7 +412,7 @@ export function Pipeline() {
                         <path className="conn" d="M 110 -52 C 140 -10, 80 40, -10 62" />
                         <path className="conn conn--red" d="M -140 8 C -150 40, -170 60, -150 90" />
                       </svg>
-                      <div data-chip className="fchip fchip--crit" style={{ left: "calc(50% + 70px)", top: "calc(50% - 98px)" }}>
+                      <div data-chip className="fchip fchip--crit" style={{ left: "calc(50% + 56px)", top: "calc(50% - 62px)" }}>
                         <i /> SQL injection
                         <span data-fix className="fix">fix</span>
                       </div>

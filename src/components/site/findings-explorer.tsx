@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { ArrowRight, Pause, Play } from "lucide-react";
 import { gsap, ScrollTrigger, useGSAP, prefersReducedMotion } from "@/lib/site/gsap";
@@ -120,7 +120,7 @@ export function FindingsExplorer() {
   useEffect(() => {
     const body = bodyRef.current;
     if (!body || prefersReducedMotion()) return;
-    const panel = body.querySelector<HTMLElement>(`[data-panel="${tab}"]`);
+    const panel = body.querySelector<HTMLElement>(`[data-f="${fi}"][data-panel="${tab}"]`);
     if (!panel) return;
     const lines = panel.querySelectorAll("[data-line]");
     const tween = gsap.fromTo(
@@ -137,7 +137,7 @@ export function FindingsExplorer() {
   useEffect(() => {
     if (!head.current || prefersReducedMotion()) return;
     const t = gsap.fromTo(
-      head.current.querySelectorAll("[data-head]"),
+      head.current.querySelectorAll(".detail-head[data-on='true'] [data-head]"),
       { autoAlpha: 0, y: 14 },
       { autoAlpha: 1, y: 0, duration: 0.7, ease: "expo.out", stagger: 0.06 },
     );
@@ -277,19 +277,23 @@ export function FindingsExplorer() {
 
             {/* detail */}
             <div id="finding-panel" role="tabpanel" aria-labelledby={`finding-${f.id}`} className="detail">
-              <div ref={head} className="detail-head">
-                <h3 className="t-h3 detail-title" data-head>{f.title}</h3>
-                <div className="detail-chips" data-head>
-                  <span className={`chip ${SEV[f.severity].cls}`}>
-                    <i /> {SEV[f.severity].label}
-                  </span>
-                  <span className="chip">{f.category}</span>
-                  <span className="chip chip--ok">
-                    <i /> Verified exploit
-                  </span>
-                  <span className="chip tnum">{f.confidence}% confidence</span>
-                </div>
-                <p className="t-body detail-sum" data-head>{f.summary}</p>
+              <div ref={head} className="detail-heads">
+                {SAMPLE_FINDINGS.map((x, i) => (
+                  <div key={x.id} className="detail-head" data-on={i === fi} aria-hidden={i !== fi || undefined}>
+                    <h3 className="t-h3 detail-title" data-head>{x.title}</h3>
+                    <div className="detail-chips" data-head>
+                      <span className={`chip ${SEV[x.severity].cls}`}>
+                        <i /> {SEV[x.severity].label}
+                      </span>
+                      <span className="chip">{x.category}</span>
+                      <span className="chip chip--ok">
+                        <i /> Verified exploit
+                      </span>
+                      <span className="chip tnum">{x.confidence}% confidence</span>
+                    </div>
+                    <p className="t-body detail-sum" data-head>{x.summary}</p>
+                  </div>
+                ))}
               </div>
 
               <div ref={tabsRef} role="tablist" aria-label="Evidence" className="tabs">
@@ -310,64 +314,70 @@ export function FindingsExplorer() {
                 ))}
               </div>
 
+              {/* every finding's four panels share one grid cell: the console is as tall as the tallest of
+                  them, so changing finding or tab never moves the page below it */}
               <div ref={bodyRef} className="panels">
-                {/* proof */}
-                <div data-panel="0" data-on={tab === 0} className="panel">
-                  <div className="term t-mono">
-                    {f.proof.lines.map((l, i) =>
-                      l.t === "gap" ? (
-                        <div key={i} className="term-gap" data-line />
-                      ) : (
-                        <div key={i} data-line className={`term-line term-line--${l.t}`}>
-                          <span className="term-arrow" aria-hidden>{l.t === "req" ? "→" : "←"}</span>
-                          <span>{l.v}</span>
-                        </div>
-                      ),
-                    )}
-                  </div>
-                </div>
-
-                {/* attack path */}
-                <div data-panel="1" data-on={tab === 1} className="panel">
-                  <ol className="path">
-                    {f.path.map((p, i) => (
-                      <li key={i} data-line className="path-step">
-                        <span className="path-n">{i + 1}</span>
-                        <span>{p}</span>
-                      </li>
-                    ))}
-                  </ol>
-                </div>
-
-                {/* code */}
-                <div data-panel="2" data-on={tab === 2} className="panel">
-                  <div className="code t-mono">
-                    <div className="code-file" data-line>{f.code.file}</div>
-                    {f.code.lines.map((ln, i) => {
-                      const n = f.code.from + i;
-                      const hot = n === f.code.hot;
-                      return (
-                        <div key={i} data-line className={`code-line${hot ? " code-line--hot" : ""}`}>
-                          <span className="code-n">{n}</span>
-                          <span className="code-t">{tint(ln)}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* fix */}
-                <div data-panel="3" data-on={tab === 3} className="panel">
-                  <p className="t-body fix-note" data-line>{f.fix.note}</p>
-                  <div className="code t-mono">
-                    {f.fix.diff.map((d, i) => (
-                      <div key={i} data-line className={`code-line code-line--${d.t}`}>
-                        <span className="code-n">{d.t === "add" ? "+" : "−"}</span>
-                        <span className="code-t">{tint(d.v)}</span>
+                {SAMPLE_FINDINGS.map((x, fidx) => (
+                  <Fragment key={x.id}>
+                    {/* proof */}
+                    <div data-f={fidx} data-panel="0" data-on={fidx === fi && tab === 0} aria-hidden={!(fidx === fi && tab === 0) || undefined} className="panel">
+                      <div className="term t-mono">
+                        {x.proof.lines.map((l, i) =>
+                          l.t === "gap" ? (
+                            <div key={i} className="term-gap" data-line />
+                          ) : (
+                            <div key={i} data-line className={`term-line term-line--${l.t}`}>
+                              <span className="term-arrow" aria-hidden>{l.t === "req" ? "→" : "←"}</span>
+                              <span>{l.v}</span>
+                            </div>
+                          ),
+                        )}
                       </div>
-                    ))}
-                  </div>
-                </div>
+                    </div>
+
+                    {/* attack path */}
+                    <div data-f={fidx} data-panel="1" data-on={fidx === fi && tab === 1} aria-hidden={!(fidx === fi && tab === 1) || undefined} className="panel">
+                      <ol className="path">
+                        {x.path.map((p, i) => (
+                          <li key={i} data-line className="path-step">
+                            <span className="path-n">{i + 1}</span>
+                            <span>{p}</span>
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+
+                    {/* code */}
+                    <div data-f={fidx} data-panel="2" data-on={fidx === fi && tab === 2} aria-hidden={!(fidx === fi && tab === 2) || undefined} className="panel">
+                      <div className="code t-mono">
+                        <div className="code-file" data-line>{x.code.file}</div>
+                        {x.code.lines.map((ln, i) => {
+                          const n = x.code.from + i;
+                          const hot = n === x.code.hot;
+                          return (
+                            <div key={i} data-line className={`code-line${hot ? " code-line--hot" : ""}`}>
+                              <span className="code-n">{n}</span>
+                              <span className="code-t">{tint(ln)}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* fix */}
+                    <div data-f={fidx} data-panel="3" data-on={fidx === fi && tab === 3} aria-hidden={!(fidx === fi && tab === 3) || undefined} className="panel">
+                      <p className="t-body fix-note" data-line>{x.fix.note}</p>
+                      <div className="code t-mono">
+                        {x.fix.diff.map((d, i) => (
+                          <div key={i} data-line className={`code-line code-line--${d.t}`}>
+                            <span className="code-n">{d.t === "add" ? "+" : "−"}</span>
+                            <span className="code-t">{tint(d.v)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </Fragment>
+                ))}
               </div>
             </div>
           </div>

@@ -60,7 +60,7 @@ function EvidenceFan() {
               </div>
             )}
           </div>
-          <span className="ecard-label">{c.label}</span>
+          <span className={`ecard-label${i < 2 ? " is-l" : i > 2 ? " is-r" : ""}`}>{c.label}</span>
         </div>
       ))}
     </div>

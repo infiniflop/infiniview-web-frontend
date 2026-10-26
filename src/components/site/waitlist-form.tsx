@@ -84,7 +84,7 @@ export function WaitlistForm({
         ref={doneRef}
         role="status"
         tabIndex={-1}
-        className={cn("waitlist-done glass glass--lime flex items-center gap-4 px-6 py-4", className)}
+        className={cn("waitlist-done glass glass--lime flex items-center gap-4 px-6 py-4", size === "lg" ? "waitlist--lg" : "waitlist--md", className)}
         style={{ ["--r" as string]: "999px" }}
       >
         <span className="grid h-9 w-9 flex-none place-items-center rounded-full bg-[var(--iv-lime)] text-[#070a02]">
