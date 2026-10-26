@@ -25,7 +25,6 @@ export default function ErrorPage({
     <div className={cn(mona.variable, jetbrains.variable)}>
       <StatusFrame>
         <main id="main" className="status wrap">
-          <p className="kicker">Something broke</p>
           <h1 className="t-display status-title">That one’s on us.</h1>
           <p className="t-lede status-lede">
             The page hit an unexpected error. Trying again usually clears it.

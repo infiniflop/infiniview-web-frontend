@@ -113,9 +113,6 @@ export function Hero() {
     <section ref={root} id="top" className="hero" aria-labelledby="hero-title">
       <div className="wrap hero-grid">
         <div className="hero-copy">
-          <p className="hero-kicker kicker" data-intro>
-            {HERO.kicker}
-          </p>
           <h1 id="hero-title" ref={h1} className="t-display hero-h1" data-hero-title>
             {/* block only on wide screens; a <br> would be honoured by SplitText at every width */}
             <span className="md:block">Attack your code</span> <span>before anyone else does.</span>

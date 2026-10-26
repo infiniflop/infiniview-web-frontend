@@ -6,10 +6,9 @@ import { ArrowRight } from "lucide-react";
 export function NotFoundContent() {
   return (
     <main id="main" className="status wrap">
-      <p className="kicker">Error 404</p>
       <h1 className="t-display status-title">This frame doesn’t exist.</h1>
       <p className="t-lede status-lede">
-        The page you’re after isn’t part of the corridor. It may have moved, or the link may be wrong.
+        The page you’re after (a 404) isn’t part of the corridor. It may have moved, or the link may be wrong.
       </p>
       <div className="status-actions">
         <Link href="/" className="btn btn--lime">

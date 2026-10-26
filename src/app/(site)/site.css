@@ -212,35 +212,14 @@ html.lenis body {
   .t-lede,
   .t-body,
   .t-small,
-  .kicker,
-  .plate-label {
+  .plate-label,
+  .hero-assure li {
     text-shadow: 0 0 14px rgba(3, 4, 10, 0.7), 0 0 3px rgba(3, 4, 10, 0.4);
   }
   .cta .t-lede,
   .cta .t-body,
-  .cta .t-small,
-  .cta .kicker {
+  .cta .t-small {
     text-shadow: none;
-  }
-
-  /* kicker: a plain sentence-case lead-in, not a tiny shouty label */
-  .kicker {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 0.9375rem;
-    font-weight: 500;
-    letter-spacing: -0.01em;
-    color: var(--iv-ink-2);
-  }
-  .kicker::before {
-    content: '';
-    width: 22px;
-    height: 22px;
-    border-radius: 7px;
-    border: 1.5px solid var(--iv-lime);
-    box-shadow: inset 0 0 0 4px rgba(3, 4, 10, 1), inset 0 0 0 6px var(--iv-lime);
-    flex: none;
   }
 
   /* ── Glass ───────────────────────────────────────────────────────────── */
@@ -758,7 +737,7 @@ html.lenis body {
     position: relative;
     min-height: 100vh;
     min-height: 100svh;
-    padding: calc(148px + env(safe-area-inset-top)) 0 72px;
+    padding: calc(184px + env(safe-area-inset-top)) 0 72px;
     display: flex;
     align-items: flex-start;
   }
@@ -781,10 +760,6 @@ html.lenis body {
   }
   .hero-copy {
     grid-column: 1 / -1;
-  }
-  .hero-kicker {
-    margin-bottom: clamp(14px, 1.8vw, 26px);
-    color: #d9deea; /* the first line on the page sits on the brightest part of the corridor */
   }
   .hero-h1 {
     /* capped so "before anyone else does." always fits the 1480 frame on two lines */
@@ -828,7 +803,7 @@ html.lenis body {
     padding: 0;
     margin: 0;
     font-size: 0.9rem;
-    color: var(--iv-ink-2);
+    color: #d0d6e4; /* these sit right over the corridor's frames: a step brighter than body copy */
   }
   .hero-assure li {
     display: inline-flex;
@@ -2308,7 +2283,7 @@ html.lenis body {
 @layer components {
   /* ── Pricing ─────────────────────────────────────────────────────────── */
 
-  .price-hero { padding: calc(clamp(140px, 17vw, 240px) + env(safe-area-inset-top)) 0 clamp(40px, 5vw, 72px); }
+  .price-hero { padding: calc(clamp(180px, calc(17vw + 40px), 280px) + env(safe-area-inset-top)) 0 clamp(40px, 5vw, 72px); }
   .price-hero .wrap { display: flex; flex-direction: column; gap: clamp(18px, 2.4vw, 30px); }
   .price-title { font-size: clamp(3rem, 8.4vw, 9rem); max-width: 14ch; margin: 0; }
   .price-lede { max-width: 42ch; margin: 0; }
@@ -2400,9 +2375,8 @@ html.lenis body {
 
   /* short laptop screens: tighten the first screen so the card clears the fold */
   @media (min-width: 1024px) and (max-height: 820px) {
-    .hero { padding-top: 124px; padding-bottom: 40px; }
+    .hero { padding-top: 150px; padding-bottom: 40px; }
     .hero-grid { row-gap: 22px; }
-    .hero-kicker { margin-bottom: 10px; }
     .hero-sub { gap: 18px; }
     .scan { padding: 16px 18px 14px; }
     .scan-row { padding-block: 6px; }

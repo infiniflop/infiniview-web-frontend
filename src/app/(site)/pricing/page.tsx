@@ -111,9 +111,6 @@ export default function PricingPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqPage(FAQS)) }} />
       <section className="price-hero" aria-labelledby="price-title">
         <div className="wrap">
-          <p className="kicker" data-intro-soft data-reveal>
-            Early access pricing
-          </p>
           <h1 id="price-title" className="t-display price-title" data-split>
             Security that scales with you.
           </h1>
