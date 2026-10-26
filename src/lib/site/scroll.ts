@@ -63,7 +63,9 @@ export function documentTop(el: HTMLElement): number {
  * focuses its email field, so it is never left hidden behind the nav bar.
  */
 export function anchorPlan(el: HTMLElement): { offset: number; focusEl: HTMLElement } {
-  if (el instanceof HTMLFormElement) {
+  // the waitlist is centred, whichever state it is in: the form, or the confirmation that replaces it
+  if (el instanceof HTMLFormElement || el.classList.contains("waitlist-done")) {
+    if (!(el instanceof HTMLFormElement)) return { offset: -(window.innerHeight / 2 - el.offsetHeight / 2), focusEl: el };
     const input = el.querySelector<HTMLElement>("input:not([type=hidden]), textarea, select, button");
     return { offset: -(window.innerHeight / 2 - el.offsetHeight / 2), focusEl: input ?? el };
   }

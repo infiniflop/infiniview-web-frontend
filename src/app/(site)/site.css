@@ -2375,6 +2375,12 @@ html.lenis body {
   .foot-col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
   .foot-link { overflow-wrap: anywhere; color: var(--iv-ink); text-decoration: none; font-size: 1rem; transition: color 0.2s; border-radius: 6px; }
   .foot-link:hover { color: var(--iv-lime); }
+  /* touch: link rows are a finger tall, not a text line tall */
+  @media (pointer: coarse) {
+    .foot-col ul { gap: 0; }
+    .foot-link { display: inline-block; padding-block: 10px; }
+    .proof-link { min-height: 44px; }
+  }
   .foot-word {
     margin-top: clamp(40px, 6vw, 96px);
     font-size: clamp(4rem, 21.6vw, 26rem);
@@ -2700,6 +2706,9 @@ html:not(.js) .site-root .dot--sig { opacity: 1; }
   .site-root .code,
   .site-root .doc,
   .site-root .zterm { border: 1px solid CanvasText; }
+  /* forced colours paints a backplate behind every line of text; with the tight display leading the next
+     line's backplate covers the tails of g, j, p, y above it, so the lines get their full height back */
+  .site-root .t-display, .site-root .t-h2 { line-height: 1.12; }
   /* selection is drawn with fills and shadows, which forced colours drop: mark it with a line */
   .site-root .rail-item[aria-selected='true'],
   .site-root .tab[aria-selected='true'] { outline: 3px solid Highlight; outline-offset: -3px; }

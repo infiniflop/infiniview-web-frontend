@@ -1,4 +1,5 @@
 import { neon } from "@neondatabase/serverless";
+import { EMAIL_RE } from "@/lib/site/email";
 
 // Neon HTTP driver works on the default Node.js (Fluid Compute) runtime.
 // Prefer co-locating the Vercel project/function region with the Neon DB (e.g. iad1).
@@ -56,6 +57,13 @@ async function readLimited(request: Request): Promise<string | null> {
 const fail = (error: string, status: number, headers?: HeadersInit) =>
   Response.json({ success: false, error }, { status, headers });
 
+// anything but POST: a clean JSON 405 that says what is allowed
+const notAllowed = () => fail("method_not_allowed", 405, { Allow: "POST, OPTIONS" });
+export const GET = notAllowed;
+export const PUT = notAllowed;
+export const PATCH = notAllowed;
+export const DELETE = notAllowed;
+
 export async function POST(request: Request) {
   try {
     // On Vercel the platform sets these from the connection (a client-sent value is overwritten), so
@@ -88,8 +96,7 @@ export async function POST(request: Request) {
         : "";
     const email = typeof candidate === "string" ? candidate : "";
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email || email.length > 254 || !emailRegex.test(email)) {
+    if (!email || email.length > 254 || !EMAIL_RE.test(email)) {
       return fail("invalid_email", 400);
     }
 

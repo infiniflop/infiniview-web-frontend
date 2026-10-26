@@ -197,6 +197,31 @@ export function SiteShell({ children }: { children: ReactNode }) {
     const layoutListener = () => onLayoutMode();
     layoutQueries.forEach((mq) => mq.addEventListener("change", layoutListener));
 
+    // An ordinary resize (a browser zoom step, a window drag) crosses none of the breakpoints above, yet the
+    // pinned sections are measured in viewport units, so the page gets taller or shorter and the same scroll
+    // offset lands in another section. The first resize event freezes where the reader was; once the size has
+    // stopped changing they are put back there. On a touch screen a modest height change on its own (the
+    // address bar folding away) is not a resize in this sense.
+    let lastW = window.innerWidth;
+    let lastH = window.innerHeight;
+    let resizeTimer = 0;
+    const onResize = () => {
+      // a soft keyboard opening for a field is a resize too, and the browser is already scrolling that field into view
+      const ae = document.activeElement;
+      if (ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)) return;
+      const moved =
+        Math.abs(window.innerWidth - lastW) >= 1 || Math.abs(window.innerHeight - lastH) > (coarse ? 150 : 0);
+      if (moved && !frozen && anchor) frozen = anchor;
+      window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(() => {
+        if (!frozen) return;
+        lastW = window.innerWidth;
+        lastH = window.innerHeight;
+        onLayoutMode();
+      }, 150);
+    };
+    window.addEventListener("resize", onResize);
+
     window.addEventListener("wheel", dropInflight, { passive: true });
     window.addEventListener("touchstart", dropInflight, { passive: true });
 
@@ -282,6 +307,8 @@ export function SiteShell({ children }: { children: ReactNode }) {
       window.removeEventListener("pointermove", onMove);
       mqReduce.removeEventListener("change", onMotionPref);
       layoutQueries.forEach((mq) => mq.removeEventListener("change", layoutListener));
+      window.removeEventListener("resize", onResize);
+      window.clearTimeout(resizeTimer);
       window.removeEventListener("scroll", trackAnchor);
       window.removeEventListener("pagehide", saveScroll);
       window.removeEventListener("scroll", queueSave);

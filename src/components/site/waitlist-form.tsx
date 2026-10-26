@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ArrowRight, Check } from "lucide-react";
 import { gsap, prefersReducedMotion } from "@/lib/site/gsap";
 import { cn } from "@/lib/utils";
+import { EMAIL_RE } from "@/lib/site/email";
 
 type Status = "idle" | "loading" | "success" | "already" | "error" | "invalid" | "limited";
 
@@ -40,7 +41,7 @@ export function WaitlistForm({
     e.preventDefault();
     if (status === "loading") return; // aria-disabled, not disabled: a focused button must not lose focus
 
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (!EMAIL_RE.test(email)) {
       setStatus("invalid");
       shake();
       inputRef.current?.focus();

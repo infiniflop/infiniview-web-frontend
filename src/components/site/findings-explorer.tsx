@@ -124,7 +124,16 @@ export function FindingsExplorer() {
     };
     place();
     window.addEventListener("resize", place);
-    return () => window.removeEventListener("resize", place);
+    // text metrics can change with no resize: web fonts arriving after hydration, or the reader's text size.
+    // Items are observed, not just the window, so a pill never stays sized for the old text.
+    const ro = new ResizeObserver(place);
+    [railRef.current, tabsRef.current].forEach((strip) => strip?.querySelectorAll("[data-i], [data-t]").forEach((el) => ro.observe(el)));
+    document.fonts?.addEventListener?.("loadingdone", place);
+    return () => {
+      window.removeEventListener("resize", place);
+      ro.disconnect();
+      document.fonts?.removeEventListener?.("loadingdone", place);
+    };
   }, [fi, tab, slide]);
 
   /* ── content swap choreography ───────────────────────────────────────── */

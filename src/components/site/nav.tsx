@@ -19,12 +19,20 @@ const LINKS = [
 export function focusWaitlist() {
   // The page can hold two waitlist forms (the hero's and the finale's). Prefer the one that is
   // already on screen, so the header button never throws a visitor 12,000px back up the page.
-  const forms = [...document.querySelectorAll<HTMLFormElement>("form[id^='waitlist']")];
+  // (after a successful join the form is replaced by its confirmation: that is the thing to bring into view)
+  const forms = [...document.querySelectorAll<HTMLElement>("form[id^='waitlist'], .waitlist-done[id^='waitlist']")];
   const visible = forms.find((f) => {
     const r = f.getBoundingClientRect();
     return r.top < window.innerHeight * 0.85 && r.bottom > window.innerHeight * 0.15;
   });
-  const form = visible ?? document.getElementById("waitlist");
+  // none on screen: the nearest one, not always the first (from the FAQ the finale's is a screen away, the hero's is 13,000px)
+  const mid = window.innerHeight / 2;
+  const nearest = [...forms].sort((a, b) => {
+    const da = Math.abs((a.getBoundingClientRect().top + a.getBoundingClientRect().bottom) / 2 - mid);
+    const db = Math.abs((b.getBoundingClientRect().top + b.getBoundingClientRect().bottom) / 2 - mid);
+    return da - db;
+  })[0];
+  const form = visible ?? nearest ?? document.getElementById("waitlist");
   if (!form) {
     // no form on this page: go to the page that has one. A full load, not the router: the 404 (a document
     // of its own) cannot navigate client-side, and this is rare enough that it costs nothing elsewhere.
@@ -38,13 +46,14 @@ export function focusWaitlist() {
     return;
   }
   const input = form.querySelector<HTMLInputElement>("input[type='email']");
+  const focusEl = input ?? form; // the confirmation takes focus itself (it has no field)
   if (visible) {
-    input?.focus({ preventScroll: true });
+    focusEl.focus({ preventScroll: true });
     return;
   }
   const plan = anchorPlan(form);
   scrollToTarget(form, { offset: plan.offset, duration: 1.6 });
-  if (input) window.setTimeout(() => input.focus({ preventScroll: true }), 900);
+  window.setTimeout(() => focusEl.focus({ preventScroll: true }), 900);
 }
 
 /**
@@ -126,9 +135,15 @@ export function Nav() {
       raf = requestAnimationFrame(() => restPill(true));
     };
     window.addEventListener("resize", onResize);
+    // text metrics can change with no resize (web fonts arriving late, the reader's text size): watch the links
+    const ro = new ResizeObserver(onResize);
+    linksRef.current?.querySelectorAll("[data-nav]").forEach((el) => ro.observe(el));
+    document.fonts?.addEventListener?.("loadingdone", onResize);
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", onResize);
+      ro.disconnect();
+      document.fonts?.removeEventListener?.("loadingdone", onResize);
     };
   }, [restPill]);
 
@@ -311,7 +326,9 @@ export function Nav() {
               if (open) setOpen(false); // the menu is a modal: it does not stay up while the page moves behind it
               if (isHome) {
                 e.preventDefault();
-                scrollToTarget(0, { duration: 1.6 });
+                // closing the menu restarts the smooth scroller, which would cancel a jump begun in the same tick
+                if (open) window.setTimeout(() => scrollToTarget(0, { duration: 1.6 }), 350);
+                else scrollToTarget(0, { duration: 1.6 });
               }
             }}
           >
