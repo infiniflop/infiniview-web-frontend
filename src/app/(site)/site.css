@@ -253,10 +253,6 @@ html.lenis body {
 
   .glass {
     --r: 28px;
-    --lit: 0;
-    --mx: 50%;
-    --my: 0%;
-    --rim-a: 0deg;
     position: relative;
     isolation: isolate;
     border-radius: var(--r);
@@ -271,24 +267,7 @@ html.lenis body {
       0 40px 90px -40px rgba(0, 0, 0, 0.85),
       0 8px 24px -12px rgba(0, 0, 0, 0.5);
   }
-  /* pointer-following sheen */
-  .glass::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    border-radius: inherit;
-    pointer-events: none;
-    background: radial-gradient(
-      520px circle at var(--mx) var(--my),
-      rgba(255, 255, 255, 0.13),
-      rgba(255, 255, 255, 0.03) 45%,
-      transparent 70%
-    );
-    opacity: var(--lit);
-    transition: opacity 0.35s var(--ease-out);
-  }
-  /* luminous rim: a 1px conic gradient masked to the border box */
+  /* the pane's edge: a flat 1px hairline masked to the border box (the top highlight is in the shadow) */
   .glass::after {
     content: '';
     position: absolute;
@@ -296,15 +275,7 @@ html.lenis body {
     border-radius: inherit;
     padding: 1px;
     pointer-events: none;
-    background: conic-gradient(
-      from var(--rim-a) at 50% 50%,
-      rgba(255, 255, 255, 0.6),
-      rgba(255, 255, 255, 0.07) 18%,
-      rgba(255, 255, 255, 0.02) 42%,
-      rgba(255, 255, 255, 0.28) 68%,
-      rgba(255, 255, 255, 0.07) 86%,
-      rgba(255, 255, 255, 0.6)
-    );
+    background: rgba(255, 255, 255, 0.11);
     -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
     -webkit-mask-composite: xor;
     mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
@@ -414,7 +385,7 @@ html.lenis body {
   }
   .btn--glass:hover {
     background:
-      linear-gradient(145deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.06)),
+      linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)),
       rgba(8, 10, 20, 0.4);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.35),
@@ -2751,7 +2722,6 @@ html:not(.js) .site-root .dot--sig { opacity: 1; }
     transform: none !important;
     animation: none !important;
   }
-  .glass::before,
   .glass::after { display: none !important; }
   .counter-anim { display: none !important; }
   .counter-final { position: static !important; width: auto !important; height: auto !important; margin: 0 !important; overflow: visible !important; clip: auto !important; clip-path: none !important; white-space: normal !important; }

@@ -24,7 +24,6 @@ let navIntroPlayed = false;
  * SiteShell — the single owner of time on this site.
  *   · Lenis smooth scroll, driven from GSAP's ticker (one clock for everything)
  *   · scroll → corridor depth, pointer → light
- *   · pointer-lit glass (rim + sheen follow the cursor)
  *   · scroll reveals + split-text headings
  */
 export function SiteShell({ children }: { children: ReactNode }) {
@@ -375,95 +374,6 @@ export function SiteShell({ children }: { children: ReactNode }) {
     ready.then(() => requestAnimationFrame(() => requestAnimationFrame(() => window.setTimeout(go, 60))));
     return () => {
       cancelled = true;
-    };
-  }, [pathname]);
-
-  /* ── Pointer-lit glass ──────────────────────────────────────────────── */
-  useEffect(() => {
-    if (isCoarsePointer()) return;
-    const mqReduce = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const visible = new Set<HTMLElement>();
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const en of entries) {
-          const el = en.target as HTMLElement;
-          if (en.isIntersecting) visible.add(el);
-          else visible.delete(el);
-        }
-      },
-      { rootMargin: "120px" },
-    );
-    const watch = () => {
-      document
-        .querySelectorAll<HTMLElement>(".site-root .glass")
-        .forEach((el) => io.observe(el));
-    };
-    watch();
-    const rescan = window.setTimeout(watch, 900);
-
-    let px = -9999;
-    let py = -9999;
-    let queued = false;
-    const paint = () => {
-      queued = false;
-      // reduced motion (also if switched on while the page is open): no pointer light at all
-      if (mqReduce.matches) {
-        visible.forEach((el) => {
-          if (el.dataset.lit === "1") {
-            el.style.setProperty("--lit", "0");
-            el.dataset.lit = "0";
-          }
-        });
-        return;
-      }
-      // read every rect first, then write: interleaving reads and writes forces a synchronous
-      // layout per element on every pointer/scroll frame
-      const els = [...visible];
-      const rects = els.map((el) => el.getBoundingClientRect());
-      els.forEach((el, i) => {
-        const r = rects[i];
-        const near =
-          px > r.left - 140 && px < r.right + 140 && py > r.top - 140 && py < r.bottom + 140;
-        const was = el.dataset.lit === "1";
-        if (!near) {
-          if (was) {
-            el.style.setProperty("--lit", "0");
-            el.dataset.lit = "0";
-          }
-          return;
-        }
-        if (!was) {
-          el.style.setProperty("--lit", "1");
-          el.dataset.lit = "1";
-        }
-        el.style.setProperty("--mx", `${px - r.left}px`);
-        el.style.setProperty("--my", `${py - r.top}px`);
-        const cx = r.left + r.width / 2;
-        const cy = r.top + r.height / 2;
-        const deg = (Math.atan2(py - cy, px - cx) * 180) / Math.PI + 90;
-        el.style.setProperty("--rim-a", `${deg - 40}deg`);
-      });
-    };
-    const queue = () => {
-      if (!queued) {
-        queued = true;
-        requestAnimationFrame(paint);
-      }
-    };
-    const onMove = (e: PointerEvent) => {
-      px = e.clientX;
-      py = e.clientY;
-      queue();
-    };
-    window.addEventListener("pointermove", onMove, { passive: true });
-    window.addEventListener("scroll", queue, { passive: true });
-    mqReduce.addEventListener("change", queue);
-    return () => {
-      mqReduce.removeEventListener("change", queue);
-      window.clearTimeout(rescan);
-      io.disconnect();
-      window.removeEventListener("pointermove", onMove);
-      window.removeEventListener("scroll", queue);
     };
   }, [pathname]);
 
