@@ -22,6 +22,11 @@ let inflight: {
   onComplete?: () => void;
 } | null = null;
 
+/** True while a smooth jump the site started is still travelling. */
+export function hasInflight() {
+  return inflight !== null;
+}
+
 /** The visitor took over (wheel, touch): the jump is theirs no more, so do not finish it for them. */
 export function dropInflight() {
   inflight = null;

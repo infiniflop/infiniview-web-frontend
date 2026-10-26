@@ -50,7 +50,7 @@ export function Faq({
                     </span>
                   </button>
                 </h3>
-                <div id={`${id}-a-${i}`} role="region" aria-labelledby={`${id}-q-${i}`} className="faq-a">
+                <div id={`${id}-a-${i}`} className="faq-a">
                   <div>
                     <p className="t-body">{f.a}</p>
                   </div>

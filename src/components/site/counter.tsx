@@ -42,10 +42,18 @@ export function Counter({
     });
   }, [value, suffix, duration]);
 
+  // The animated figure is decoration (it reads "0" until it has counted up); the real value is
+  // real text for assistive tech, find-in-page and print, which show the figure and hide the animation.
   return (
-    <span ref={ref} className={className} aria-label={`${value}${suffix}`}>
-      {value}
-      {suffix}
+    <span className={className}>
+      <span ref={ref} aria-hidden="true" className="counter-anim">
+        {value}
+        {suffix}
+      </span>
+      <span className="sr-only counter-final">
+        {value}
+        {suffix}
+      </span>
     </span>
   );
 }

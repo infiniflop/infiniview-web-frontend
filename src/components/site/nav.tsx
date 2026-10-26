@@ -129,7 +129,7 @@ export function Nav() {
   useGSAP(
     () => {
       if (!isHome) {
-        setActive(null);
+        setActive(pathname === "/pricing" ? "pricing" : null);
         return;
       }
       const triggers = LINKS.filter(({ id }) => document.getElementById(id)).map(({ id }) =>
@@ -178,7 +178,11 @@ export function Nav() {
     document.documentElement.dataset.menuOpen = "true";
 
     // the menu is aria-modal: make everything behind it inert so Tab cannot wander off
-    const behind = [document.getElementById("main"), document.querySelector<HTMLElement>(".foot")].filter(
+    const behind = [
+      document.getElementById("main"),
+      document.querySelector<HTMLElement>(".foot"),
+      document.querySelector<HTMLElement>(".skip-link"),
+    ].filter(
       (el): el is HTMLElement => !!el,
     );
     behind.forEach((el) => el.setAttribute("inert", ""));
@@ -212,9 +216,28 @@ export function Nav() {
     };
     document.addEventListener("keydown", onKey);
 
+    // aria-modal: Tab must not leave the dialog for the browser's own chrome. The cycle is the close
+    // button (the burger sits in the bar, above the overlay) followed by the menu's controls.
+    const onTab = (e: KeyboardEvent) => {
+      if (e.key !== "Tab" || !m || !burger) return;
+      const items = [burger, ...m.querySelectorAll<HTMLElement>("a[href], button:not([disabled])")];
+      const first = items[0];
+      const last = items[items.length - 1];
+      const at = document.activeElement;
+      if (e.shiftKey && (at === first || !items.includes(at as HTMLElement))) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && (at === last || !items.includes(at as HTMLElement))) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", onTab);
+
     return () => {
       window.clearTimeout(focusTimer);
       document.removeEventListener("keydown", onKey);
+      document.removeEventListener("keydown", onTab);
       behind.forEach((el) => el.removeAttribute("inert"));
       lenis?.start();
       document.body.style.overflow = "";
@@ -299,6 +322,17 @@ export function Nav() {
                 {l.label}
               </SectionLink>
             ))}
+            <Link
+              href="/pricing"
+              data-nav="pricing"
+              aria-current={pathname === "/pricing" ? "page" : undefined}
+              className="nav-link"
+              onPointerEnter={(e) => movePill(e.currentTarget)}
+              onFocus={(e) => movePill(e.currentTarget)}
+              onBlur={() => restPill()}
+            >
+              Pricing
+            </Link>
             <a
               href={DOCS_URL}
               className="nav-link"
@@ -330,7 +364,7 @@ export function Nav() {
               className="nav-burger"
               aria-label={open ? "Close menu" : "Open menu"}
               aria-expanded={open}
-              aria-controls="site-menu"
+              aria-controls={open ? "site-menu" : undefined}
               onClick={() => setOpen((v) => !v)}
             >
               {open ? <X size={20} /> : <Menu size={20} />}
@@ -356,6 +390,9 @@ export function Nav() {
                 {l.label}
               </SectionLink>
             ))}
+            <Link data-m href="/pricing" className="nav-menu-link" aria-current={pathname === "/pricing" ? "page" : undefined} onClick={() => setOpen(false)}>
+              Pricing
+            </Link>
             <a data-m href={DOCS_URL} className="nav-menu-link">
               Docs
             </a>

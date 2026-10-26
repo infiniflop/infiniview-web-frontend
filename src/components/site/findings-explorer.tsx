@@ -95,6 +95,14 @@ export function FindingsExplorer() {
   // layout offsets (not bounding rects) so the pills stay true while the console is tilted mid-scrub
   const slide = useCallback((pill: HTMLElement | null, wrap: HTMLElement | null, target: HTMLElement | null) => {
     if (!pill || !wrap || !target) return;
+    // on a phone the tab strip and the findings rail scroll sideways: bring the active one into view
+    // (scrollLeft on the strip itself, never scrollIntoView, which would move the page)
+    if (wrap.scrollWidth > wrap.clientWidth + 1) {
+      wrap.scrollTo({
+        left: Math.max(0, target.offsetLeft - (wrap.clientWidth - target.offsetWidth) / 2),
+        behavior: prefersReducedMotion() ? "auto" : "smooth",
+      });
+    }
     gsap.to(pill, {
       x: target.offsetLeft,
       y: target.offsetTop,
@@ -238,6 +246,8 @@ export function FindingsExplorer() {
               aria-label="Findings"
               aria-orientation="vertical"
               className="rail"
+              tabIndex={-1}
+              data-lenis-prevent-wheel
             >
               <span ref={railPill} className="rail-pill" aria-hidden />
               {SAMPLE_FINDINGS.map((x, i) => (
@@ -296,12 +306,14 @@ export function FindingsExplorer() {
                 ))}
               </div>
 
-              <div ref={tabsRef} role="tablist" aria-label="Evidence" className="tabs">
+              <div ref={tabsRef} role="tablist" aria-label="Evidence" className="tabs" tabIndex={-1} data-lenis-prevent-wheel>
                 <span ref={tabPill} className="tab-pill" aria-hidden />
                 {TABS.map((t, i) => (
                   <button
                     key={t}
                     role="tab"
+                    id={`evidence-tab-${i}`}
+                    aria-controls={`finding-${f.id}-panel-${i}`}
                     aria-selected={i === tab}
                     tabIndex={i === tab ? 0 : -1}
                     data-t={i}
@@ -320,8 +332,8 @@ export function FindingsExplorer() {
                 {SAMPLE_FINDINGS.map((x, fidx) => (
                   <Fragment key={x.id}>
                     {/* proof */}
-                    <div data-f={fidx} data-panel="0" data-on={fidx === fi && tab === 0} aria-hidden={!(fidx === fi && tab === 0) || undefined} className="panel">
-                      <div className="term t-mono">
+                    <div id={`finding-${x.id}-panel-0`} role="tabpanel" aria-labelledby="evidence-tab-0" data-f={fidx} data-panel="0" data-on={fidx === fi && tab === 0} aria-hidden={!(fidx === fi && tab === 0) || undefined} className="panel">
+                      <div className="term t-mono" role="region" aria-label="HTTP proof">
                         {x.proof.lines.map((l, i) =>
                           l.t === "gap" ? (
                             <div key={i} className="term-gap" data-line />
@@ -336,7 +348,7 @@ export function FindingsExplorer() {
                     </div>
 
                     {/* attack path */}
-                    <div data-f={fidx} data-panel="1" data-on={fidx === fi && tab === 1} aria-hidden={!(fidx === fi && tab === 1) || undefined} className="panel">
+                    <div id={`finding-${x.id}-panel-1`} role="tabpanel" aria-labelledby="evidence-tab-1" data-f={fidx} data-panel="1" data-on={fidx === fi && tab === 1} aria-hidden={!(fidx === fi && tab === 1) || undefined} className="panel">
                       <ol className="path">
                         {x.path.map((p, i) => (
                           <li key={i} data-line className="path-step">
@@ -348,8 +360,8 @@ export function FindingsExplorer() {
                     </div>
 
                     {/* code */}
-                    <div data-f={fidx} data-panel="2" data-on={fidx === fi && tab === 2} aria-hidden={!(fidx === fi && tab === 2) || undefined} className="panel">
-                      <div className="code t-mono">
+                    <div id={`finding-${x.id}-panel-2`} role="tabpanel" aria-labelledby="evidence-tab-2" data-f={fidx} data-panel="2" data-on={fidx === fi && tab === 2} aria-hidden={!(fidx === fi && tab === 2) || undefined} className="panel">
+                      <div className="code t-mono" role="region" aria-label="Affected code">
                         <div className="code-file" data-line>{x.code.file}</div>
                         {x.code.lines.map((ln, i) => {
                           const n = x.code.from + i;
@@ -365,9 +377,9 @@ export function FindingsExplorer() {
                     </div>
 
                     {/* fix */}
-                    <div data-f={fidx} data-panel="3" data-on={fidx === fi && tab === 3} aria-hidden={!(fidx === fi && tab === 3) || undefined} className="panel">
+                    <div id={`finding-${x.id}-panel-3`} role="tabpanel" aria-labelledby="evidence-tab-3" data-f={fidx} data-panel="3" data-on={fidx === fi && tab === 3} aria-hidden={!(fidx === fi && tab === 3) || undefined} className="panel">
                       <p className="t-body fix-note" data-line>{x.fix.note}</p>
-                      <div className="code t-mono">
+                      <div className="code t-mono" role="region" aria-label="Suggested fix">
                         {x.fix.diff.map((d, i) => (
                           <div key={i} data-line className={`code-line code-line--${d.t}`}>
                             <span className="code-n">{d.t === "add" ? "+" : "−"}</span>

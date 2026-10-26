@@ -1,15 +1,16 @@
 "use client";
 
-import { useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ArrowRight, Check } from "lucide-react";
 import { gsap, prefersReducedMotion } from "@/lib/site/gsap";
 import { cn } from "@/lib/utils";
 
-type Status = "idle" | "success" | "already" | "error" | "invalid" | "limited";
+type Status = "idle" | "loading" | "success" | "already" | "error" | "invalid" | "limited";
 
 /**
- * Waitlist form. Same contract as before: POST /api/waitlist {email}, optimistic
- * confirmation, rollback on failure. Restyled as one glass pill.
+ * Waitlist form. Same API contract as before: POST /api/waitlist {email}. The confirmation is only
+ * shown once the server has said yes (a "You're on the list" that can turn out false is worse than
+ * a half-second of "Joining…"); every failure puts the visitor back in the field with a reason.
  */
 export function WaitlistForm({
   id,
@@ -24,6 +25,7 @@ export function WaitlistForm({
   const [status, setStatus] = useState<Status>("idle");
   const doneRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const shake = () => {
     if (!formRef.current || prefersReducedMotion()) return;
@@ -36,46 +38,55 @@ export function WaitlistForm({
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (status === "loading") return; // aria-disabled, not disabled: a focused button must not lose focus
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       setStatus("invalid");
       shake();
+      inputRef.current?.focus();
       return;
     }
 
-    // Optimistically confirm so submission feels instant; the write happens in
-    // the background and only rolls back to an error if it actually fails.
-    setStatus("success");
-    requestAnimationFrame(() => {
-      // the form is replaced by the confirmation: move focus to it (and announce it) instead of losing it
-      doneRef.current?.focus({ preventScroll: true });
-      if (doneRef.current && !prefersReducedMotion()) {
-        gsap.fromTo(
-          doneRef.current,
-          // opacity, not autoAlpha: visibility:hidden would make the browser drop focus from the element
-          { opacity: 0, y: 14, scale: 0.97 },
-          { opacity: 1, y: 0, scale: 1, duration: 0.7, ease: "expo.out" },
-        );
-      }
-    });
-
+    setStatus("loading");
+    const abort = new AbortController();
+    const timer = window.setTimeout(() => abort.abort(), 10_000); // a hung request must not hang the form
     try {
       const res = await fetch("/api/waitlist", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
+        signal: abort.signal,
       });
       if (res.ok) {
         // the address is saved once the response is ok; an unreadable body must not turn that into an error
         const data = await res.json().catch(() => null);
-        if (data?.message === "already_registered") setStatus("already");
-      } else {
-        setStatus(res.status === 429 ? "limited" : "error");
+        setStatus(data?.message === "already_registered" ? "already" : "success");
+        return;
       }
+      const body = await res.json().catch(() => null);
+      setStatus(res.status === 429 ? "limited" : res.status === 400 && body?.error === "invalid_email" ? "invalid" : "error");
     } catch {
       setStatus("error");
+    } finally {
+      window.clearTimeout(timer);
     }
+    // back to the field, with the reason in the (already mounted) live region
+    requestAnimationFrame(() => inputRef.current?.focus());
   };
+
+  // the form is replaced by the confirmation: move focus to it (which also announces it) and bring it in
+  useEffect(() => {
+    if (status !== "success" && status !== "already") return;
+    const el = doneRef.current;
+    if (!el) return;
+    el.focus({ preventScroll: true });
+    if (prefersReducedMotion()) return;
+    // opacity, not autoAlpha: visibility:hidden would make the browser drop focus from the element
+    const tween = gsap.fromTo(el, { opacity: 0, y: 14, scale: 0.97 }, { opacity: 1, y: 0, scale: 1, duration: 0.7, ease: "expo.out" });
+    return () => {
+      tween.kill();
+    };
+  }, [status]);
 
   if (status === "success" || status === "already") {
     return (
@@ -84,7 +95,7 @@ export function WaitlistForm({
         ref={doneRef}
         role="status"
         tabIndex={-1}
-        className={cn("waitlist-done glass glass--lime flex items-center gap-4 px-6 py-4", size === "lg" ? "waitlist--lg" : "waitlist--md", className)}
+        className={cn("waitlist-done glass glass--lime mb-8 flex items-center gap-4 px-6 py-4", size === "lg" ? "waitlist--lg" : "waitlist--md", className)}
         style={{ ["--r" as string]: "999px" }}
       >
         <span className="grid h-9 w-9 flex-none place-items-center rounded-full bg-[var(--iv-lime)] text-[#070a02]">
@@ -105,6 +116,7 @@ export function WaitlistForm({
       ref={formRef}
       onSubmit={handleSubmit}
       noValidate
+      aria-busy={status === "loading"}
       className={cn("w-full", className)}
     >
       <div
@@ -120,14 +132,17 @@ export function WaitlistForm({
         </label>
         <input
           id={id ? `${id}-email` : undefined}
+          ref={inputRef}
           type="email"
           name="email"
+          maxLength={254}
           autoComplete="email"
           inputMode="email"
           required
           placeholder="you@company.com"
           value={email}
           aria-invalid={status === "invalid"}
+          readOnly={status === "loading"}
           aria-describedby={status === "invalid" || status === "error" || status === "limited" ? `${id ?? "wl"}-msg` : undefined}
           onChange={(e) => {
             setEmail(e.target.value);
@@ -135,9 +150,15 @@ export function WaitlistForm({
           }}
           className="waitlist-input"
         />
-        <button type="submit" className="btn btn--lime">
-          Get early access
-          <ArrowRight className="arrow" size={17} strokeWidth={2.6} />
+        <button type="submit" className="btn btn--lime" aria-disabled={status === "loading"}>
+          {status === "loading" ? (
+            "Joining…"
+          ) : (
+            <>
+              Get early access
+              <ArrowRight className="arrow" size={17} strokeWidth={2.6} />
+            </>
+          )}
         </button>
       </div>
       <p

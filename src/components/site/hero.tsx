@@ -23,6 +23,11 @@ export function Hero() {
       mm.add("(prefers-reduced-motion: no-preference)", () => {
         const el = h1.current;
         if (!el) return;
+        // the failsafe already showed this page (slow connection): do not hide it again to play the intro
+        if (document.documentElement.classList.contains("reveal-failsafe")) {
+          gsap.set(el, { autoAlpha: 1 });
+          return;
+        }
 
         // The headline is split into masked lines. autoSplit re-splits when the web font finishes
         // loading or the width changes, so line breaks are never frozen at fallback-font metrics

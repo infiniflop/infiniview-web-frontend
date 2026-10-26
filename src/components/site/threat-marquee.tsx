@@ -84,6 +84,12 @@ export function ThreatMarquee() {
       <h2 id="threat-title" className="sr-only">
         The attack classes Infiniview runs against your app
       </h2>
+      {/* the moving rows are decoration (aria-hidden): the same classes, once, as a list */}
+      <ul className="sr-only">
+        {THREATS.map((t) => (
+          <li key={t}>{t}</li>
+        ))}
+      </ul>
       <div className="threat-row" aria-hidden>
         <div ref={rowA} className="threat-track">{run("threat-run--big")}</div>
       </div>

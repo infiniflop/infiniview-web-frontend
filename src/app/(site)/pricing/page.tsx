@@ -149,6 +149,7 @@ export default function PricingPage() {
               </div>
               <a
                 href={p.ctaHref}
+                aria-label={`${p.cta}: ${p.name} plan`}
                 className={`btn ${p.highlighted ? "btn--lime" : "btn--glass"} plan-cta`}
               >
                 {p.cta}

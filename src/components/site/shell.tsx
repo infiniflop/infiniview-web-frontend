@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import Lenis from "lenis";
 import {
@@ -12,7 +12,7 @@ import {
   isCoarsePointer,
 } from "@/lib/site/gsap";
 import { scene } from "@/lib/site/scene";
-import { setLenis, scrollToTarget, settleScroll, dropInflight, focusWhenReady, anchorPlan } from "@/lib/site/scroll";
+import { setLenis, scrollToTarget, settleScroll, dropInflight, focusWhenReady, anchorPlan, documentTop, hasInflight } from "@/lib/site/scroll";
 import { Corridor } from "@/components/site/corridor";
 
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
@@ -34,6 +34,9 @@ export function SiteShell({ children }: { children: ReactNode }) {
   useEffect(() => {
     const reduced = prefersReducedMotion();
     const coarse = isCoarsePointer();
+    // The motion layer arrived after the 5s failsafe had already shown everything (a slow connection):
+    // hiding that content again to play its entrance would make readable text vanish and reappear.
+    const late = document.documentElement.classList.contains("reveal-failsafe");
     let lenis: Lenis | null = null;
     let intro: gsap.core.Tween | null = null;
 
@@ -68,15 +71,65 @@ export function SiteShell({ children }: { children: ReactNode }) {
     // The motion preference can change while the page is open: smooth scrolling and the pointer-driven
     // light follow it live (Lenis reads its options on every wheel event).
     const mqReduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let onLayoutMode: () => void = () => {};
     const onMotionPref = () => {
       if (lenis) lenis.options.smoothWheel = !mqReduce.matches;
+      const jumping = hasInflight();
       if (mqReduce.matches) {
         scene.tx = 0;
         scene.ty = 0;
         settleScroll(); // a smooth jump already under way is finished at once, focus handoff included
       }
+      // the pins come or go with this preference: keep the reader where they were (a jump that was in
+      // flight has just been finished at its target, which is exactly where they asked to be)
+      if (!jumping) onLayoutMode();
     };
     mqReduce.addEventListener("change", onMotionPref);
+
+    // Layout rebuilds (rotating a tablet, a phone's URL bar changing the height, motion switched on) add
+    // or remove the pinned sections, so the page gets thousands of px longer or shorter and the scroll
+    // position no longer means what it did. Remember where the reader was in terms of a section (and how
+    // far through it), and put them back there once the new layout has settled.
+    let anchor: { el: HTMLElement; ratio: number } | null = null;
+    let anchorRaf = 0;
+    const sections = () => document.querySelectorAll<HTMLElement>("main > section[id], footer.foot");
+    const trackAnchor = () => {
+      cancelAnimationFrame(anchorRaf);
+      anchorRaf = requestAnimationFrame(() => {
+        const y = window.scrollY;
+        let best: HTMLElement | null = null;
+        let bestTop = -Infinity;
+        sections().forEach((el) => {
+          const t = documentTop(el);
+          if (t <= y + 1 && t > bestTop) {
+            best = el;
+            bestTop = t;
+          }
+        });
+        if (best) anchor = { el: best, ratio: (y - bestTop) / Math.max(1, (best as HTMLElement).offsetHeight) };
+      });
+    };
+    window.addEventListener("scroll", trackAnchor, { passive: true });
+    trackAnchor();
+    const restoreTimers: number[] = [];
+    onLayoutMode = () => {
+      const a = anchor; // the position from before this change (scroll events for it have not fired yet)
+      if (!a) return;
+      const go = () => {
+        if (!a.el.isConnected) return;
+        scrollToTarget(documentTop(a.el) + a.ratio * a.el.offsetHeight, { immediate: true });
+      };
+      restoreTimers.push(window.setTimeout(go, 60), window.setTimeout(go, 400));
+    };
+    const layoutQueries = [
+      "(min-width: 1024px)",
+      "(min-height: 560px)",
+      "(min-height: 480px)",
+      "(orientation: landscape)",
+    ].map((q) => window.matchMedia(q));
+    const layoutListener = () => onLayoutMode();
+    layoutQueries.forEach((mq) => mq.addEventListener("change", layoutListener));
+
     window.addEventListener("wheel", dropInflight, { passive: true });
     window.addEventListener("touchstart", dropInflight, { passive: true });
 
@@ -91,7 +144,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
     // the header arrives with the opening shot, once per page load (not on every client-side return)
     let navIntro: gsap.core.Tween | null = null;
     const navEl = document.querySelector(".site-nav");
-    if (!reduced && !navIntroPlayed && navEl) {
+    if (!reduced && !late && !navIntroPlayed && navEl) {
       navIntroPlayed = true;
       navIntro = gsap.fromTo(
         navEl,
@@ -101,7 +154,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
     }
 
     // intro: fly the camera in from far away (the page's opening shot)
-    if (!reduced) {
+    if (!reduced && !late) {
       intro = gsap.fromTo(
         scene,
         { intro: -6 },
@@ -161,6 +214,10 @@ export function SiteShell({ children }: { children: ReactNode }) {
       gsap.ticker.remove(tick);
       window.removeEventListener("pointermove", onMove);
       mqReduce.removeEventListener("change", onMotionPref);
+      layoutQueries.forEach((mq) => mq.removeEventListener("change", layoutListener));
+      window.removeEventListener("scroll", trackAnchor);
+      cancelAnimationFrame(anchorRaf);
+      restoreTimers.forEach((t) => window.clearTimeout(t));
       window.removeEventListener("wheel", dropInflight);
       window.removeEventListener("touchstart", dropInflight);
       document.removeEventListener("click", onClick);
@@ -169,6 +226,20 @@ export function SiteShell({ children }: { children: ReactNode }) {
       setLenis(null);
     };
   }, []);
+
+  /* ── After a client-side route change, focus belongs to the new page. Without this it stays on the
+     link that was activated (often the footer), and the next Tab jumps back down the old page. ── */
+  const firstRoute = useRef(true);
+  useEffect(() => {
+    if (firstRoute.current) {
+      firstRoute.current = false;
+      return;
+    }
+    const main = document.getElementById("main");
+    if (!main) return;
+    if (!main.hasAttribute("tabindex")) main.setAttribute("tabindex", "-1");
+    main.focus({ preventScroll: true });
+  }, [pathname]);
 
   /* ── Deep links: `/#faq` (direct load or arriving from /pricing) ────────
      The browser/Next jump happens before fonts load and before the pinned
@@ -294,6 +365,12 @@ export function SiteShell({ children }: { children: ReactNode }) {
       const mm = gsap.matchMedia();
 
       mm.add("(prefers-reduced-motion: no-preference)", () => {
+        if (document.documentElement.classList.contains("reveal-failsafe")) {
+          // late boot (see the engine): what the failsafe showed stays shown, with no entrance replay
+          document.querySelectorAll("[data-reveal],[data-cta]").forEach((el) => el.setAttribute("data-revealed", ""));
+          gsap.set("[data-split],[data-intro],[data-hero-title]", { opacity: 1 });
+          return;
+        }
         // 1. staggered reveals for anything marked data-reveal
         const items = gsap.utils.toArray<HTMLElement>("[data-reveal]");
         ScrollTrigger.batch(items, {

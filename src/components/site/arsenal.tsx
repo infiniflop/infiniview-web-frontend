@@ -177,9 +177,11 @@ export function Arsenal() {
                 className="layer-row"
                 data-on={i === active}
                 data-reveal
-                onPointerEnter={() => {
-                  setHover(true);
-                  setActive(i);
+                onPointerEnter={() => setHover(true)}
+                onPointerMove={(e) => {
+                  // only when the pointer actually moves: opening a layer reflows the list, and the row that
+                  // slides under a parked pointer must not then open as well (a cascade)
+                  if (i !== active && (e.movementX || e.movementY)) setActive(i);
                 }}
                 onPointerLeave={() => setHover(false)}
               >
@@ -204,8 +206,6 @@ export function Arsenal() {
                 </h3>
                 <div
                   id={`layer-panel-${a.id}`}
-                  role="region"
-                  aria-labelledby={`layer-${a.id}`}
                   className="layer-body"
                 >
                   <span>
@@ -229,9 +229,9 @@ export function Arsenal() {
                       className="plane"
                       data-on={i === active}
                       style={{ ["--lift" as string]: i < active ? "210px" : i === active ? "28px" : "0px" }}
-                      onPointerEnter={() => {
-                        setHover(true);
-                        setActive(i);
+                      onPointerEnter={() => setHover(true)}
+                      onPointerMove={(e) => {
+                        if (i !== active && (e.movementX || e.movementY)) setActive(i);
                       }}
                       onPointerLeave={() => setHover(false)}
                     >
