@@ -839,43 +839,6 @@ html.lenis body {
     background: var(--iv-lime);
     box-shadow: 0 0 12px rgba(210, 251, 90, 0.8);
   }
-  .hero-cue {
-    position: absolute;
-    left: max(var(--gutter), env(safe-area-inset-left));
-    bottom: max(28px, calc(env(safe-area-inset-bottom) + 12px));
-    display: none;
-    align-items: center;
-    gap: 12px;
-    background: none;
-    border: 0;
-    border-radius: 14px;
-    padding: 8px 14px;
-    margin-left: -14px; /* the label itself stays on the page gutter */
-    color: var(--iv-ink-3);
-    font: inherit;
-    font-size: 0.85rem;
-    cursor: pointer;
-    transition: color 0.2s;
-  }
-  .hero-cue:hover {
-    color: var(--iv-ink);
-  }
-  .hero-cue i {
-    width: 1px;
-    height: 44px;
-    background: linear-gradient(var(--iv-lime), transparent);
-    transform-origin: 50% 0;
-    animation: cue 2.4s var(--ease-inout) infinite;
-  }
-  @keyframes cue {
-    0% { transform: scaleY(0); opacity: 0; }
-    35% { opacity: 1; }
-    100% { transform: scaleY(1); opacity: 0; transform-origin: 50% 100%; }
-  }
-  @media (min-width: 1024px) and (min-height: 760px) {
-    .hero-cue { display: inline-flex; }
-  }
-
   /* ── Scan card ───────────────────────────────────────────────────────── */
 
   .scan {
@@ -1227,12 +1190,6 @@ html.lenis body {
   }
   .pipe-step[data-state='done'] .pipe-bar i { transform: scaleY(1); }
   .pipe-step[data-state='active'] .pipe-bar i { transform: scaleY(var(--prog)); }
-  .pipe-tag {
-    margin: 0 0 8px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--iv-lime);
-  }
   .pipe-title {
     margin: 0;
     font-size: clamp(1.3rem, 2vw, 1.9rem);
@@ -2446,7 +2403,6 @@ html.lenis body {
     .pipe-step { padding-block: 7px; }
     .pipe-title { font-size: 1.02rem; }
     .pipe-step[data-state='active'] .pipe-title { font-size: 1.3rem; }
-    .pipe-tag { margin-bottom: 3px; font-size: 0.8rem; }
     .pipe-step[data-state='active'] .pipe-body > p { padding-top: 8px; font-size: 0.93rem; line-height: 1.45; }
   }
 }
@@ -2608,7 +2564,6 @@ html:not(.js) .site-root .dot--sig { opacity: 1; }
   .site-nav,
   .nav-menu,
   .skip-link,
-  .hero-cue,
   .stage-col,
   .stack-col,
   .threat,

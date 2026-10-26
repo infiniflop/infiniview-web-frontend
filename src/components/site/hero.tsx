@@ -5,7 +5,6 @@ import { gsap, SplitText, useGSAP } from "@/lib/site/gsap";
 import { HERO } from "@/lib/site/content";
 import { WaitlistForm } from "@/components/site/waitlist-form";
 import { ScanCard } from "@/components/site/scan-card";
-import { scrollToTarget } from "@/lib/site/scroll";
 import { setMood } from "@/lib/site/scene";
 
 export function Hero() {
@@ -134,15 +133,6 @@ export function Hero() {
           <ScanCard />
         </div>
       </div>
-
-      <button
-        type="button"
-        className="hero-cue"
-        onClick={() => scrollToTarget("#how-it-works", { duration: 1.8 })}
-      >
-        <span>Travel down</span>
-        <i aria-hidden />
-      </button>
     </section>
   );
 }

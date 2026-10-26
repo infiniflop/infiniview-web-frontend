@@ -9,6 +9,8 @@ import "./globals.css";
 import "./(site)/site.css";
 
 export const metadata: Metadata = {
+  // this document sits outside the root layout, so it does not inherit its metadataBase
+  metadataBase: new URL("https://infiniview.dev"),
   title: "Page not found",
   robots: { index: false, follow: false },
 };

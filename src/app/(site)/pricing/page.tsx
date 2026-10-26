@@ -12,6 +12,16 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/pricing",
   },
+  // a child's openGraph replaces the root's, so the page's own URL, title and description are stated
+  openGraph: {
+    type: "website",
+    siteName: "Infiniview",
+    locale: "en_US",
+    url: "/pricing",
+    title: "Pricing | Infiniview",
+    description:
+      "Infiniview plans for indie hackers, startups, and enterprise. Join the waitlist to lock in launch pricing.",
+  },
 };
 
 /* -------------------------------------------------------------------------- */

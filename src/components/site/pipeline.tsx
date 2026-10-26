@@ -311,8 +311,11 @@ export function Pipeline() {
                   <i />
                 </span>
                 <div>
-                  <p className="pipe-tag">{s.tag}</p>
-                  <h3 className="t-h3 pipe-title">{s.title}</h3>
+                  <h3 className="t-h3 pipe-title">
+                    {/* the phase name is part of the step's name for assistive tech, not a label above it */}
+                    <span className="sr-only">{s.tag}: </span>
+                    {s.title}
+                  </h3>
                   <div className="pipe-body">
                     <p className="t-body">{s.body}</p>
                   </div>
