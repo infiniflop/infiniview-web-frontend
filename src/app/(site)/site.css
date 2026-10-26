@@ -1296,7 +1296,16 @@ html.lenis body {
     transform-style: preserve-3d;
   }
   @media (max-width: 1023px) {
+    /* a square sized by the room left over once the step copy under it is accounted for (about 350px),
+       so the pinned section always fits the screen; never smaller than 160px */
     .stage { width: min(100%, 58vh); width: min(100%, 58svh); aspect-ratio: 1 / 1; }
+    @supports (width: 1svh) {
+      .stage { width: min(100%, max(180px, min(58svh, calc(100svh - 350px)))); }
+      /* narrower phones wrap the step copy onto more lines */
+      @media (max-width: 359px) {
+        .stage { width: min(100%, max(160px, min(58svh, calc(100svh - 385px)))); }
+      }
+    }
   }
   .stage-cap {
     text-align: center;

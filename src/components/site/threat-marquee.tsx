@@ -33,7 +33,15 @@ export function ThreatMarquee() {
         const skewB = gsap.quickTo(b, "skewX", { duration: 0.6, ease: "power3.out" });
 
         let visible = true;
-        const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; }, { rootMargin: "200px" });
+        const io = new IntersectionObserver(
+          ([e]) => {
+            visible = e.isIntersecting;
+            // nothing to drift while it is off screen
+            tlA.paused(!visible);
+            tlB.paused(!visible);
+          },
+          { rootMargin: "200px" },
+        );
         io.observe(root.current!);
 
         const tick = () => {

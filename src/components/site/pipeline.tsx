@@ -41,6 +41,9 @@ const FILES = [
   { icon: Wrench, label: "Fix suggestion" },
 ];
 
+// below this viewport height the pinned stage and the active step's copy cannot both fit
+const SHORT = 560;
+
 export function Pipeline() {
   const root = useRef<HTMLElement>(null);
 
@@ -72,8 +75,9 @@ export function Pipeline() {
       const ro = new ResizeObserver(fitStage);
       ro.observe(stage);
 
-      // reduced motion: show the finished state, no scroll-scrubbing
-      mm.add("(prefers-reduced-motion: reduce)", () => {
+      // Reduced motion, or a screen too short for the pinned stage plus its copy (a phone in
+      // landscape): show the finished state, every step readable, no scroll-scrubbing
+      mm.add(`(prefers-reduced-motion: reduce), (max-height: ${SHORT - 1}px)`, () => {
         gsap.set(qa(".pane"), { xPercent: -50, yPercent: -50, autoAlpha: 1 });
         gsap.set(q(".pane--prod"), { x: 0, y: 40, z: -170, autoAlpha: 0.5 });
         gsap.set(q(".pane--sandbox"), { autoAlpha: 0 });
@@ -91,8 +95,8 @@ export function Pipeline() {
       // tears this setup down and rebuilds it with the right offsets, pin length and tilt
       mm.add(
         {
-          full: "(min-width: 1024px) and (prefers-reduced-motion: no-preference)",
-          small: "(max-width: 1023px) and (prefers-reduced-motion: no-preference)",
+          full: `(min-width: 1024px) and (min-height: ${SHORT}px) and (prefers-reduced-motion: no-preference)`,
+          small: `(max-width: 1023px) and (min-height: ${SHORT}px) and (prefers-reduced-motion: no-preference)`,
         },
         (ctx) => {
         const isSmall = !!ctx.conditions?.small;

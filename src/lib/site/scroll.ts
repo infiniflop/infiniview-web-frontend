@@ -15,6 +15,32 @@ export function getLenis() {
   return instance;
 }
 
+// the smooth jump currently running, so it can be finished at once if reduced motion is switched on
+let inflight: {
+  target: string | HTMLElement | number;
+  offset: number;
+  onComplete?: () => void;
+} | null = null;
+
+/** The visitor took over (wheel, touch): the jump is theirs no more, so do not finish it for them. */
+export function dropInflight() {
+  inflight = null;
+}
+
+/**
+ * Reduced motion was switched on in the middle of a smooth jump: stop the animation where it is, then
+ * finish the jump instantly. The motion contexts are rebuilt for the new preference (pinned sections
+ * are unpinned, so the page gets shorter), which moves the target: it is resolved again once that has
+ * settled, and the original focus handoff still runs.
+ */
+export function settleScroll() {
+  const j = inflight;
+  inflight = null;
+  if (!instance || !j || !instance.isScrolling) return;
+  instance.scrollTo(window.scrollY, { immediate: true, force: true });
+  window.setTimeout(() => scrollToTarget(j.target, { offset: j.offset, immediate: true, onComplete: j.onComplete }), 350);
+}
+
 export function scrollToTarget(
   target: string | HTMLElement | number,
   opts: { offset?: number; duration?: number; immediate?: boolean; onComplete?: () => void } = {},
@@ -41,6 +67,7 @@ export function scrollToTarget(
       absolute = el ? el.getBoundingClientRect().top + window.scrollY : null;
     }
     if (absolute === null) return;
+    inflight = immediate ? null : { target, offset, onComplete };
     instance.scrollTo(absolute, {
       offset,
       duration,
@@ -49,7 +76,10 @@ export function scrollToTarget(
       // stops it while open and starts it again as it closes)
       force: true,
       easing: (t: number) => 1 - Math.pow(1 - t, 4),
-      onComplete: onComplete ? () => onComplete() : undefined,
+      onComplete: () => {
+        inflight = null;
+        onComplete?.();
+      },
     });
     return;
   }

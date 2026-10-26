@@ -313,7 +313,9 @@ export function Nav() {
       </header>
 
       {open && (
-        <div id="site-menu" ref={menuRef} className="nav-menu glass glass--deep" style={{ ["--r" as string]: "0px" }} role="dialog" aria-modal="true" aria-label="Menu">
+        <div id="site-menu" ref={menuRef} data-lenis-prevent className="nav-menu glass glass--deep" style={{ ["--r" as string]: "0px" }} role="dialog" aria-modal="true" aria-label="Menu">
+          {/* data-lenis-prevent: Lenis is stopped while the menu is open and would cancel wheel and
+              touch gestures, so the menu (which scrolls by itself on short screens) opts out of it */}
           <div className="nav-menu-inner">
             {LINKS.map((l) => (
               <SectionLink

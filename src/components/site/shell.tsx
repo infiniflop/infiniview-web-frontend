@@ -12,7 +12,7 @@ import {
   isCoarsePointer,
 } from "@/lib/site/gsap";
 import { scene } from "@/lib/site/scene";
-import { setLenis, scrollToTarget, focusWhenReady } from "@/lib/site/scroll";
+import { setLenis, scrollToTarget, settleScroll, dropInflight, focusWhenReady } from "@/lib/site/scroll";
 import { Corridor } from "@/components/site/corridor";
 
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
@@ -71,9 +71,12 @@ export function SiteShell({ children }: { children: ReactNode }) {
       if (mqReduce.matches) {
         scene.tx = 0;
         scene.ty = 0;
+        settleScroll(); // a smooth jump already under way is finished at once, focus handoff included
       }
     };
     mqReduce.addEventListener("change", onMotionPref);
+    window.addEventListener("wheel", dropInflight, { passive: true });
+    window.addEventListener("touchstart", dropInflight, { passive: true });
 
     // pointer → corridor light
     const onMove = (e: PointerEvent) => {
@@ -140,6 +143,8 @@ export function SiteShell({ children }: { children: ReactNode }) {
       gsap.ticker.remove(tick);
       window.removeEventListener("pointermove", onMove);
       mqReduce.removeEventListener("change", onMotionPref);
+      window.removeEventListener("wheel", dropInflight);
+      window.removeEventListener("touchstart", dropInflight);
       document.removeEventListener("click", onClick);
       window.removeEventListener("popstate", onPop);
       lenis?.destroy();
