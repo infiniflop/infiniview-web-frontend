@@ -1978,7 +1978,9 @@ html.lenis body {
   }
   @media (max-width: 1023px) {
     .stack-col { order: -1; }
-    .stack-stage { height: clamp(340px, 78vw, 520px); overflow: clip; }
+    /* tall enough for the lifted planes, and not clipped at the content gutter (that cut the art mid-curve);
+       the section still clips at the screen edge */
+    .stack-stage { height: clamp(430px, 98vw, 580px); overflow: visible; }
   }
   .plane {
     position: absolute;
@@ -2387,6 +2389,10 @@ html.lenis body {
   }
   .plan-notes li { display: inline-flex; align-items: center; gap: 10px; font-size: 0.92rem; color: var(--iv-ink-2); }
   .plan-notes b { color: var(--iv-ink); font-weight: 600; }
+  /* stacked on a phone: left-aligned rows in a centred block (centred wrapped rows made the bullets zigzag) */
+  @media (max-width: 639px) {
+    .plan-notes { --r: 28px; flex-direction: column; align-items: flex-start; gap: 10px; padding: 18px 26px; }
+  }
   .plan-notes i { width: 7px; height: 7px; border-radius: 2px; background: var(--iv-lime); box-shadow: 0 0 10px var(--iv-lime); }
   .price-cta { padding-bottom: clamp(96px, 12vw, 180px); }
   .price-cta-card { --r: 40px; display: flex; flex-direction: column; align-items: flex-start; gap: 28px; padding: clamp(28px, 5vw, 72px); }
