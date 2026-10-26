@@ -95,13 +95,13 @@ export function WaitlistForm({
         ref={doneRef}
         role="status"
         tabIndex={-1}
-        className={cn("waitlist-done glass glass--lime mb-8 flex items-center gap-4 px-6 py-4", size === "lg" ? "waitlist--lg" : "waitlist--md", className)}
+        className={cn("waitlist-done glass glass--lime mb-8 flex w-full items-center gap-4 px-6 py-4", size === "lg" ? "waitlist--lg" : "waitlist--md", className)}
         style={{ ["--r" as string]: "999px" }}
       >
         <span className="grid h-9 w-9 flex-none place-items-center rounded-full bg-[var(--iv-lime)] text-[#070a02]">
           <Check size={18} strokeWidth={3} />
         </span>
-        <span className="text-[1.02rem] font-medium leading-snug">
+        <span className="text-[1.02rem] font-medium leading-snug [text-wrap:balance]">
           {status === "already"
             ? "You’re already on the list. We’ll be in touch."
             : "You’re on the list. We’ll be in touch."}

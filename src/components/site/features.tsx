@@ -15,6 +15,7 @@ const FAN = [
 
 function EvidenceFan() {
   return (
+    <>
     <div className="fan" aria-hidden>
       {FAN.map((c, i) => (
         <div
@@ -64,6 +65,13 @@ function EvidenceFan() {
         </div>
       ))}
     </div>
+    {/* narrow tiles: the cards overlap too much to carry their own labels, so the names sit in a row below */}
+    <ul className="fan-legend" aria-hidden>
+      {FAN.map((c) => (
+        <li key={c.label}>{c.label}</li>
+      ))}
+    </ul>
+    </>
   );
 }
 

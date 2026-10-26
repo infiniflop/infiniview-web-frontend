@@ -170,6 +170,7 @@ html.lenis body {
     font-variation-settings: 'wdth' 100;
     text-wrap: balance;
   }
+  .t-h3, .pipe-title, .plate-label, .faq-q, .layer-sub, .layer-name { text-wrap: balance; }
   .t-h3 {
     font-size: clamp(1.45rem, 2.3vw, 2.2rem);
     line-height: 1.05;
@@ -672,7 +673,7 @@ html.lenis body {
        and at this opacity it adds nothing visible */
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
-    background: rgba(3, 4, 10, 0.985); /* near-opaque: the page's own headline must not ghost through the links */
+    background: #03040a; /* solid: the page's own headline must not show through the links, even mid-fade */
     /* page scroll is locked while the menu is open, so the menu must scroll by itself */
     overflow-y: auto;
     overscroll-behavior: contain;
@@ -691,6 +692,7 @@ html.lenis body {
   }
   html:not(.js) .nav-burger { display: none; } /* no script: nothing to open it */
   .link:focus-visible { outline-offset: 5px; }
+  .nav-menu-link[aria-current='page'] { color: var(--iv-lime); }
   .nav-menu-link {
     font-size: clamp(1.7rem, min(11vw, 9vh), 4rem); /* shrinks on short landscape screens */
     font-weight: 600;
@@ -731,6 +733,9 @@ html.lenis body {
       0 40px 90px -40px rgba(0, 0, 0, 0.85);
   }
   .waitlist-msg { color: #ff8a7a; }
+  @media (min-width: 521px) {
+    .waitlist .btn--lime { min-width: 11.6rem; }
+  }
   /* invalid and focused: the same coral ring with a halo, so focus is still visible in the error state */
   .waitlist.glass[data-status='invalid']:focus-within,
   .waitlist.glass[data-status='error']:focus-within,
@@ -889,7 +894,8 @@ html.lenis body {
     gap: 8px 12px;
     padding-bottom: 16px;
   }
-  .scan-head .t-small { white-space: nowrap; }
+  .scan-head > div { min-width: 0; }
+  .scan-head .t-small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
   .scan-pulse {
     width: 10px;
     height: 10px;
@@ -1120,6 +1126,7 @@ html.lenis body {
   }
   .plate {
     --r: 28px;
+    container-type: inline-size;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -1128,7 +1135,7 @@ html.lenis body {
     padding: clamp(18px, 2.2vw, 30px);
   }
   .plate-num {
-    font-size: clamp(3.4rem, 7.4vw, 6.2rem); /* "100%" must fit its tile at every width */
+    font-size: min(clamp(3.4rem, 7.4vw, 6.2rem), 38cqi); /* "100%" must fit its tile, whatever the tile's width */
     letter-spacing: -0.06em;
     line-height: 0.9;
     color: var(--iv-ink);
@@ -1800,6 +1807,14 @@ html.lenis body {
     transition: color 0.2s;
   }
   .tab[aria-selected='true'], .tab:hover { color: var(--iv-ink); }
+  /* four tabs have to fit a phone's strip (a cut-off "Fix" read as broken) */
+  @media (max-width: 420px) {
+    .tabs { gap: 0; }
+    .tab { padding: 11px 12px; font-size: 0.86rem; }
+  }
+  @media (max-width: 345px) {
+    .tab { padding: 11px 9px; font-size: 0.8rem; }
+  }
 
   .panels { display: grid; min-height: 250px; }
   .panel {
@@ -2096,6 +2111,12 @@ html.lenis body {
   .ecard-body { flex: 1; border-radius: 12px; background: rgba(2, 3, 9, 0.7); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07); padding: 10px; overflow: hidden; }
   .ecard-label { font-size: 0.82rem; font-weight: 600; color: var(--iv-ink-2); text-align: center; letter-spacing: -0.01em; }
   /* neighbours overlap a card's inner edge: keep its label on the outer, visible side */
+  .fan-legend { display: none; list-style: none; margin: 14px 0 0; padding: 0; flex-wrap: wrap; justify-content: center; gap: 6px; }
+  .fan-legend li { font-size: 0.78rem; font-weight: 560; color: var(--iv-ink-2); padding: 4px 11px; border-radius: 999px; background: rgba(255, 255, 255, 0.07); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.09); }
+  @media (max-width: 1279px) {
+    .fan-legend { display: flex; }
+    .ecard-label { display: none; }
+  }
   .ecard-label.is-l { text-align: left; padding-left: 6px; }
   .ecard-label.is-r { text-align: right; padding-right: 6px; }
   .e-shot { height: 100%; position: relative; display: flex; flex-direction: column; gap: 6px; }
@@ -2368,9 +2389,9 @@ html.lenis body {
   }
   .price-hero .wrap { position: relative; }
   .plans-wrap { padding-bottom: clamp(48px, 6vw, 96px); }
-  .plans { display: grid; gap: clamp(12px, 1.4vw, 20px); align-items: stretch; }
+  .plans { display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(12px, 1.4vw, 20px); align-items: stretch; }
   @media (min-width: 960px) { .plans { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-  .plan { --r: 32px; display: flex; flex-direction: column; gap: 18px; padding: clamp(22px, 2.4vw, 36px); }
+  .plan { --r: 32px; min-width: 0; display: flex; flex-direction: column; gap: 18px; padding: clamp(22px, 2.4vw, 36px); }
   .plan--hi { box-shadow: inset 0 1px 0 rgba(255,255,255,.3), inset 0 0 0 1px rgba(210,251,90,.4), 0 0 90px -20px rgba(210,251,90,.35), 0 40px 90px -40px rgba(0,0,0,.85); }
   @media (min-width: 960px) { .plan--hi { transform: translateY(-14px); } }
   .plan-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }

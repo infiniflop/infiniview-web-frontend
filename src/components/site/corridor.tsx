@@ -115,6 +115,10 @@ export function Corridor() {
     let last = performance.now();
     let sizedW = 0;
     let sizedH = 0;
+    // Assigning canvas.width/height clears the drawing buffer. If that happens *after* this frame's draw
+    // the cleared (black) buffer is what gets presented, so a size change from the governor is applied
+    // at the start of the next frame, before it draws.
+    let pendingResize = false;
 
     const applySize = () => {
       const w = Math.max(2, Math.floor(window.innerWidth * scale));
@@ -140,6 +144,10 @@ export function Corridor() {
       if (!reduced && (scene.occluded || document.documentElement.dataset.menuOpen === "true")) {
         last = performance.now();
         return;
+      }
+      if (pendingResize) {
+        pendingResize = false;
+        applySize();
       }
       const now = performance.now();
       const t = (now - t0) / 1000;
@@ -184,7 +192,7 @@ export function Corridor() {
           if (--probe.left <= 0) {
             if (ema > probe.dt * 0.88) {
               scale = probe.prevScale;
-              applySize();
+              pendingResize = true;
               locked = true;
             }
             probe = null;
@@ -197,7 +205,7 @@ export function Corridor() {
             if (scale > minScale) {
               probe = { prevScale: scale, dt: ema, left: 40 };
               scale = Math.max(minScale, scale * 0.82);
-              applySize();
+              pendingResize = true;
               slow = 0;
             } else if (document.documentElement.dataset.perf !== "low") {
               // pixels are already minimal and frames are still slow: shed the glass blur too
@@ -243,7 +251,7 @@ export function Corridor() {
         const widthChanged = window.innerWidth !== sizedW;
         const heightJump = Math.abs(window.innerHeight - sizedH) > sizedH * 0.2;
         if (widthChanged || heightJump) {
-          applySize();
+          pendingResize = true; // applied by the next frame, just before it draws
           if (reduced) render();
         }
       }, 140);
