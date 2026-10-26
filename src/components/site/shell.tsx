@@ -229,12 +229,11 @@ export function SiteShell({ children }: { children: ReactNode }) {
 
   /* ── After a client-side route change, focus belongs to the new page. Without this it stays on the
      link that was activated (often the footer), and the next Tab jumps back down the old page. ── */
-  const firstRoute = useRef(true);
+  // compared against the previous path, not a "first run" flag: StrictMode runs effects twice on load
+  const lastPath = useRef(pathname);
   useEffect(() => {
-    if (firstRoute.current) {
-      firstRoute.current = false;
-      return;
-    }
+    if (lastPath.current === pathname) return;
+    lastPath.current = pathname;
     const main = document.getElementById("main");
     if (!main) return;
     if (!main.hasAttribute("tabindex")) main.setAttribute("tabindex", "-1");
