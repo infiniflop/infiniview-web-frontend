@@ -49,9 +49,9 @@ const PLANS = [
   {
     id: "pro",
     name: "Pro",
-    badge: "Most popular",
+    badge: "Recommended",
     desc: "Full-stack security for production teams shipping fast.",
-    priceLabel: "TBD",
+    priceLabel: "Soon",
     scans: "Early access",
     highlighted: true,
     cta: "Join waitlist",

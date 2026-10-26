@@ -39,7 +39,7 @@ export function Faq({
             <a className="link" href="mailto:hello@infiniflop.com">
               hello@infiniflop.com
             </a>{" "}
-            gets a human, usually same day.
+            gets a human.
           </p>
         </div>
 

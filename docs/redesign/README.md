@@ -97,7 +97,7 @@ The details at the edge of the viewport are part of the design, not leftovers:
 
 ### Weight (production build, gzip)
 
-JS ≈ 263 KB · CSS ≈ 22 KB · fonts ≈ 126 KB (Mona Sans 96 KB, JetBrains Mono 31 KB) · HTML ≈ 18 KB.
+JS ≈ 269 KB · CSS ≈ 24 KB · fonts ≈ 126 KB (Mona Sans 96 KB, JetBrains Mono 31 KB) · HTML ≈ 18 KB.
 
 ## Source register
 
@@ -133,8 +133,8 @@ Not done / worth knowing:
 - `/privacy` and `/terms` are linked as before but do not exist in this repo (nor on infiniview.dev today): the footer links 404 until those pages exist. Their content is the owner's to write, so none was invented.
 - **Joining needs JavaScript.** The API accepts JSON only (a deliberate choice that refuses cross-site form posts), so a script-less submit gets that API's JSON 4xx rather than a confirmation. The form is a POST to the API so an early native submit never puts the address in the URL.
 - **The opening choreography needs JavaScript**: until the motion layer takes over the headline, form and header wait (opacity only; a 3 s failsafe shows everything, and then the entrance simply does not play). Largest Contentful Paint is the hero headline: about 1.3 s unthrottled and about 3.2 s at 4x CPU throttling in software GL.
-- Pricing copy ("Most popular", "White glove", "TBD") and "gets a human, usually same day" are the previous site's own wording, carried over unchanged apart from capitalisation.
-- Pricing figures remain "Free / TBD / Custom", as before.
+- Three wording changes on request: the Pro badge reads "Recommended" (not a popularity claim), the Pro price reads "Soon" (not "TBD"), and the FAQ no longer promises a reply time. "White glove" and the plan features are the previous site's own wording.
+- Pricing figures are still undecided: "Free / Soon / Custom", with "Finalized before launch" noted on the page.
 
 ## Screenshots
 
