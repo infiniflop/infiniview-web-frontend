@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowRight, Menu, X } from "lucide-react";
 import { gsap, ScrollTrigger, useGSAP, prefersReducedMotion } from "@/lib/site/gsap";
@@ -16,7 +16,7 @@ const LINKS = [
   { id: "faq", label: "FAQ" },
 ];
 
-export function focusWaitlist(router?: { push: (href: string) => void }) {
+export function focusWaitlist() {
   // The page can hold two waitlist forms (the hero's and the finale's). Prefer the one that is
   // already on screen, so the header button never throws a visitor 12,000px back up the page.
   const forms = [...document.querySelectorAll<HTMLFormElement>("form[id^='waitlist']")];
@@ -26,7 +26,10 @@ export function focusWaitlist(router?: { push: (href: string) => void }) {
   });
   const form = visible ?? document.getElementById("waitlist");
   if (!form) {
-    router?.push("/#waitlist");
+    // no form on this page: go to the page that has one. A full load, not the router: the 404 (a document
+    // of its own) cannot navigate client-side, and this is rare enough that it costs nothing elsewhere.
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- deliberately a full load (see above)
+    window.location.assign("/#waitlist");
     return;
   }
   const input = form.querySelector<HTMLInputElement>("input[type='email']");
@@ -66,7 +69,6 @@ function SectionLink({
 
 export function Nav() {
   const pathname = usePathname();
-  const router = useRouter();
   const isHome = pathname === "/";
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState<string | null>(null);
@@ -249,15 +251,25 @@ export function Nav() {
     };
   }, [open]);
 
-  // a menu opened on a phone must not linger (with its trigger hidden) after rotating to desktop width
+  // A menu opened on a phone must not linger (with its trigger hidden) once the bar switches to the full
+  // desktop layout. That switch is a container query in em (it follows the text size), so it is read from
+  // the burger itself: hidden means the desktop bar is showing.
   useEffect(() => {
-    const mq = window.matchMedia("(min-width: 1024px)");
-    const onChange = () => {
-      if (mq.matches) setOpen(false);
+    if (!open) return;
+    const check = () => {
+      if (burgerRef.current && getComputedStyle(burgerRef.current).display === "none") setOpen(false);
     };
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
-  }, []);
+    window.addEventListener("resize", check);
+    // Back/Forward or a hash change while the menu is open: the page behind it is changing, so close it
+    const close = () => setOpen(false);
+    window.addEventListener("popstate", close);
+    window.addEventListener("hashchange", close);
+    return () => {
+      window.removeEventListener("resize", check);
+      window.removeEventListener("popstate", close);
+      window.removeEventListener("hashchange", close);
+    };
+  }, [open]);
 
   useEffect(() => {
     // close the menu on navigation
@@ -272,9 +284,9 @@ export function Nav() {
   const earlyAccess = () => {
     if (open) {
       setOpen(false);
-      window.setTimeout(() => focusWaitlist(router), 350);
+      window.setTimeout(() => focusWaitlist(), 350);
     } else {
-      focusWaitlist(router);
+      focusWaitlist();
     }
   };
 
@@ -291,6 +303,7 @@ export function Nav() {
             aria-label="Infiniview home"
             className="nav-brand"
             onClick={(e) => {
+              if (open) setOpen(false); // the menu is a modal: it does not stay up while the page moves behind it
               if (isHome) {
                 e.preventDefault();
                 scrollToTarget(0, { duration: 1.6 });

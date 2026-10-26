@@ -143,10 +143,18 @@ export function Arsenal() {
     { scope: root },
   );
 
-  // idle autoplay through the layers
+  // idle autoplay: one pass through the layers, then it holds on the last one (it never loops forever)
+  const steps = useRef(0);
   useEffect(() => {
     if (!auto || !inView || hover || prefersReducedMotion()) return;
-    const id = window.setTimeout(() => setActive((a) => (a + 1) % ARSENAL.length), 4200);
+    const id = window.setTimeout(() => {
+      if (steps.current >= ARSENAL.length - 1) {
+        setAuto(false);
+        return;
+      }
+      steps.current += 1;
+      setActive((a) => (a + 1) % ARSENAL.length);
+    }, 4200);
     return () => window.clearTimeout(id);
   }, [auto, inView, hover, active]);
 

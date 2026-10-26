@@ -51,7 +51,10 @@ export function FindingsExplorer() {
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
   const [userPaused, setUserPaused] = useState(false);
-  const running = auto && inView && !hovered && !focused && !userPaused;
+  // choosing Resume is an explicit request to play: it outranks the hover/focus hold (the pointer and the
+  // focus are still on the button that was just pressed) until the pointer and focus have both left
+  const [resumed, setResumed] = useState(false);
+  const running = auto && inView && !userPaused && (resumed || (!hovered && !focused));
 
   const f: Finding = SAMPLE_FINDINGS[fi];
 
@@ -210,11 +213,23 @@ export function FindingsExplorer() {
         <div
           ref={consoleRef}
           className="console glass glass--deep"
-          onPointerEnter={() => setHovered(true)}
-          onPointerLeave={() => setHovered(false)}
-          onFocusCapture={() => setFocused(true)}
+          onPointerEnter={() => {
+            setHovered(true);
+            setResumed(false);
+          }}
+          onPointerLeave={() => {
+            setHovered(false);
+            if (!focused) setResumed(false);
+          }}
+          onFocusCapture={(e) => {
+            setFocused(true);
+            if (!(e.target as HTMLElement).closest(".console-pause")) setResumed(false); // moving on to another control: hold again
+          }}
           onBlurCapture={(e) => {
-            if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setFocused(false);
+            if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+              setFocused(false);
+              if (!hovered) setResumed(false);
+            }
           }}
         >
           <div className="console-top">
@@ -229,7 +244,10 @@ export function FindingsExplorer() {
                   type="button"
                   className="console-pause"
                   aria-label={userPaused ? "Resume auto-play" : "Pause auto-play"}
-                  onClick={() => setUserPaused((v) => !v)}
+                  onClick={() => {
+                    setResumed(userPaused);
+                    setUserPaused((v) => !v);
+                  }}
                 >
                   {userPaused ? <Play size={13} strokeWidth={2.6} aria-hidden /> : <Pause size={13} strokeWidth={2.6} aria-hidden />}
                 </button>
@@ -333,7 +351,7 @@ export function FindingsExplorer() {
                   <Fragment key={x.id}>
                     {/* proof */}
                     <div id={`finding-${x.id}-panel-0`} role="tabpanel" aria-labelledby="evidence-tab-0" data-f={fidx} data-panel="0" data-on={fidx === fi && tab === 0} aria-hidden={!(fidx === fi && tab === 0) || undefined} className="panel">
-                      <div className="term t-mono" role="region" aria-label="HTTP proof">
+                      <div className="term t-mono" role="region" aria-label="HTTP proof" tabIndex={0}>
                         {x.proof.lines.map((l, i) =>
                           l.t === "gap" ? (
                             <div key={i} className="term-gap" data-line />
@@ -361,7 +379,7 @@ export function FindingsExplorer() {
 
                     {/* code */}
                     <div id={`finding-${x.id}-panel-2`} role="tabpanel" aria-labelledby="evidence-tab-2" data-f={fidx} data-panel="2" data-on={fidx === fi && tab === 2} aria-hidden={!(fidx === fi && tab === 2) || undefined} className="panel">
-                      <div className="code t-mono" role="region" aria-label="Affected code">
+                      <div className="code t-mono" role="region" aria-label="Affected code" tabIndex={0}>
                         <div className="code-file" data-line>{x.code.file}</div>
                         {x.code.lines.map((ln, i) => {
                           const n = x.code.from + i;
@@ -379,7 +397,7 @@ export function FindingsExplorer() {
                     {/* fix */}
                     <div id={`finding-${x.id}-panel-3`} role="tabpanel" aria-labelledby="evidence-tab-3" data-f={fidx} data-panel="3" data-on={fidx === fi && tab === 3} aria-hidden={!(fidx === fi && tab === 3) || undefined} className="panel">
                       <p className="t-body fix-note" data-line>{x.fix.note}</p>
-                      <div className="code t-mono" role="region" aria-label="Suggested fix">
+                      <div className="code t-mono" role="region" aria-label="Suggested fix" tabIndex={0}>
                         {x.fix.diff.map((d, i) => (
                           <div key={i} data-line className={`code-line code-line--${d.t}`}>
                             <span className="code-n">{d.t === "add" ? "+" : "−"}</span>

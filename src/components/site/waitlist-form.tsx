@@ -115,6 +115,9 @@ export function WaitlistForm({
       id={id}
       ref={formRef}
       onSubmit={handleSubmit}
+      // before the script has loaded (or without it) a native submit must not put the address in the URL
+      method="post"
+      action="/api/waitlist"
       noValidate
       aria-busy={status === "loading"}
       className={cn("w-full", className)}
@@ -166,6 +169,7 @@ export function WaitlistForm({
         aria-live="polite"
         className="waitlist-msg mt-3 min-h-[1.25rem] pl-5 text-sm"
       >
+        {status === "loading" && <span className="sr-only">Joining the waitlist…</span>}
         {status === "invalid" && "Enter a valid email address."}
         {status === "error" && "Something went wrong. Try again."}
         {status === "limited" && "Too many attempts. Please try again in a few minutes."}

@@ -122,7 +122,7 @@ export function ScanCard() {
         ))}
       </ol>
       <div className="scan-foot">
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2.5">
           <span className="chip chip--crit">
             <i />
             <b className="tnum font-semibold" data-crit>0</b>&nbsp;critical

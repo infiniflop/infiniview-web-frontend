@@ -5,6 +5,7 @@ import { SiteShell } from "@/components/site/shell";
 import { Nav } from "@/components/site/nav";
 import { Footer } from "@/components/site/footer";
 import { NotFoundContent } from "@/components/site/status-page";
+import { HardNav } from "@/components/site/hard-nav";
 import "./globals.css";
 import "./(site)/site.css";
 
@@ -30,6 +31,7 @@ export default function GlobalNotFound() {
   return (
     <html lang="en" className={cn("js surface-dark", mona.variable, jetbrains.variable)} suppressHydrationWarning>
       <body>
+        <HardNav />
         <a href="#main" className="skip-link">
           Skip to content
         </a>

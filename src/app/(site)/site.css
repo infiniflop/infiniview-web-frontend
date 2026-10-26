@@ -27,6 +27,7 @@ html.surface-dark {
   text-size-adjust: 100%;
   /* the fixed nav covers y 14–76: a control focused from the keyboard (Shift+Tab especially) must land below it */
   scroll-padding-top: 96px;
+  scroll-padding-bottom: 32px;
 }
 html:has(.site-root) body,
 html.surface-dark body {
@@ -94,6 +95,11 @@ html.lenis body {
   background: var(--iv-lime);
   color: #06070d;
 }
+/* the closing section is itself lime: a lime selection would vanish on it */
+.site-root .cta ::selection {
+  background: #070a02;
+  color: var(--iv-lime);
+}
 
 /* The ring follows each control's own shape (outlines follow border-radius in every current engine).
    This rule is unlayered, so it must never set a radius: it would override every component's own. */
@@ -153,7 +159,8 @@ html.lenis body {
   /* ── Type ────────────────────────────────────────────────────────────── */
 
   .t-display {
-    font-size: clamp(3.1rem, 8.4vw, 9.4rem);
+    /* the viewport-width cap only bites with enlarged text on a narrow screen: a word must fit its line */
+    font-size: min(clamp(3.1rem, 8.4vw, 9.4rem), 19vw);
     line-height: 0.93;
     letter-spacing: -0.05em;
     word-spacing: 0.07em;
@@ -162,7 +169,7 @@ html.lenis body {
     text-wrap: balance;
   }
   .t-h2 {
-    font-size: clamp(2.5rem, 6.4vw, 6.6rem);
+    font-size: min(clamp(2.5rem, 6.4vw, 6.6rem), 17vw);
     line-height: 0.95;
     letter-spacing: -0.046em;
     word-spacing: 0.06em;
@@ -195,6 +202,9 @@ html.lenis body {
     line-height: 1.5;
     color: var(--iv-ink-3);
   }
+  /* enlarged text: a word longer than its column breaks instead of running out of the screen */
+  .t-h3, .t-lede, .t-body, .faq-q { overflow-wrap: break-word; }
+  .t-display, .t-h2 { overflow-wrap: anywhere; } /* anywhere also lowers the minimum width, so a flex or grid column can shrink to the screen */
   .t-mono {
     font-family: var(--font-mono);
     font-size: 0.8125rem;
@@ -218,7 +228,7 @@ html.lenis body {
   .t-small,
   .plate-label,
   .hero-assure li {
-    text-shadow: 0 0 14px rgba(3, 4, 10, 0.7), 0 0 3px rgba(3, 4, 10, 0.4);
+    text-shadow: 0 0 14px rgba(3, 4, 10, 0.7), 0 0 3px rgba(3, 4, 10, 0.4), 0 0 34px rgba(3, 4, 10, 0.5); /* the wide layer keeps a bright probe light behind small copy from washing it out */
   }
   .cta .t-lede,
   .cta .t-body,
@@ -483,6 +493,14 @@ html.lenis body {
   html.js:not(.reveal-failsafe) .site-root [data-intro] {
     opacity: 0;
   }
+  /* the header arrives with the opening shot: until the motion layer has taken over it waits (opacity
+     only), so it does not show, vanish and fade back in when the page hydrates */
+  html.js:not(.reveal-failsafe):not([data-motion='ready']) .site-nav {
+    opacity: 0;
+  }
+  html.js:not(.reveal-failsafe):not([data-motion='ready']) .site-nav:focus-within {
+    opacity: 1;
+  }
   html.js:not(.reveal-failsafe) .site-root [data-reveal]:focus-within,
   html.js:not(.reveal-failsafe) .site-root [data-cta]:focus-within,
   html.js:not(.reveal-failsafe) .site-root [data-intro]:focus-within {
@@ -509,7 +527,8 @@ html.lenis body {
     html.js .site-root [data-split],
     html.js .site-root [data-hero-title],
     html.js .site-root [data-cta],
-    html.js .site-root [data-intro] {
+    html.js .site-root [data-intro],
+    html.js .site-nav {
       opacity: 1 !important;
       visibility: visible !important;
     }
@@ -637,7 +656,9 @@ html.lenis body {
     color: var(--iv-ink);
     cursor: pointer;
   }
-  @media (min-width: 1024px) {
+  /* The full bar needs ~58em; below that the menu button takes over. Measured in em (a container query),
+     not px, so larger text reaches the burger sooner instead of pushing "Early access" off the bar. */
+  @container navbar (min-width: 58.5em) {
     .nav-links { display: flex; }
     .nav-burger { display: none; }
   }
@@ -894,8 +915,8 @@ html.lenis body {
     gap: 8px 12px;
     padding-bottom: 16px;
   }
-  .scan-head > div { min-width: 0; }
-  .scan-head .t-small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .scan-head > div { min-width: 0; flex-wrap: wrap; row-gap: 4px; }
+  .scan-head .t-small { overflow-wrap: anywhere; min-width: 0; }
   .scan-pulse {
     width: 10px;
     height: 10px;
@@ -929,7 +950,8 @@ html.lenis body {
   }
   .scan-row {
     display: grid;
-    grid-template-columns: 56px minmax(0, 132px) minmax(0, 1fr);
+    /* in ems of the row's own text, so the columns grow with enlarged text instead of clipping it */
+    grid-template-columns: 3.9em minmax(0, 9.2em) minmax(0, 1fr);
     align-items: baseline;
     gap: 10px;
     padding: 9px 12px;
@@ -945,9 +967,7 @@ html.lenis body {
   }
   .scan-agent {
     color: var(--iv-ink-2);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
   }
   .scan-msg {
     display: inline-flex;
@@ -1649,6 +1669,8 @@ html.lenis body {
     transform-style: preserve-3d;
     overflow: hidden;
   }
+  .console-top > div { flex-wrap: wrap; min-width: 0; }
+  .console-top .t-small { overflow-wrap: anywhere; }
   .console-top {
     display: flex;
     flex-wrap: wrap;
@@ -1735,7 +1757,7 @@ html.lenis body {
   .rail-dot--high { background: #ff9a3c; box-shadow: 0 0 10px #ff9a3c; }
   .rail-text { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
   .rail-title { font-size: 0.98rem; font-weight: 600; line-height: 1.25; letter-spacing: -0.02em; text-wrap: balance; }
-  .rail-file { font-size: 0.74rem; color: var(--iv-ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rail-file { font-size: 0.74rem; color: var(--iv-ink-3); overflow-wrap: anywhere; }
 
   .rail-foot { display: none; }
   @media (min-width: 900px) {
@@ -2225,7 +2247,7 @@ html.lenis body {
   /* ── FAQ ─────────────────────────────────────────────────────────────── */
 
   .faq { padding-block: clamp(96px, 12vw, 200px); }
-  .faq-grid { display: grid; gap: clamp(32px, 5vw, 80px); }
+  .faq-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(32px, 5vw, 80px); }
   @media (min-width: 1024px) {
     .faq-grid { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); align-items: start; }
     .faq-side { position: sticky; top: 120px; }
@@ -2306,11 +2328,11 @@ html.lenis body {
     border: 2px solid rgba(7, 10, 2, 0.32);
     transform: scale(calc(1 - var(--i) * 0.16));
   }
-  .cta-inner { position: relative; display: grid; gap: clamp(28px, 4vw, 60px); }
+  .cta-inner { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(28px, 4vw, 60px); }
   @media (min-width: 1024px) {
     .cta-inner { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); align-items: end; }
   }
-  .cta-title { font-size: clamp(3rem, 8.2vw, 7.4rem); /* capped: its longest word must end inside its column at every width */ line-height: 0.9; letter-spacing: -0.055em; margin: 0; max-width: 11ch; color: #070a02; }
+  .cta-title { font-size: min(clamp(3rem, 8.2vw, 7.4rem), 17vw); /* capped: its longest word must end inside its column at every width */ line-height: 0.9; letter-spacing: -0.055em; margin: 0; max-width: 11ch; color: #070a02; }
   .cta-side { display: flex; flex-direction: column; gap: 26px; align-items: flex-start; }
   .cta-body { margin: 0; font-size: clamp(1.1rem, 1.5vw, 1.4rem); line-height: 1.5; max-width: 34ch; color: rgba(7, 10, 2, 0.82); font-weight: 500; }
   .cta-form { width: 100%; }
@@ -2342,7 +2364,7 @@ html.lenis body {
   .foot-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
   .foot-col h2 { margin: 0 0 14px; font-size: 0.9rem; font-weight: 500; color: var(--iv-ink-3); }
   .foot-col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
-  .foot-link { color: var(--iv-ink); text-decoration: none; font-size: 1rem; transition: color 0.2s; border-radius: 6px; }
+  .foot-link { overflow-wrap: anywhere; color: var(--iv-ink); text-decoration: none; font-size: 1rem; transition: color 0.2s; border-radius: 6px; }
   .foot-link:hover { color: var(--iv-lime); }
   .foot-word {
     margin-top: clamp(40px, 6vw, 96px);
@@ -2394,7 +2416,7 @@ html.lenis body {
   .plan { --r: 32px; min-width: 0; display: flex; flex-direction: column; gap: 18px; padding: clamp(22px, 2.4vw, 36px); }
   .plan--hi { box-shadow: inset 0 1px 0 rgba(255,255,255,.3), inset 0 0 0 1px rgba(210,251,90,.4), 0 0 90px -20px rgba(210,251,90,.35), 0 40px 90px -40px rgba(0,0,0,.85); }
   @media (min-width: 960px) { .plan--hi { transform: translateY(-14px); } }
-  .plan-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .plan-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; }
   .plan-name { margin: 0; }
   .plan-desc { margin: 0; min-height: 3.2em; }
   .plan-price { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
@@ -2417,7 +2439,8 @@ html.lenis body {
   .plan-notes i { width: 7px; height: 7px; border-radius: 2px; background: var(--iv-lime); box-shadow: 0 0 10px var(--iv-lime); }
   .price-cta { padding-bottom: clamp(96px, 12vw, 180px); }
   .price-cta-card { --r: 40px; display: flex; flex-direction: column; align-items: flex-start; gap: 28px; padding: clamp(28px, 5vw, 72px); }
-  .price-cta-card h2 { margin: 0; max-width: 14ch; }
+  .price-cta-card > * { min-width: 0; }
+  .price-cta-card h2 { margin: 0; max-width: min(14ch, 100%); }
 }
 
 @layer components {
@@ -2660,6 +2683,24 @@ html:not(.js) .site-root .dot--sig { opacity: 1; }
   .site-root .waitlist[data-status='error'],
   .site-root .waitlist[data-status='limited'] { outline: 2px dashed CanvasText; outline-offset: 2px; }
   .site-root .iris { display: none; } /* decorative rings would run through the copy */
+  /* the header floats over the page: without a real surface the content scrolls through it */
+  .site-root .nav-bar,
+  .site-root .nav-menu { background-color: Canvas; }
+  .site-root .ecard,
+  .site-root .console,
+  .site-root .term,
+  .site-root .code,
+  .site-root .doc,
+  .site-root .zterm { border: 1px solid CanvasText; }
+  /* selection is drawn with fills and shadows, which forced colours drop: mark it with a line */
+  .site-root .rail-item[aria-selected='true'],
+  .site-root .tab[aria-selected='true'] { outline: 3px solid Highlight; outline-offset: -3px; }
+  .site-root .layer-row[data-on='true'] { outline: 2px solid Highlight; outline-offset: -4px; }
+  .site-root .nav-link[aria-current],
+  .site-root .nav-menu-link[aria-current] { text-decoration: underline 2px; text-underline-offset: 6px; }
+  /* severity dots are coloured fills: solid for critical, ringed for high */
+  .site-root .rail-dot--critical { background: CanvasText; box-shadow: none; }
+  .site-root .rail-dot--high { background: Canvas; border: 2px solid CanvasText; box-shadow: none; }
   .site-root .btn--lime { forced-color-adjust: none; background: Highlight; color: HighlightText; }
 }
 

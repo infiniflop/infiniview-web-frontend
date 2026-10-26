@@ -91,11 +91,34 @@ export function SiteShell({ children }: { children: ReactNode }) {
     // position no longer means what it did. Remember where the reader was in terms of a section (and how
     // far through it), and put them back there once the new layout has settled.
     let anchor: { el: HTMLElement; ratio: number } | null = null;
+    // while a rebuild is settling the anchor is frozen: scroll events from the transitional layout
+    // (the browser clamping the position as pins come and go) must not overwrite where the reader was
+    let frozen: { el: HTMLElement; ratio: number } | null = null;
+    let freezeTimer = 0;
     let anchorRaf = 0;
+    // where the reader is, kept for this tab so a reload (or Back) can put them there again
+    const SCROLL_KEY = "iv:scroll:";
+    let saveTimer = 0;
+    let disposed = false;
+    let stopInputWatch = () => {};
+    const saveScroll = () => {
+      try {
+        sessionStorage.setItem(SCROLL_KEY + window.location.pathname, String(Math.round(window.scrollY)));
+      } catch {
+        /* storage can be unavailable */
+      }
+    };
+    const queueSave = () => {
+      window.clearTimeout(saveTimer);
+      saveTimer = window.setTimeout(() => {
+        if (!frozen) saveScroll();
+      }, 150);
+    };
     const sections = () => document.querySelectorAll<HTMLElement>("main > section[id], footer.foot");
     const trackAnchor = () => {
       cancelAnimationFrame(anchorRaf);
       anchorRaf = requestAnimationFrame(() => {
+        if (frozen) return;
         const y = window.scrollY;
         let best: HTMLElement | null = null;
         let bestTop = -Infinity;
@@ -113,14 +136,58 @@ export function SiteShell({ children }: { children: ReactNode }) {
     trackAnchor();
     const restoreTimers: number[] = [];
     onLayoutMode = () => {
-      const a = anchor; // the position from before this change (scroll events for it have not fired yet)
+      const a = frozen ?? anchor; // the position from before the first change of a burst
       if (!a) return;
+      frozen = a;
+      restoreTimers.splice(0).forEach((t) => window.clearTimeout(t));
+      window.clearTimeout(freezeTimer);
       const go = () => {
+        ScrollTrigger.refresh(); // the pins and the scroll-spy triggers measure the new layout
         if (!a.el.isConnected) return;
         scrollToTarget(documentTop(a.el) + a.ratio * a.el.offsetHeight, { immediate: true });
       };
       restoreTimers.push(window.setTimeout(go, 60), window.setTimeout(go, 400));
+      freezeTimer = window.setTimeout(() => {
+        frozen = null;
+        trackAnchor();
+      }, 800);
     };
+    window.addEventListener("scroll", queueSave, { passive: true });
+    window.addEventListener("pagehide", saveScroll);
+    const navType = (performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined)?.type;
+    if ((navType === "reload" || navType === "back_forward") && !window.location.hash) {
+      let saved = 0;
+      try {
+        saved = Number(sessionStorage.getItem(SCROLL_KEY + window.location.pathname)) || 0;
+      } catch {
+        /* storage can be unavailable */
+      }
+      if (saved > 600) {
+        // the browser restores the position while the page is still short (the pins are not built yet) and
+        // clamps it: once the layout has settled, put the reader back, unless they have already moved
+        let moved = false;
+        const noteInput = () => {
+          moved = true;
+        };
+        window.addEventListener("wheel", noteInput, { once: true, passive: true });
+        window.addEventListener("touchstart", noteInput, { once: true, passive: true });
+        window.addEventListener("keydown", noteInput, { once: true });
+        stopInputWatch = () => {
+          window.removeEventListener("wheel", noteInput);
+          window.removeEventListener("touchstart", noteInput);
+          window.removeEventListener("keydown", noteInput);
+        };
+        const settle = () => {
+          if (disposed || moved) return;
+          ScrollTrigger.refresh();
+          if (Math.abs(window.scrollY - saved) > 200) scrollToTarget(saved, { immediate: true });
+        };
+        const ready = document.fonts?.ready ?? Promise.resolve();
+        ready.then(() => {
+          if (!disposed) restoreTimers.push(window.setTimeout(settle, 250), window.setTimeout(settle, 900));
+        });
+      }
+    }
     const layoutQueries = [
       "(min-width: 1024px)",
       "(min-height: 560px)",
@@ -216,7 +283,13 @@ export function SiteShell({ children }: { children: ReactNode }) {
       mqReduce.removeEventListener("change", onMotionPref);
       layoutQueries.forEach((mq) => mq.removeEventListener("change", layoutListener));
       window.removeEventListener("scroll", trackAnchor);
+      window.removeEventListener("pagehide", saveScroll);
+      window.removeEventListener("scroll", queueSave);
+      disposed = true;
+      stopInputWatch();
+      window.clearTimeout(saveTimer);
       cancelAnimationFrame(anchorRaf);
+      window.clearTimeout(freezeTimer);
       restoreTimers.forEach((t) => window.clearTimeout(t));
       window.removeEventListener("wheel", dropInflight);
       window.removeEventListener("touchstart", dropInflight);
