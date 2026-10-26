@@ -63,12 +63,25 @@ export function SiteShell({ children }: { children: ReactNode }) {
     gsap.ticker.add(tick);
     gsap.ticker.lagSmoothing(0);
 
+    // The motion preference can change while the page is open: smooth scrolling and the pointer-driven
+    // light follow it live (Lenis reads its options on every wheel event).
+    const mqReduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const onMotionPref = () => {
+      if (lenis) lenis.options.smoothWheel = !mqReduce.matches;
+      if (mqReduce.matches) {
+        scene.tx = 0;
+        scene.ty = 0;
+      }
+    };
+    mqReduce.addEventListener("change", onMotionPref);
+
     // pointer → corridor light
     const onMove = (e: PointerEvent) => {
+      if (mqReduce.matches) return;
       scene.tx = (e.clientX / window.innerWidth) * 2 - 1;
       scene.ty = -((e.clientY / window.innerHeight) * 2 - 1);
     };
-    if (!coarse && !reduced) window.addEventListener("pointermove", onMove, { passive: true });
+    if (!coarse) window.addEventListener("pointermove", onMove, { passive: true });
 
     // intro: fly the camera in from far away (the page's opening shot)
     if (!reduced) {
@@ -126,6 +139,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
       gsap.ticker.lagSmoothing(500, 33); // GSAP's defaults, which this effect overrode
       gsap.ticker.remove(tick);
       window.removeEventListener("pointermove", onMove);
+      mqReduce.removeEventListener("change", onMotionPref);
       document.removeEventListener("click", onClick);
       window.removeEventListener("popstate", onPop);
       lenis?.destroy();
@@ -163,7 +177,8 @@ export function SiteShell({ children }: { children: ReactNode }) {
 
   /* ── Pointer-lit glass ──────────────────────────────────────────────── */
   useEffect(() => {
-    if (isCoarsePointer() || prefersReducedMotion()) return;
+    if (isCoarsePointer()) return;
+    const mqReduce = window.matchMedia("(prefers-reduced-motion: reduce)");
     const visible = new Set<HTMLElement>();
     const io = new IntersectionObserver(
       (entries) => {
@@ -188,6 +203,16 @@ export function SiteShell({ children }: { children: ReactNode }) {
     let queued = false;
     const paint = () => {
       queued = false;
+      // reduced motion (also if switched on while the page is open): no pointer light at all
+      if (mqReduce.matches) {
+        visible.forEach((el) => {
+          if (el.dataset.lit === "1") {
+            el.style.setProperty("--lit", "0");
+            el.dataset.lit = "0";
+          }
+        });
+        return;
+      }
       // read every rect first, then write: interleaving reads and writes forces a synchronous
       // layout per element on every pointer/scroll frame
       const els = [...visible];
@@ -229,7 +254,9 @@ export function SiteShell({ children }: { children: ReactNode }) {
     };
     window.addEventListener("pointermove", onMove, { passive: true });
     window.addEventListener("scroll", queue, { passive: true });
+    mqReduce.addEventListener("change", queue);
     return () => {
+      mqReduce.removeEventListener("change", queue);
       window.clearTimeout(rescan);
       io.disconnect();
       window.removeEventListener("pointermove", onMove);

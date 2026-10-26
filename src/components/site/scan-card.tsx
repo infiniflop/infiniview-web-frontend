@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { gsap, ScrollTrigger, useGSAP, prefersReducedMotion } from "@/lib/site/gsap";
+import { gsap, ScrollTrigger, useGSAP } from "@/lib/site/gsap";
 import { WIRE_EVENTS } from "@/lib/site/content";
 
 const TONE: Record<string, string> = {
@@ -31,57 +31,65 @@ export function ScanCard() {
       const bar = el.querySelector<HTMLElement>("[data-bar]");
       if (!crit || !high || !posted || !live || !bar) return;
 
-      if (prefersReducedMotion()) {
+      // two media contexts, so the stream stops on a finished scan (and resumes) when the motion
+      // preference changes while the page is open
+      const mm = gsap.matchMedia();
+
+      mm.add("(prefers-reduced-motion: reduce)", () => {
         crit.textContent = "1";
         high.textContent = "1";
         live.textContent = "Complete";
         gsap.set([...rows, posted], { autoAlpha: 1 });
         gsap.set(bar, { scaleX: 1 });
-        return;
-      }
+      });
 
-      gsap.set([...rows, posted], { opacity: 0, y: 10 });
-      gsap.set(bar, { scaleX: 0, transformOrigin: "0 50%" });
+      mm.add("(prefers-reduced-motion: no-preference)", () => {
+        crit.textContent = "0";
+        high.textContent = "0";
+        live.textContent = "Scanning";
+        gsap.set([...rows, posted], { opacity: 0, y: 10 });
+        gsap.set(bar, { scaleX: 0, transformOrigin: "0 50%" });
 
-      const tl = gsap.timeline({
-        paused: true,
-        repeat: -1,
-        repeatDelay: 0.2,
-        defaults: { ease: "power3.out" },
-        onRepeat: () => {
-          crit.textContent = "0";
-          high.textContent = "0";
-          live.textContent = "Scanning";
-        },
+        const tl = gsap.timeline({
+          paused: true,
+          repeat: -1,
+          repeatDelay: 0.2,
+          defaults: { ease: "power3.out" },
+          onRepeat: () => {
+            crit.textContent = "0";
+            high.textContent = "0";
+            live.textContent = "Scanning";
+          },
+        });
+        tl.set(live, { textContent: "Scanning" }, 0);
+        rows.forEach((row, i) => {
+          const at = 0.35 + i * 0.7;
+          tl.to(row, { opacity: 1, y: 0, duration: 0.55 }, at);
+          tl.to(bar, { scaleX: (i + 1) / rows.length, duration: 0.6, ease: "power2.out" }, at);
+          if (i === 2) tl.call(() => { crit.textContent = "1"; }, [], at + 0.1);
+          if (i === 3) tl.call(() => { high.textContent = "1"; }, [], at + 0.1);
+        });
+        const end = 0.35 + rows.length * 0.7;
+        tl.to(posted, { opacity: 1, y: 0, duration: 0.6 }, end);
+        tl.call(() => { live.textContent = "Complete"; }, [], end);
+        // hold the finished scan, then quickly clear and replay
+        tl.to([...rows, posted], { opacity: 0, y: -6, duration: 0.35, ease: "power1.in" }, end + 7);
+        tl.to(bar, { scaleX: 0, duration: 0.35, ease: "power1.in" }, end + 7);
+        tl.set(rows, { y: 10 }, end + 7.4);
+        tl.set(posted, { y: 10 }, end + 7.4);
+        const st = ScrollTrigger.create({
+          trigger: el,
+          start: "top 95%",
+          end: "bottom 5%",
+          onEnter: () => tl.play(),
+          onEnterBack: () => tl.play(),
+          onLeave: () => tl.pause(),
+          onLeaveBack: () => tl.pause(),
+        });
+        // let the hero intro land first
+        gsap.delayedCall(1.6, () => st.isActive && tl.play());
       });
-      tl.set(live, { textContent: "Scanning" }, 0);
-      rows.forEach((row, i) => {
-        const at = 0.35 + i * 0.7;
-        tl.to(row, { opacity: 1, y: 0, duration: 0.55 }, at);
-        tl.to(bar, { scaleX: (i + 1) / rows.length, duration: 0.6, ease: "power2.out" }, at);
-        if (i === 2) tl.call(() => { crit.textContent = "1"; }, [], at + 0.1);
-        if (i === 3) tl.call(() => { high.textContent = "1"; }, [], at + 0.1);
-      });
-      const end = 0.35 + rows.length * 0.7;
-      tl.to(posted, { opacity: 1, y: 0, duration: 0.6 }, end);
-      tl.call(() => { live.textContent = "Complete"; }, [], end);
-      // hold the finished scan, then quickly clear and replay
-      tl.to([...rows, posted], { opacity: 0, y: -6, duration: 0.35, ease: "power1.in" }, end + 7);
-      tl.to(bar, { scaleX: 0, duration: 0.35, ease: "power1.in" }, end + 7);
-      tl.set(rows, { y: 10 }, end + 7.4);
-      tl.set(posted, { y: 10 }, end + 7.4);
-      const st = ScrollTrigger.create({
-        trigger: el,
-        start: "top 95%",
-        end: "bottom 5%",
-        onEnter: () => tl.play(),
-        onEnterBack: () => tl.play(),
-        onLeave: () => tl.pause(),
-        onLeaveBack: () => tl.pause(),
-      });
-      // let the hero intro land first
-      gsap.delayedCall(1.6, () => st.isActive && tl.play());
-      return () => st.kill();
+      return () => mm.revert();
     },
     { scope: root },
   );

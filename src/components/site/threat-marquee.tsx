@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { gsap, useGSAP, prefersReducedMotion } from "@/lib/site/gsap";
+import { gsap, useGSAP } from "@/lib/site/gsap";
 import { scene } from "@/lib/site/scene";
 import { THREATS } from "@/lib/site/content";
 import { Mark } from "@/components/site/ui";
@@ -20,32 +20,38 @@ export function ThreatMarquee() {
     () => {
       const a = rowA.current;
       const b = rowB.current;
-      if (!a || !b || prefersReducedMotion()) return;
+      if (!a || !b) return;
 
-      const tlA = gsap.to(a, { xPercent: -50, ease: "none", duration: 80, repeat: -1 });
-      const tlB = gsap.fromTo(b, { xPercent: -50 }, { xPercent: 0, ease: "none", duration: 95, repeat: -1 });
+      // a media context, so the drift stops (and the rows return to rest) if reduced motion is
+      // switched on while the page is open, and starts again if it is switched off
+      const mm = gsap.matchMedia();
+      mm.add("(prefers-reduced-motion: no-preference)", () => {
+        const tlA = gsap.to(a, { xPercent: -50, ease: "none", duration: 80, repeat: -1 });
+        const tlB = gsap.fromTo(b, { xPercent: -50 }, { xPercent: 0, ease: "none", duration: 95, repeat: -1 });
 
-      const skewA = gsap.quickTo(a, "skewX", { duration: 0.6, ease: "power3.out" });
-      const skewB = gsap.quickTo(b, "skewX", { duration: 0.6, ease: "power3.out" });
+        const skewA = gsap.quickTo(a, "skewX", { duration: 0.6, ease: "power3.out" });
+        const skewB = gsap.quickTo(b, "skewX", { duration: 0.6, ease: "power3.out" });
 
-      let visible = true;
-      const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; }, { rootMargin: "200px" });
-      io.observe(root.current!);
+        let visible = true;
+        const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; }, { rootMargin: "200px" });
+        io.observe(root.current!);
 
-      const tick = () => {
-        if (!visible) return;
-        const v = scene.velocity;
-        const boost = 1 + Math.abs(v) * 14;
-        tlA.timeScale(boost);
-        tlB.timeScale(boost);
-        skewA(-v * 9);
-        skewB(-v * 9);
-      };
-      gsap.ticker.add(tick);
-      return () => {
-        gsap.ticker.remove(tick);
-        io.disconnect();
-      };
+        const tick = () => {
+          if (!visible) return;
+          const v = scene.velocity;
+          const boost = 1 + Math.abs(v) * 14;
+          tlA.timeScale(boost);
+          tlB.timeScale(boost);
+          skewA(-v * 9);
+          skewB(-v * 9);
+        };
+        gsap.ticker.add(tick);
+        return () => {
+          gsap.ticker.remove(tick);
+          io.disconnect();
+        };
+      });
+      return () => mm.revert();
     },
     { scope: root },
   );
