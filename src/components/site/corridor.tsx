@@ -28,6 +28,9 @@ export function Corridor() {
     canvas.className = "corridor";
     canvas.setAttribute("aria-hidden", "true");
     host.appendChild(canvas);
+    // Settle the canvas at opacity 0 before anything is drawn: it is revealed with a fade after its first
+    // frame (below), so neither a blank frame nor a hard cut over the page ever shows.
+    void getComputedStyle(canvas).opacity;
 
     const cleanups: Array<() => void> = [() => canvas.remove()];
     const dispose = () => {
@@ -135,6 +138,7 @@ export function Corridor() {
 
     const t0 = performance.now();
     let lostContext = false;
+    let shown = false;
 
     const render = () => {
       if (lostContext) return;
@@ -179,6 +183,10 @@ export function Corridor() {
       gl.uniform2f(U.vp, vpx, vpy);
       gl.uniform1f(U.still, reduced ? 1 : 0);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
+      if (!shown) {
+        shown = true;
+        canvas.dataset.ready = "";
+      }
 
       // frame-time governor: shed pixels if we are consistently slow — but verify it helps. If a
       // lower resolution does not speed frames up, the limit is elsewhere (a capped refresh rate

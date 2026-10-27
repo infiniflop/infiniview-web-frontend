@@ -8,6 +8,7 @@ import {
   ScrollTrigger,
   SplitText,
   useGSAP,
+  parkBelowMask,
   prefersReducedMotion,
   isCoarsePointer,
 } from "@/lib/site/gsap";
@@ -240,7 +241,9 @@ export function SiteShell({ children }: { children: ReactNode }) {
       navIntro = gsap.fromTo(
         navEl,
         { opacity: 0, y: -36 },
-        { opacity: 1, y: 0, duration: 1.2, ease: "expo.out", delay: 0.45, clearProps: "transform" },
+        // lazy: false: the pose is applied now, not on the next tick, because the CSS that hides the header
+        // until the motion layer is up is lifted a few lines below
+        { opacity: 1, y: 0, duration: 1.2, ease: "expo.out", delay: 0.45, clearProps: "transform", lazy: false },
       );
     }
 
@@ -452,7 +455,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
                 if (cancelled) return;
                 gsap.set(el, { visibility: "visible", opacity: 1 });
                 return gsap.from(self.lines, {
-                  yPercent: 135,
+                  y: parkBelowMask,
                   rotate: 2.5,
                   transformOrigin: "0% 100%",
                   duration: 1.25,

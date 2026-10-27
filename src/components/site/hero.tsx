@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { gsap, SplitText, useGSAP } from "@/lib/site/gsap";
+import { gsap, SplitText, useGSAP, parkBelowMask } from "@/lib/site/gsap";
 import { HERO } from "@/lib/site/content";
 import { WaitlistForm } from "@/components/site/waitlist-form";
 import { ScanCard } from "@/components/site/scan-card";
@@ -42,9 +42,9 @@ export function Hero() {
             gsap.set(el, { autoAlpha: 1 });
             return gsap.fromTo(
               self.lines,
-              { yPercent: 135, rotate: 3.5, fontVariationSettings: "'wdth' 72" },
+              { y: parkBelowMask, rotate: 3.5, fontVariationSettings: "'wdth' 72" },
               {
-                yPercent: 0,
+                y: 0,
                 rotate: 0,
                 fontVariationSettings: "'wdth' 100",
                 transformOrigin: "0% 100%",
