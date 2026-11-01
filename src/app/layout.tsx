@@ -78,7 +78,8 @@ export default function RootLayout({
       </head>
       <body>
         {children}
-        <Analytics />
+        {/* the script lives at /_vercel/insights, which only exists on Vercel: elsewhere it would 404 */}
+        {process.env.VERCEL ? <Analytics /> : null}
       </body>
     </html>
   );

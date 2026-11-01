@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { cn } from "@/lib/utils";
-import { mona, jetbrains } from "@/lib/site/fonts";
+import { mona404 } from "@/lib/site/fonts-404";
 import { SiteShell } from "@/components/site/shell";
 import { Nav } from "@/components/site/nav";
 import { Footer } from "@/components/site/footer";
@@ -25,12 +25,12 @@ export const viewport: Viewport = {
 
 /**
  * The 404 for every URL that matches no route. It is a document of its own (Next's global-not-found),
- * so the marketing stylesheet and fonts are loaded here and by the site routes only, never by /preview.
+ * so the marketing stylesheet and the text font are loaded here and by the site routes only, never by /preview.
  * It has to run the root layout's bootstrap script itself, and keep the dark surface for the no-script case.
  */
 export default function GlobalNotFound() {
   return (
-    <html lang="en" className={cn("surface-dark", mona.variable, jetbrains.variable)} suppressHydrationWarning>
+    <html lang="en" className={cn("surface-dark", mona404.variable)} suppressHydrationWarning>
       <head>
         {/* flags `js` (and arms the failsafe) only when script runs: with scripts off nothing is gated */}
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />

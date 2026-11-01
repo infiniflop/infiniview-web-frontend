@@ -10,7 +10,7 @@ export function NotFoundContent() {
         The page you’re after (a 404) isn’t part of the corridor. It may have moved, or the link may be wrong.
       </p>
       <div className="status-actions">
-        <Link href="/" className="btn btn--lime">
+        <Link href="/" prefetch={false} className="btn btn--lime">
           Back to the start
           <ArrowRight className="arrow" size={17} strokeWidth={2.6} />
         </Link>

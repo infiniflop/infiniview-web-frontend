@@ -7,6 +7,7 @@ import { ArrowRight, Menu, X } from "lucide-react";
 import { gsap, ScrollTrigger, useGSAP, prefersReducedMotion, spring } from "@/lib/site/gsap";
 import { getLenis, scrollToTarget, anchorPlan } from "@/lib/site/scroll";
 import { Mark, Magnetic } from "@/components/site/ui";
+import { useSitePrefetch } from "@/lib/site/prefetch";
 import { DOCS_URL } from "@/lib/site/content";
 
 const LINKS = [
@@ -67,6 +68,7 @@ function SectionLink({
   children,
   ...rest
 }: { isHome: boolean; href: string } & Omit<React.ComponentProps<"a">, "href">) {
+  const prefetch = useSitePrefetch();
   if (isHome) {
     return (
       <a href={href} {...rest}>
@@ -75,7 +77,7 @@ function SectionLink({
     );
   }
   return (
-    <Link href={href} {...rest}>
+    <Link href={href} prefetch={prefetch} {...rest}>
       {children}
     </Link>
   );
@@ -83,6 +85,7 @@ function SectionLink({
 
 export function Nav() {
   const pathname = usePathname();
+  const prefetch = useSitePrefetch();
   const isHome = pathname === "/";
   const [open, setOpen] = useState(false);
   // The menu stays mounted while it leaves: departures gather speed (ease-in) instead of vanishing.
@@ -341,6 +344,7 @@ export function Nav() {
         >
           <Link
             href="/"
+            prefetch={prefetch}
             transitionTypes={["route-back"]}
             aria-label="Infiniview home"
             className="nav-brand"
@@ -381,6 +385,7 @@ export function Nav() {
             ))}
             <Link
               href="/pricing"
+              prefetch={prefetch}
               transitionTypes={["route-forward"]}
               data-nav="pricing"
               aria-current={pathname === "/pricing" ? "page" : undefined}
@@ -448,7 +453,7 @@ export function Nav() {
                 {l.label}
               </SectionLink>
             ))}
-            <Link data-m href="/pricing" transitionTypes={["route-forward"]} className="nav-menu-link" aria-current={pathname === "/pricing" ? "page" : undefined} onClick={() => setOpen(false)}>
+            <Link data-m href="/pricing" prefetch={prefetch} transitionTypes={["route-forward"]} className="nav-menu-link" aria-current={pathname === "/pricing" ? "page" : undefined} onClick={() => setOpen(false)}>
               Pricing
             </Link>
             <a data-m href={DOCS_URL} className="nav-menu-link">

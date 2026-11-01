@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { Mark } from "@/components/site/ui";
 import { HashLink } from "@/components/site/hash-link";
+import { SiteLink } from "@/components/site/site-link";
 import { FOOTER_LINKS } from "@/lib/site/content";
 
 const INTERNAL = new Set(["/pricing", "/preview"]);
@@ -48,9 +48,9 @@ export function Footer() {
                           {l.label}
                         </HashLink>
                       ) : INTERNAL.has(l.href) ? (
-                        <Link href={l.href} transitionTypes={l.href === "/pricing" ? ["route-forward"] : undefined} prefetch={l.href === "/preview" ? false : undefined} className="foot-link">
+                        <SiteLink href={l.href} transitionTypes={l.href === "/pricing" ? ["route-forward"] : undefined} prefetch={l.href === "/preview" ? false : undefined} className="foot-link">
                           {l.label}
-                        </Link>
+                        </SiteLink>
                       ) : (
                         <a href={l.href} className="foot-link">
                           {l.label}

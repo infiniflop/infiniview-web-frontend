@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
 import type { Viewport } from "next";
 import { cn } from "@/lib/utils";
-import { mona, jetbrains } from "@/lib/site/fonts";
+import { mona } from "@/lib/site/fonts";
+import { jetbrains } from "@/lib/site/fonts-mono";
 import { SiteShell } from "@/components/site/shell";
 import { Nav } from "@/components/site/nav";
 import { Footer } from "@/components/site/footer";

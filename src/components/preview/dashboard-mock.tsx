@@ -152,6 +152,7 @@ function DemoSidebar({
       <div className="flex h-16 shrink-0 items-center justify-between gap-2.5 border-b border-sidebar-border px-4">
         <Link
           href="/"
+          prefetch={false}
           className="flex items-center gap-2.5 transition-opacity hover:opacity-80"
         >
           <span className="brand-mark shrink-0" />
@@ -200,6 +201,7 @@ function DemoSidebar({
         })}
 
         <Link
+          prefetch={false}
           href="https://docs.infiniview.dev"
           target="_blank"
           rel="noreferrer"
@@ -273,6 +275,7 @@ function DemoSidebar({
               </span>
               <Link
                 href="/"
+                prefetch={false}
                 aria-label="Exit demo"
                 title="Exit demo"
                 className="p-1 text-muted-foreground transition-colors hover:text-foreground"
@@ -315,6 +318,7 @@ function DemoHeader({
 
       <Link
         href="/"
+        prefetch={false}
         className="ml-1.5 hidden h-6 items-center gap-1.5 border border-border bg-card px-2.5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:border-border-accent hover:text-foreground sm:inline-flex"
       >
         <X size={11} />
@@ -336,6 +340,7 @@ function DemoHeader({
           </kbd>
         </button>
         <Link
+          prefetch={false}
           href="/#waitlist"
           className="btn-lime whitespace-nowrap px-3 py-2 font-mono text-[11px] uppercase tracking-[0.08em] md:px-4 md:py-2.5"
         >
@@ -387,6 +392,7 @@ function ComingSoonView({
         {copy.body}
       </p>
       <Link
+        prefetch={false}
         href="/#waitlist"
         className="btn-lime mt-6 px-5 py-2.5 font-mono text-[11px] uppercase tracking-[0.08em]"
       >

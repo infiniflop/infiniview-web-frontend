@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ComponentProps } from "react";
+import { useSitePrefetch } from "@/lib/site/prefetch";
 
 /**
  * A link to "/#section". On the home page it is a plain same-page anchor, so the shell's smooth,
@@ -11,6 +12,7 @@ import type { ComponentProps } from "react";
  */
 export function HashLink({ href, children, ...rest }: { href: string } & Omit<ComponentProps<"a">, "href">) {
   const pathname = usePathname();
+  const prefetch = useSitePrefetch();
   if (pathname === "/" && href.startsWith("/#")) {
     return (
       <a href={href.slice(1)} {...rest}>
@@ -19,7 +21,7 @@ export function HashLink({ href, children, ...rest }: { href: string } & Omit<Co
     );
   }
   return (
-    <Link href={href} {...rest}>
+    <Link href={href} prefetch={prefetch} {...rest}>
       {children}
     </Link>
   );
