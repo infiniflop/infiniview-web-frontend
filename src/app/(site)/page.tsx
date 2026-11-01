@@ -7,22 +7,25 @@ import { Arsenal } from "@/components/site/arsenal";
 import { Features } from "@/components/site/features";
 import { Faq } from "@/components/site/faq";
 import { FinalCta } from "@/components/site/final-cta";
+import { RouteTransition } from "@/components/site/route-transition";
 import { FAQS } from "@/lib/site/content";
 import { faqPage, jsonLd } from "@/lib/site/jsonld";
 
 export default function LandingPage() {
   return (
-    <main id="main">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqPage(FAQS)) }} />
-      <Hero />
-      <ThreatMarquee />
-      <Statement />
-      <Pipeline />
-      <FindingsExplorer />
-      <Arsenal />
-      <Features />
-      <Faq />
-      <FinalCta />
-    </main>
+    <RouteTransition>
+      <main id="main">
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqPage(FAQS)) }} />
+        <Hero />
+        <ThreatMarquee />
+        <Statement />
+        <Pipeline />
+        <FindingsExplorer />
+        <Arsenal />
+        <Features />
+        <Faq />
+        <FinalCta />
+      </main>
+    </RouteTransition>
   );
 }

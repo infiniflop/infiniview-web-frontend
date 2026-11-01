@@ -12,6 +12,7 @@ import {
   isCoarsePointer,
 } from "@/lib/site/gsap";
 import { scene } from "@/lib/site/scene";
+import { whenFirstScreen } from "@/lib/site/ready";
 import { setLenis, scrollToTarget, settleScroll, dropInflight, focusWhenReady, anchorPlan, documentTop, hasInflight } from "@/lib/site/scroll";
 import { Corridor } from "@/components/site/corridor";
 
@@ -235,22 +236,19 @@ export function SiteShell({ children }: { children: ReactNode }) {
     // the header arrives with the opening shot, once per page load (not on every client-side return)
     let navIntro: gsap.core.Tween | null = null;
     const navEl = document.querySelector(".site-nav");
-    if (!reduced && !late && !navIntroPlayed && navEl) {
-      navIntroPlayed = true;
-      navIntro = gsap.fromTo(
-        navEl,
-        { opacity: 0, y: -36 },
-        { opacity: 1, y: 0, duration: 1.2, ease: "expo.out", delay: 0.45, clearProps: "transform" },
-      );
-    }
-
-    // intro: fly the camera in from far away (the page's opening shot)
+    // The opening shot (nav, camera fly-in, and the hero's own entrance) starts together, once the
+    // corridor has drawn its first frame and the font is in (lib/site/ready.ts; capped).
+    let cancelOpening = () => {};
     if (!reduced && !late) {
-      intro = gsap.fromTo(
-        scene,
-        { intro: -6 },
-        { intro: 0, duration: 3.4, ease: "expo.out", delay: 0.05 },
-      );
+      scene.intro = -6; // the first frame is drawn from far away
+      if (navEl && !navIntroPlayed) gsap.set(navEl, { opacity: 0, y: -36 });
+      cancelOpening = whenFirstScreen(() => {
+        if (navEl && !navIntroPlayed) {
+          navIntroPlayed = true;
+          navIntro = gsap.to(navEl, { opacity: 1, y: 0, duration: 1.2, ease: "expo.out", delay: 0.2, clearProps: "transform" });
+        }
+        intro = gsap.fromTo(scene, { intro: -6 }, { intro: 0, duration: 3.4, ease: "expo.out" });
+      });
     } else {
       scene.intro = 0;
     }
@@ -300,6 +298,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
       if (navIntro && navIntro.progress() < 1) navIntroPlayed = false; // an interrupted entrance (StrictMode) plays again
       navIntro?.kill();
       if (navEl?.isConnected) gsap.set(navEl, { clearProps: "opacity,transform" });
+      cancelOpening();
       intro?.kill();
       gsap.ticker.lagSmoothing(500, 33); // GSAP's defaults, which this effect overrode
       gsap.ticker.remove(tick);
@@ -333,6 +332,9 @@ export function SiteShell({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (lastPath.current === pathname) return;
     lastPath.current = pathname;
+    // the corridor lurches with the page change (forward to Pricing, back to Home): the roll and the
+    // colour fringing the shader ties to scroll velocity, decaying on its own
+    if (!prefersReducedMotion()) scene.velocity = pathname === "/" ? -1 : 1;
     const main = document.getElementById("main");
     if (!main) return;
     if (!main.hasAttribute("tabindex")) main.setAttribute("tabindex", "-1");
@@ -382,13 +384,33 @@ export function SiteShell({ children }: { children: ReactNode }) {
     () => {
       const mm = gsap.matchMedia();
 
-      mm.add("(prefers-reduced-motion: no-preference)", () => {
+      mm.add("(prefers-reduced-motion: no-preference)", (ctx) => {
         if (document.documentElement.classList.contains("reveal-failsafe")) {
           // late boot (see the engine): what the failsafe showed stays shown, with no entrance replay
           document.querySelectorAll("[data-reveal],[data-cta]").forEach((el) => el.setAttribute("data-revealed", ""));
           gsap.set("[data-split],[data-intro],[data-hero-title]", { opacity: 1 });
           return;
         }
+        // Keyboard focus lands inside something that has not scrolled in yet (Tab, skip links, find in
+        // page): show it at once, and keep the scroll-reveal from replaying over it. (Not gated: a
+        // keyboard user must never be waiting for an animation.)
+        const onFocusIn = (e: FocusEvent) => {
+          const el = (e.target as Element | null)?.closest<HTMLElement>("[data-reveal],[data-cta]");
+          if (!el || el.hasAttribute("data-revealed")) return;
+          el.setAttribute("data-revealed", "");
+          gsap.killTweensOf(el);
+          gsap.set(el, { opacity: 1, y: 0, scale: 1, clearProps: "transform" });
+        };
+        document.addEventListener("focusin", onFocusIn);
+
+        // Reveals and split headings are set up once the first screen is ready (lib/site/ready.ts), so
+        // nothing in the opening view moves before the corridor is there to sit in front of. On later
+        // route changes the gate is already open and this runs on the next frame. The triggers are
+        // created asynchronously, so they are added to this media context explicitly.
+        const splits: SplitText[] = [];
+        let cancelled = false;
+        const setup = () => {
+        if (cancelled) return;
         // 1. staggered reveals for anything marked data-reveal
         const items = gsap.utils.toArray<HTMLElement>("[data-reveal]");
         ScrollTrigger.batch(items, {
@@ -423,22 +445,10 @@ export function SiteShell({ children }: { children: ReactNode }) {
           },
         });
 
-        // Keyboard focus lands inside something that has not scrolled in yet (Tab, skip links, find in
-        // page): show it at once, and keep the scroll-reveal from replaying over it.
-        const onFocusIn = (e: FocusEvent) => {
-          const el = (e.target as Element | null)?.closest<HTMLElement>("[data-reveal],[data-cta]");
-          if (!el || el.hasAttribute("data-revealed")) return;
-          el.setAttribute("data-revealed", "");
-          gsap.killTweensOf(el);
-          gsap.set(el, { opacity: 1, y: 0, scale: 1, clearProps: "transform" });
-        };
-        document.addEventListener("focusin", onFocusIn);
 
         // 2. split headings: lines rise out of masks. autoSplit re-splits once the web font arrives,
         // so line breaks are never frozen at fallback-font metrics; every split is reverted with the
         // route (this callback's cleanup), so nothing outlives the page that created it.
-        const splits: SplitText[] = [];
-        let cancelled = false;
         gsap.utils.toArray<HTMLElement>("[data-split]").forEach((el) => {
           if (cancelled) return;
           splits.push(
@@ -452,7 +462,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
                 if (cancelled) return;
                 gsap.set(el, { visibility: "visible", opacity: 1 });
                 return gsap.from(self.lines, {
-                  yPercent: 135,
+                  yPercent: 190, // clear of the mask's descender padding (see hero.tsx)
                   rotate: 2.5,
                   transformOrigin: "0% 100%",
                   duration: 1.25,
@@ -465,9 +475,14 @@ export function SiteShell({ children }: { children: ReactNode }) {
           );
         });
         ScrollTrigger.refresh();
+        };
+        const cancelGate = whenFirstScreen(() => {
+          if (!cancelled) ctx.add(setup);
+        });
 
         return () => {
           cancelled = true;
+          cancelGate();
           document.removeEventListener("focusin", onFocusIn);
           splits.forEach((sp) => sp.revert());
         };

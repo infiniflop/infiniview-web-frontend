@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowRight, Menu, X } from "lucide-react";
-import { gsap, ScrollTrigger, useGSAP, prefersReducedMotion } from "@/lib/site/gsap";
+import { gsap, ScrollTrigger, useGSAP, prefersReducedMotion, spring } from "@/lib/site/gsap";
 import { getLenis, scrollToTarget, anchorPlan } from "@/lib/site/scroll";
 import { Mark, Magnetic } from "@/components/site/ui";
 import { DOCS_URL } from "@/lib/site/content";
@@ -85,6 +85,14 @@ export function Nav() {
   const pathname = usePathname();
   const isHome = pathname === "/";
   const [open, setOpen] = useState(false);
+  // The menu stays mounted while it leaves: departures gather speed (ease-in) instead of vanishing.
+  // `exiting` is derived while rendering (the value of `open` it last saw), not set from an effect.
+  const [seenOpen, setSeenOpen] = useState(false);
+  const [exiting, setExiting] = useState(false);
+  if (seenOpen !== open) {
+    setSeenOpen(open);
+    setExiting(!open && !prefersReducedMotion());
+  }
   const [active, setActive] = useState<string | null>(null);
 
   const linksRef = useRef<HTMLDivElement>(null);
@@ -108,8 +116,21 @@ export function Nav() {
     const tr = target.getBoundingClientRect();
     const vars = { x: tr.left - wr.left, width: tr.width, autoAlpha: 1 };
     if (instant) gsap.set(pill, vars);
-    else gsap.to(pill, { ...vars, duration: 0.45, ease: "power3.out", overwrite: "auto" });
+    else gsap.to(pill, { ...vars, duration: 0.7, ease: spring, overwrite: "auto" });
   }, []);
+
+  useEffect(() => {
+    if (!exiting) return;
+    const m = menuRef.current;
+    if (!m) return;
+    const items = m.querySelectorAll("[data-m]");
+    gsap.killTweensOf([m, items]);
+    gsap.to(items, { y: -20, autoAlpha: 0, duration: 0.26, ease: "power3.in", stagger: { each: 0.025, from: "end" } });
+    gsap.to(m, { autoAlpha: 0, duration: 0.32, delay: 0.06, ease: "power3.in", onComplete: () => setExiting(false) });
+    return () => {
+      gsap.killTweensOf([m, items]);
+    };
+  }, [exiting]);
 
   const restPill = useCallback(
     (instant = false) => {
@@ -320,6 +341,7 @@ export function Nav() {
         >
           <Link
             href="/"
+            transitionTypes={["route-back"]}
             aria-label="Infiniview home"
             className="nav-brand"
             onClick={(e) => {
@@ -359,6 +381,7 @@ export function Nav() {
             ))}
             <Link
               href="/pricing"
+              transitionTypes={["route-forward"]}
               data-nav="pricing"
               aria-current={pathname === "/pricing" ? "page" : undefined}
               className="nav-link"
@@ -408,8 +431,8 @@ export function Nav() {
         </nav>
       </header>
 
-      {open && (
-        <div id="site-menu" ref={menuRef} data-lenis-prevent className="nav-menu glass glass--deep" style={{ ["--r" as string]: "0px" }} role="dialog" aria-modal="true" aria-label="Menu">
+      {(open || exiting) && (
+        <div id="site-menu" ref={menuRef} inert={!open} data-lenis-prevent className="nav-menu glass glass--deep" style={{ ["--r" as string]: "0px" }} role="dialog" aria-modal="true" aria-label="Menu">
           {/* data-lenis-prevent: Lenis is stopped while the menu is open and would cancel wheel and
               touch gestures, so the menu (which scrolls by itself on short screens) opts out of it */}
           <div className="nav-menu-inner">
@@ -425,7 +448,7 @@ export function Nav() {
                 {l.label}
               </SectionLink>
             ))}
-            <Link data-m href="/pricing" className="nav-menu-link" aria-current={pathname === "/pricing" ? "page" : undefined} onClick={() => setOpen(false)}>
+            <Link data-m href="/pricing" transitionTypes={["route-forward"]} className="nav-menu-link" aria-current={pathname === "/pricing" ? "page" : undefined} onClick={() => setOpen(false)}>
               Pricing
             </Link>
             <a data-m href={DOCS_URL} className="nav-menu-link">

@@ -69,6 +69,12 @@ html.lenis body {
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
   --ease-snap: cubic-bezier(0.2, 0.9, 0.25, 1);
+  /* Arrivals brake (ease-out), departures gather speed (ease-in), controls spring: they overshoot
+     their target by under a tenth and settle back. --spring is a damped spring (zeta 0.6) sampled
+     as a CSS linear() curve; browsers without linear() fall back to --ease-out. */
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --spring: var(--ease-out);
+  --spring-s: 0.7s;
 
   /* layout */
   --gutter: clamp(20px, 4.2vw, 72px);
@@ -141,6 +147,13 @@ html.lenis body {
     display: block;
     width: 100%;
     height: 100%;
+    /* the canvas arrives over the CSS backdrop once its first frame is drawn, never as a pop */
+    opacity: 0;
+    transition: opacity 0.9s var(--ease-out);
+  }
+  .corridor.is-live { opacity: 1; }
+  @media (prefers-reduced-motion: reduce) {
+    .corridor { transition: none; }
   }
   /* The fallback sits under the canvas; it is what you see with no WebGL. */
   .corridor-fallback {
@@ -337,20 +350,22 @@ html.lenis body {
     color: var(--iv-ink);
     -webkit-tap-highlight-color: transparent;
     transition:
-      transform 0.28s var(--ease-out),
+      transform var(--spring-s) var(--spring),
       box-shadow 0.28s var(--ease-out),
       background-color 0.2s ease,
       color 0.2s ease;
     will-change: transform;
   }
+  /* pressing is immediate and brakes (ease-out); letting go springs back past rest and settles */
   .btn:active {
     transform: scale(0.965) !important;
-    transition-duration: 0.08s;
+    transition-duration: 0.09s, 0.09s, 0.09s, 0.09s;
+    transition-timing-function: var(--ease-out);
   }
   .btn[aria-disabled='true'] { opacity: 0.78; cursor: progress; }
   .btn svg {
     flex: none;
-    transition: transform 0.35s var(--ease-out);
+    transition: transform 0.6s var(--spring);
   }
   .btn:hover svg.arrow {
     transform: translateX(4px);
@@ -426,7 +441,7 @@ html.lenis body {
     height: 26px;
     padding-inline: 11px;
     border-radius: 999px;
-    font-size: 0.78rem;
+    font-size: 0.82rem;
     font-weight: 600;
     letter-spacing: -0.005em;
     color: var(--iv-ink-2);
@@ -831,6 +846,10 @@ html.lenis body {
       max-width: none;
     }
   }
+  /* The letters are plain inline runs (not inline-blocks) so the font's kerning survives the split;
+     a line never re-wraps when the pointer swells the type under it. */
+  .hero-h1 .split-line { white-space: nowrap; }
+  .hero-h1 .split-char { display: inline !important; }
   .hero-sub {
     grid-column: 1 / -1;
     display: flex;
@@ -944,7 +963,7 @@ html.lenis body {
   }
   .scan-phase {
     color: var(--iv-ink-3);
-    font-size: 0.8rem;
+    font-size: 0.82rem;
   }
   .scan-agent {
     color: var(--iv-ink-2);
@@ -1683,7 +1702,7 @@ html.lenis body {
     grid-template-columns: minmax(0, 1fr);
   }
   @media (min-width: 900px) {
-    .console-grid { grid-template-columns: minmax(250px, 320px) minmax(0, 1fr); }
+    .console-grid { grid-template-columns: minmax(290px, 352px) minmax(0, 1fr); }
   }
   .rail {
     position: relative;
@@ -1736,7 +1755,7 @@ html.lenis body {
   .rail-dot--high { background: #ff9a3c; box-shadow: 0 0 10px #ff9a3c; }
   .rail-text { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
   .rail-title { font-size: 0.98rem; font-weight: 600; line-height: 1.25; letter-spacing: -0.02em; text-wrap: balance; }
-  .rail-file { font-size: 0.74rem; color: var(--iv-ink-3); overflow-wrap: anywhere; }
+  .rail-file { font-size: 0.82rem; color: var(--iv-ink-3); overflow-wrap: anywhere; }
 
   .rail-foot { display: none; }
   @media (min-width: 900px) {
@@ -1817,13 +1836,18 @@ html.lenis body {
     .tab { padding: 11px 9px; font-size: 0.8rem; }
   }
 
-  .panels { display: grid; min-height: 250px; }
+  /* the panels fill whatever height the console has (it is as tall as its tallest tab), so a short
+     proof ends at the console's foot instead of leaving a hole under it */
+  .panels { display: grid; flex: 1 1 auto; min-height: 250px; }
   .panel {
     grid-area: 1 / 1;
     min-width: 0;
+    display: flex;
+    flex-direction: column;
     visibility: hidden;
     pointer-events: none;
   }
+  .panel > .term, .panel > .code { flex: 1 1 auto; }
   .panel[data-on='true'] { visibility: visible; pointer-events: auto; }
 
   .term, .code {
@@ -1872,7 +1896,7 @@ html.lenis body {
   }
   .path-step > span:last-child { padding-top: 4px; }
 
-  .code-file { color: var(--iv-ink-3); margin-bottom: 8px; font-size: 0.78rem; }
+  .code-file { color: var(--iv-ink-3); margin-bottom: 8px; font-size: 0.82rem; }
   .code-line { display: flex; gap: 16px; padding: 0 8px; margin: 0 -8px; border-radius: 6px; white-space: pre; }
   .code-n { flex: none; width: 2.2ch; text-align: right; color: var(--iv-ink-3); user-select: none; }
   .code-line--hot { background: rgba(255, 90, 71, 0.14); box-shadow: inset 2px 0 0 var(--iv-red); }
@@ -1961,11 +1985,15 @@ html.lenis body {
     padding: 0 clamp(16px, 2vw, 26px) 0 calc(clamp(16px, 2vw, 26px) + clamp(76px, 9vw, 130px) + 18px);
   }
   .layer-body > span { overflow: hidden; display: block; padding-bottom: 20px; }
-  html.js:not(.reveal-failsafe) .layer-row[data-on='false'] .layer-body { grid-template-rows: 0fr; }
+  html.js:not(.reveal-failsafe) .layer-row[data-on='false'] .layer-body {
+    grid-template-rows: 0fr;
+    transition-duration: 0.42s;
+    transition-timing-function: var(--ease-in);
+  }
   html.js:not(.reveal-failsafe) .layer-row[data-on='false'] .layer-body > span {
     visibility: hidden;
     padding-bottom: 0;
-    transition: visibility 0s linear 0.6s;
+    transition: visibility 0s linear 0.42s;
   }
   .layer-title { display: block; margin-top: 0; font-size: 1.06rem; font-weight: 600; color: var(--iv-ink); letter-spacing: -0.02em; }
   .layer-text { display: block; margin-top: 6px; font-size: 0.97rem; line-height: 1.55; color: var(--iv-ink-2); max-width: 46ch; }
@@ -2112,7 +2140,7 @@ html.lenis body {
   .ecard-label { font-size: 0.82rem; font-weight: 600; color: var(--iv-ink-2); text-align: center; letter-spacing: -0.01em; }
   /* neighbours overlap a card's inner edge: keep its label on the outer, visible side */
   .fan-legend { display: none; list-style: none; margin: 14px 0 0; padding: 0; flex-wrap: wrap; justify-content: center; gap: 6px; }
-  .fan-legend li { font-size: 0.78rem; font-weight: 560; color: var(--iv-ink-2); padding: 4px 11px; border-radius: 999px; background: rgba(255, 255, 255, 0.07); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.09); }
+  .fan-legend li { font-size: 0.82rem; font-weight: 560; color: var(--iv-ink-2); padding: 4px 11px; border-radius: 999px; background: rgba(255, 255, 255, 0.07); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.09); }
   @media (max-width: 1279px) {
     .fan-legend { display: flex; }
     .ecard-label { display: none; }
@@ -2207,7 +2235,7 @@ html.lenis body {
     padding: 16px 18px; border-radius: 18px;
     background: rgba(2, 3, 9, 0.7);
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
-    font-size: 0.78rem; line-height: 1.9; color: var(--iv-ink-2);
+    font-size: 0.82rem; line-height: 1.9; color: var(--iv-ink-2);
     min-height: 140px;
   }
   .zterm p { margin: 0; display: flex; align-items: center; gap: 8px; white-space: nowrap; overflow: hidden; }
@@ -2267,7 +2295,7 @@ html.lenis body {
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.07);
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
-    transition: transform 0.5s var(--ease-out), background-color 0.3s, color 0.3s;
+    transition: transform 0.7s var(--spring), background-color 0.3s, color 0.3s;
   }
   .faq-item[data-open='true'] .faq-plus { transform: rotate(135deg); background: var(--iv-lime); color: #070a02; }
   .faq-a { display: grid; grid-template-rows: 1fr; transition: grid-template-rows 0.55s var(--ease-out); }
@@ -2275,10 +2303,14 @@ html.lenis body {
   .faq-a p { margin: 0; padding: 0 56px 26px 0; max-width: 62ch; }
   /* collapsed answers leave the accessibility tree and tab order (visibility flips after the close
      animation); with no script every answer simply stays open */
-  html.js:not(.reveal-failsafe) .faq-item[data-open='false'] .faq-a { grid-template-rows: 0fr; }
+  html.js:not(.reveal-failsafe) .faq-item[data-open='false'] .faq-a {
+    grid-template-rows: 0fr;
+    transition-duration: 0.38s;
+    transition-timing-function: var(--ease-in);
+  }
   html.js:not(.reveal-failsafe) .faq-item[data-open='false'] .faq-a > div {
     visibility: hidden;
-    transition: visibility 0s linear 0.55s;
+    transition: visibility 0s linear 0.38s;
   }
 
   /* ── Final CTA: the aperture opens ───────────────────────────────────── */
@@ -2313,6 +2345,11 @@ html.lenis body {
     .cta-inner { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); align-items: end; }
   }
   .cta-title { font-size: min(clamp(3rem, 8.2vw, 7.4rem), 17vw); /* capped: its longest word must end inside its column at every width */ line-height: 0.9; letter-spacing: -0.055em; margin: 0; max-width: 11ch; color: #070a02; }
+  /* wide screens: the question sits on two lines, not three. The headline gets the wider column. */
+  @media (min-width: 1280px) {
+    .cta-inner { grid-template-columns: minmax(0, 8fr) minmax(0, 4fr); }
+    .cta-title { font-size: min(clamp(3rem, 6.9vw, 7.4rem), 17vw); max-width: none; }
+  }
   .cta-side { display: flex; flex-direction: column; gap: 26px; align-items: flex-start; }
   .cta-body { margin: 0; font-size: clamp(1.1rem, 1.5vw, 1.4rem); line-height: 1.5; max-width: 34ch; color: rgba(7, 10, 2, 0.82); font-weight: 500; }
   .cta-form { width: 100%; }
@@ -2757,4 +2794,42 @@ html:not(.js) .site-root .dot--sig { opacity: 1; }
   .node-t { fill: #000 !important; }
   /* links print their address, except where it would be set in a narrow column (footer) or is a button */
   a[href^='http']:not(.foot-link):not(.btn)::after { content: ' (' attr(href) ')'; font-size: 0.8em; }
+}
+
+/* Springs. Declared outside the layers so every control can reach them. */
+@supports (transition-timing-function: linear(0, 1)) {
+  .site-root {
+    --spring: linear(0, 0.0384, 0.1351, 0.2658, 0.4109, 0.5555, 0.6892, 0.8058, 0.9017, 0.9762, 1.0302, 1.066, 1.0863, 1.0943, 1.0931, 1.0855, 1.0739, 1.0605, 1.0466, 1.0335, 1.0219, 1.0121, 1.0044, 0.9986, 0.9947, 0.9923, 0.9912, 0.9911, 0.9916, 0.9926, 0.9938, 0.9951, 1);
+  }
+}
+
+/* ── Route transitions ───────────────────────────────────────────────────
+   Home and Pricing are two chambers of the same corridor. The page leaves (ease-in: slow to start,
+   then it is gone) and the next one arrives (ease-out: fast, then it brakes into place). Going on
+   moves toward the camera; going back recedes. The corridor and the nav are not part of it: the new
+   page's own background is live under the leaving content, so the light never stops moving. */
+::view-transition { pointer-events: none; }
+::view-transition-group(root) { animation: none; }
+::view-transition-old(root) { display: none; }
+::view-transition-new(root) { animation: none; }
+
+@keyframes route-leave-forward { to { opacity: 0; transform: scale(1.07); } }
+@keyframes route-leave-back { to { opacity: 0; transform: scale(0.94); } }
+@keyframes route-arrive-forward { from { opacity: 0; transform: scale(0.94); } }
+@keyframes route-arrive-back { from { opacity: 0; transform: scale(1.07); } }
+@keyframes route-fade { from { opacity: 0; } }
+@keyframes route-fade-away { to { opacity: 0; } }
+
+::view-transition-old(.route-out-forward) { transform-origin: 66% 46%; animation: 320ms cubic-bezier(0.7, 0, 0.84, 0) both route-leave-forward; }
+::view-transition-old(.route-out-back) { transform-origin: 66% 46%; animation: 320ms cubic-bezier(0.7, 0, 0.84, 0) both route-leave-back; }
+::view-transition-new(.route-in-forward) { transform-origin: 66% 46%; animation: 800ms cubic-bezier(0.16, 1, 0.3, 1) 180ms both route-arrive-forward; }
+::view-transition-new(.route-in-back) { transform-origin: 66% 46%; animation: 800ms cubic-bezier(0.16, 1, 0.3, 1) 180ms both route-arrive-back; }
+::view-transition-old(.route-fade-out) { animation: 220ms cubic-bezier(0.7, 0, 0.84, 0) both route-fade-away; }
+::view-transition-new(.route-fade-in) { animation: 520ms cubic-bezier(0.16, 1, 0.3, 1) 120ms both route-fade; }
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*), ::view-transition-new(*), ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
 }

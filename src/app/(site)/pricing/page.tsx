@@ -4,6 +4,7 @@ import { ArrowRight, Check } from "lucide-react";
 import { Faq } from "@/components/site/faq";
 import { WaitlistForm } from "@/components/site/waitlist-form";
 import { faqPage, jsonLd } from "@/lib/site/jsonld";
+import { RouteTransition } from "@/components/site/route-transition";
 
 export const metadata: Metadata = {
   title: "Pricing",
@@ -117,81 +118,83 @@ const FAQS = [
 
 export default function PricingPage() {
   return (
-    <main id="main">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqPage(FAQS)) }} />
-      <section className="price-hero" aria-labelledby="price-title">
-        <div className="wrap">
-          <h1 id="price-title" className="t-display price-title" data-split>
-            Security that scales with you.
-          </h1>
-          <p className="t-lede price-lede" data-reveal>
-            Join the waitlist to lock in launch pricing. Plans for indie hackers, startups, and enterprise.
-          </p>
-        </div>
-      </section>
+    <RouteTransition>
+      <main id="main">
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqPage(FAQS)) }} />
+        <section className="price-hero" aria-labelledby="price-title">
+          <div className="wrap">
+            <h1 id="price-title" className="t-display price-title" data-split>
+              Security that scales with you.
+            </h1>
+            <p className="t-lede price-lede" data-reveal>
+              Join the waitlist to lock in launch pricing. Plans for indie hackers, startups, and enterprise.
+            </p>
+          </div>
+        </section>
 
-      <section className="wrap plans-wrap" aria-label="Plans">
-        <div className="plans">
-          {PLANS.map((p) => (
-            <article
-              key={p.id}
-              className={`plan glass${p.highlighted ? " glass--lime plan--hi" : ""}`}
-              data-reveal
-            >
-              <header className="plan-head">
-                <h2 className="t-h3 plan-name">{p.name}</h2>
-                {p.badge && <span className={`chip${p.highlighted ? " chip--ok" : ""}`}>{p.badge}</span>}
-              </header>
-              <p className="t-body plan-desc">{p.desc}</p>
-              <div className="plan-price">
-                <span className="plan-amount">{p.priceLabel}</span>
-                <span className="t-small">{p.scans}</span>
-              </div>
-              <a
-                href={p.ctaHref}
-                aria-label={`${p.cta}: ${p.name} plan`}
-                className={`btn ${p.highlighted ? "btn--lime" : "btn--glass"} plan-cta`}
+        <section className="wrap plans-wrap" aria-label="Plans">
+          <div className="plans">
+            {PLANS.map((p) => (
+              <article
+                key={p.id}
+                className={`plan glass${p.highlighted ? " glass--lime plan--hi" : ""}`}
+                data-reveal
               >
-                {p.cta}
-                <ArrowRight className="arrow" size={17} strokeWidth={2.6} />
-              </a>
-              <ul className="plan-list">
-                {p.features.map((f) => (
-                  <li key={f}>
-                    <Check size={16} strokeWidth={3} aria-hidden />
-                    {f}
-                  </li>
-                ))}
-              </ul>
-            </article>
-          ))}
-        </div>
+                <header className="plan-head">
+                  <h2 className="t-h3 plan-name">{p.name}</h2>
+                  {p.badge && <span className={`chip${p.highlighted ? " chip--ok" : ""}`}>{p.badge}</span>}
+                </header>
+                <p className="t-body plan-desc">{p.desc}</p>
+                <div className="plan-price">
+                  <span className="plan-amount">{p.priceLabel}</span>
+                  <span className="t-small">{p.scans}</span>
+                </div>
+                <a
+                  href={p.ctaHref}
+                  aria-label={`${p.cta}: ${p.name} plan`}
+                  className={`btn ${p.highlighted ? "btn--lime" : "btn--glass"} plan-cta`}
+                >
+                  {p.cta}
+                  <ArrowRight className="arrow" size={17} strokeWidth={2.6} />
+                </a>
+                <ul className="plan-list">
+                  {p.features.map((f) => (
+                    <li key={f}>
+                      <Check size={16} strokeWidth={3} aria-hidden />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+              </article>
+            ))}
+          </div>
 
-        <ul className="plan-notes glass glass--thin" data-reveal style={{ ["--r" as string]: "999px" }}>
-          {PLAN_NOTES.map((n) => (
-            <li key={n.label}>
-              <i aria-hidden />
-              <span>
-                <b>{n.label}</b>: {n.value}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </section>
+          <ul className="plan-notes glass glass--thin" data-reveal style={{ ["--r" as string]: "999px" }}>
+            {PLAN_NOTES.map((n) => (
+              <li key={n.label}>
+                <i aria-hidden />
+                <span>
+                  <b>{n.label}</b>: {n.value}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
 
-      <Faq items={FAQS} id="pricing-faq" title="Questions? Answers." />
+        <Faq items={FAQS} id="pricing-faq" title="Questions? Answers." />
 
-      <section className="wrap price-cta" aria-labelledby="price-cta-title">
-        <div className="glass glass--deep price-cta-card" data-reveal>
-          <h2 id="price-cta-title" className="t-h2">
-            Ready to ship with confidence?
-          </h2>
-          <WaitlistForm id="waitlist" />
-          <p className="t-small">
-            Or <Link className="link" href="/preview" prefetch={false}>try the live demo</Link>.
-          </p>
-        </div>
-      </section>
-    </main>
+        <section className="wrap price-cta" aria-labelledby="price-cta-title">
+          <div className="glass glass--deep price-cta-card" data-reveal>
+            <h2 id="price-cta-title" className="t-h2">
+              Ready to ship with confidence?
+            </h2>
+            <WaitlistForm id="waitlist" />
+            <p className="t-small">
+              Or <Link className="link" href="/preview" prefetch={false}>try the live demo</Link>.
+            </p>
+          </div>
+        </section>
+      </main>
+    </RouteTransition>
   );
 }

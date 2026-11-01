@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { gsap } from "@/lib/site/gsap";
 import { scene } from "@/lib/site/scene";
+import { markReady } from "@/lib/site/ready";
 import { FRAG, VERT } from "@/components/site/corridor-shader";
 
 /**
@@ -40,41 +41,70 @@ export function Corridor() {
       }
     };
 
-    const gl = canvas.getContext("webgl", {
-      alpha: false,
-      antialias: false,
-      depth: false,
-      stencil: false,
-      powerPreference: "high-performance",
+    // Context creation and shader compilation can take a long time on a phone and block the main
+    // thread, so they start after the first paint (the page's text is up by then) and the compile is
+    // polled, not waited on. The entrance plays once the first frame is drawn (lib/site/ready.ts).
+    let cancelled = false;
+    let bootRaf = 0;
+    let bootTimer = 0;
+    let pollRaf = 0;
+    cleanups.push(() => {
+      cancelled = true;
+      cancelAnimationFrame(bootRaf);
+      window.clearTimeout(bootTimer);
+      cancelAnimationFrame(pollRaf);
     });
-    if (!gl) return dispose; // the CSS backdrop underneath carries the page
 
-    cleanups.push(() => gl.getExtension("WEBGL_lose_context")?.loseContext());
-
-    const compile = (type: number, src: string) => {
-      const sh = gl.createShader(type)!;
-      cleanups.push(() => gl.deleteShader(sh));
-      gl.shaderSource(sh, src);
-      gl.compileShader(sh);
-      if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) {
-        console.warn("[corridor] shader error", gl.getShaderInfoLog(sh));
-        return null;
+    const boot = () => {
+      if (cancelled) return;
+      const gl = canvas.getContext("webgl", {
+        alpha: false,
+        antialias: false,
+        depth: false,
+        stencil: false,
+        powerPreference: "high-performance",
+      });
+      if (!gl) {
+        markReady("corridor"); // the CSS backdrop underneath carries the page
+        return;
       }
-      return sh;
-    };
-    const vs = compile(gl.VERTEX_SHADER, VERT);
-    const fs = compile(gl.FRAGMENT_SHADER, FRAG);
-    if (!vs || !fs) return dispose;
+      cleanups.push(() => gl.getExtension("WEBGL_lose_context")?.loseContext());
 
-    const prog = gl.createProgram()!;
-    cleanups.push(() => gl.deleteProgram(prog));
-    gl.attachShader(prog, vs);
-    gl.attachShader(prog, fs);
-    gl.linkProgram(prog);
-    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
-      console.warn("[corridor] link error", gl.getProgramInfoLog(prog));
-      return dispose;
-    }
+      const compile = (type: number, src: string) => {
+        const sh = gl.createShader(type)!;
+        cleanups.push(() => gl.deleteShader(sh));
+        gl.shaderSource(sh, src);
+        gl.compileShader(sh);
+        return sh;
+      };
+      const vs = compile(gl.VERTEX_SHADER, VERT);
+      const fs = compile(gl.FRAGMENT_SHADER, FRAG);
+      const prog = gl.createProgram()!;
+      cleanups.push(() => gl.deleteProgram(prog));
+      gl.attachShader(prog, vs);
+      gl.attachShader(prog, fs);
+      gl.linkProgram(prog);
+
+      // With KHR_parallel_shader_compile the driver builds on another thread and the result may be
+      // asked for once it is done; without it the check simply blocks, as it always did.
+      const parallel = gl.getExtension("KHR_parallel_shader_compile");
+      const poll = () => {
+        if (cancelled) return;
+        if (parallel && !gl.getProgramParameter(prog, parallel.COMPLETION_STATUS_KHR)) {
+          pollRaf = requestAnimationFrame(poll);
+          return;
+        }
+        if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+          console.warn("[corridor] shader error", gl.getShaderInfoLog(fs), gl.getProgramInfoLog(prog));
+          markReady("corridor");
+          return;
+        }
+        run(gl, prog);
+      };
+      poll();
+    };
+
+    const run = (gl: WebGLRenderingContext, prog: WebGLProgram) => {
     gl.useProgram(prog);
 
     const buf = gl.createBuffer();
@@ -135,6 +165,7 @@ export function Corridor() {
 
     const t0 = performance.now();
     let lostContext = false;
+    let drawn = false;
 
     const render = () => {
       if (lostContext) return;
@@ -179,6 +210,12 @@ export function Corridor() {
       gl.uniform2f(U.vp, vpx, vpy);
       gl.uniform1f(U.still, reduced ? 1 : 0);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
+      if (!drawn) {
+        // the first frame is on the canvas: fade it in over the CSS backdrop and let the page's entrance begin
+        drawn = true;
+        canvas.classList.add("is-live");
+        markReady("corridor");
+      }
 
       // frame-time governor: shed pixels if we are consistently slow — but verify it helps. If a
       // lower resolution does not speed frames up, the limit is elsewhere (a capped refresh rate
@@ -279,6 +316,12 @@ export function Corridor() {
       mqReduce.removeEventListener("change", apply);
       window.removeEventListener("resize", onResize);
       canvas.removeEventListener("webglcontextlost", onLost);
+    });
+    };
+
+    // after the first paint: one frame, then a macrotask
+    bootRaf = requestAnimationFrame(() => {
+      bootTimer = window.setTimeout(boot, 0);
     });
     return dispose;
   }, [generation]);

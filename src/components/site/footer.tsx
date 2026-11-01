@@ -48,7 +48,7 @@ export function Footer() {
                           {l.label}
                         </HashLink>
                       ) : INTERNAL.has(l.href) ? (
-                        <Link href={l.href} prefetch={l.href === "/preview" ? false : undefined} className="foot-link">
+                        <Link href={l.href} transitionTypes={l.href === "/pricing" ? ["route-forward"] : undefined} prefetch={l.href === "/preview" ? false : undefined} className="foot-link">
                           {l.label}
                         </Link>
                       ) : (
