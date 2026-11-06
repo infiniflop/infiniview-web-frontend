@@ -62,8 +62,9 @@ export function DashboardMock() {
   const [selectedReviewId, setSelectedReviewId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-  // the open drawer is a small modal moment on phones: focus goes into it, Escape and the close
-  // button (or picking a view) hand focus back to the button that opened it
+  // the open drawer is a small modal moment on phones: the page behind it is inert (no Tab stops, out of
+  // the accessibility tree), focus goes into it, and Escape, the close button, the overlay or picking a
+  // view hand focus back to the button that opened it
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const drawerWasOpen = useRef(false);
@@ -77,9 +78,17 @@ export function DashboardMock() {
         if (e.key === "Escape") setSidebarOpen(false);
       };
       document.addEventListener("keydown", onKey);
+      // widening to md or beyond (resize, rotate) hides the overlay and makes the sidebar persistent:
+      // the drawer is no longer a modal, so it closes and the page must not stay inert
+      const wide = window.matchMedia("(min-width: 768px)");
+      const onWide = () => {
+        if (wide.matches) setSidebarOpen(false);
+      };
+      wide.addEventListener("change", onWide);
       return () => {
         cancelAnimationFrame(frame);
         document.removeEventListener("keydown", onKey);
+        wide.removeEventListener("change", onWide);
       };
     }
     if (drawerWasOpen.current) {
@@ -119,7 +128,7 @@ export function DashboardMock() {
         onSelectView={selectView}
       />
 
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex flex-1 flex-col overflow-hidden" inert={sidebarOpen}>
         <DemoHeader
           label={headerLabel}
           onMenuToggle={() => setSidebarOpen(true)}
