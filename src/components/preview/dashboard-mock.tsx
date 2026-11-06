@@ -5,7 +5,15 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState, type ElementType, type RefObject } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type ElementType,
+  type RefObject,
+} from "react";
 import {
   BookOpen,
   ChevronLeft,
@@ -57,16 +65,37 @@ const NAV_LABELS = Object.fromEntries(
   NAV_ITEMS.map((i) => [i.id, i.label]),
 ) as Record<View, string>;
 
+// Below md the sidebar is an off-canvas drawer (a modal while open); from md up it is the persistent
+// sidebar and must never carry modal semantics or make the page inert.
+const NARROW_QUERY = "(max-width: 767.98px)";
+function subscribeNarrow(onChange: () => void) {
+  const mq = window.matchMedia(NARROW_QUERY);
+  mq.addEventListener("change", onChange);
+  return () => mq.removeEventListener("change", onChange);
+}
+function useIsNarrow() {
+  return useSyncExternalStore(
+    subscribeNarrow,
+    () => window.matchMedia(NARROW_QUERY).matches,
+    () => false,
+  );
+}
+
+const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
 export function DashboardMock() {
   const [view, setView] = useState<View>("reviews");
   const [selectedReviewId, setSelectedReviewId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-  // the open drawer is a small modal moment on phones: the page behind it is inert (no Tab stops, out of
-  // the accessibility tree), focus goes into it, and Escape, the close button, the overlay or picking a
-  // view hand focus back to the button that opened it
+  // the open drawer is a real modal on phones: the page behind it is inert (no Tab stops, out of the
+  // accessibility tree), the drawer is a labelled dialog, focus goes into it and wraps inside it, and
+  // Escape, the close button, the overlay or picking a view hand focus back to the button that opened it
+  const narrow = useIsNarrow();
+  const modal = sidebarOpen && narrow;
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const drawerRef = useRef<HTMLDivElement>(null);
   const drawerWasOpen = useRef(false);
 
   useEffect(() => {
@@ -75,7 +104,29 @@ export function DashboardMock() {
       // one frame later: the closed drawer is visibility:hidden until the open transition has begun
       const frame = requestAnimationFrame(() => closeButtonRef.current?.focus());
       const onKey = (e: KeyboardEvent) => {
-        if (e.key === "Escape") setSidebarOpen(false);
+        if (e.key === "Escape") {
+          setSidebarOpen(false);
+          return;
+        }
+        if (e.key !== "Tab") return;
+        // keep Tab and Shift+Tab inside the drawer: wrap at either end (or pull focus back in if it strayed)
+        const drawer = drawerRef.current;
+        if (!drawer) return;
+        const items = [...drawer.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(
+          (el) => el.getClientRects().length > 0 && getComputedStyle(el).visibility !== "hidden",
+        );
+        if (items.length === 0) return;
+        const first = items[0];
+        const last = items[items.length - 1];
+        const active = document.activeElement;
+        const inside = !!active && drawer.contains(active);
+        if (e.shiftKey && (!inside || active === first)) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && (!inside || active === last)) {
+          e.preventDefault();
+          first.focus();
+        }
       };
       document.addEventListener("keydown", onKey);
       // widening to md or beyond (resize, rotate) hides the overlay and makes the sidebar persistent:
@@ -122,17 +173,20 @@ export function DashboardMock() {
         view={view}
         collapsed={collapsed}
         open={sidebarOpen}
+        modal={modal}
+        drawerRef={drawerRef}
         onClose={() => setSidebarOpen(false)}
         closeButtonRef={closeButtonRef}
         onToggleCollapsed={() => setCollapsed((c) => !c)}
         onSelectView={selectView}
       />
 
-      <div className="flex flex-1 flex-col overflow-hidden" inert={sidebarOpen}>
+      <div className="flex flex-1 flex-col overflow-hidden" inert={modal}>
         <DemoHeader
           label={headerLabel}
           onMenuToggle={() => setSidebarOpen(true)}
           menuButtonRef={menuButtonRef}
+          drawerOpen={modal}
         />
 
         <div className="flex flex-1 overflow-y-auto">
@@ -168,6 +222,8 @@ function DemoSidebar({
   view,
   collapsed,
   open,
+  modal,
+  drawerRef,
   onClose,
   closeButtonRef,
   onToggleCollapsed,
@@ -176,13 +232,23 @@ function DemoSidebar({
   view: View;
   collapsed: boolean;
   open: boolean;
+  /** open below md: the drawer is a modal dialog; false for the persistent sidebar */
+  modal: boolean;
+  drawerRef: RefObject<HTMLDivElement | null>;
   onClose: () => void;
   closeButtonRef: RefObject<HTMLButtonElement | null>;
   onToggleCollapsed: () => void;
   onSelectView: (v: View) => void;
 }) {
   return (
-    <aside
+    <div
+      id="preview-sidebar"
+      ref={drawerRef}
+      // a div, not an aside: the dialog role is not permitted on aside. Persistent sidebar = complementary
+      // landmark (what the aside was); only the open mobile drawer is a modal dialog with a name
+      role={modal ? "dialog" : "complementary"}
+      aria-modal={modal ? true : undefined}
+      aria-label={modal ? "Navigation menu" : undefined}
       className={cn(
         // visibility flips at once when the drawer opens (so focus can move into it) and only after the slide
         // when it closes: durations are per property (width, transform, visibility), delays likewise
@@ -331,7 +397,7 @@ function DemoSidebar({
           )}
         </div>
       </div>
-    </aside>
+    </div>
   );
 }
 
@@ -339,10 +405,12 @@ function DemoHeader({
   label,
   onMenuToggle,
   menuButtonRef,
+  drawerOpen,
 }: {
   label: string;
   onMenuToggle: () => void;
   menuButtonRef: RefObject<HTMLButtonElement | null>;
+  drawerOpen: boolean;
 }) {
   return (
     <header className="flex h-16 shrink-0 items-center gap-2 border-b border-border px-4 md:px-5">
@@ -350,6 +418,8 @@ function DemoHeader({
         type="button"
         ref={menuButtonRef}
         onClick={onMenuToggle}
+        aria-expanded={drawerOpen}
+        aria-controls="preview-sidebar"
         className="inline-flex size-8 items-center justify-center text-muted-foreground hover:text-foreground md:hidden"
         aria-label="Open sidebar"
       >

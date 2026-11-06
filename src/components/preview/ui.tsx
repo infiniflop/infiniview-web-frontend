@@ -206,10 +206,11 @@ function StatusDot({ status, color }: { status: ReviewStatus; color: string }) {
   return <span className="size-1.5 rounded-full" style={{ background: color }} />;
 }
 
-export function StatusBadge({ status }: { status: ReviewStatus }) {
+export function StatusBadge({ status, id }: { status: ReviewStatus; id?: string }) {
   const meta = STATUS_META[status];
   return (
     <span
+      id={id}
       className="inline-flex items-center gap-1.5 font-mono text-[11px]"
       style={{ color: meta.color }}
     >

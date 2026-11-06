@@ -215,6 +215,8 @@ export function ReviewsView({
             ? null
             : `${review.name ? `${review.repoFullName} · ` : ""}${reviewSubtitle(review)}`;
           const summaryId = `review-summary-${review.id}`;
+          const statusId = `review-status-${review.id}`;
+          const pillsId = `review-pills-${review.id}`;
           return (
             <div
               key={review.id}
@@ -224,7 +226,9 @@ export function ReviewsView({
               <button
                 type="button"
                 aria-label={`Open review ${displayName}`}
-                aria-describedby={summary ? summaryId : undefined}
+                // the name stays short (aria-label replaces the row's content for assistive tech), so the
+                // description carries what the row shows: its visible status, and the summary or severity counts
+                aria-describedby={`${statusId} ${summary ? summaryId : pillsId}`}
                 onClick={() => onSelect(review.id)}
                 className="flex min-w-0 flex-1 cursor-pointer flex-wrap items-center gap-x-3 gap-y-1.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-inset"
               >
@@ -264,7 +268,17 @@ export function ReviewsView({
                   )}
                 </div>
 
-                {pills && <SeverityPills counts={pills} className="max-sm:pl-3" />}
+                {pills && (
+                  <>
+                    <SeverityPills counts={pills} className="max-sm:pl-3" />
+                    {/* the pills' own text runs together ("2critical") in the accessibility tree, so the row's
+                        description carries the counts as a sentence; hidden = read as a description only,
+                        never twice in browse mode */}
+                    <span id={pillsId} hidden>
+                      {pills.map((c) => `${c.count} ${c.severity}`).join(", ")} findings
+                    </span>
+                  </>
+                )}
 
                 <div className="ml-auto flex shrink-0 items-center gap-3">
                   <Badge
@@ -273,7 +287,7 @@ export function ReviewsView({
                   >
                     {review.branch}
                   </Badge>
-                  <StatusBadge status={review.status} />
+                  <StatusBadge id={statusId} status={review.status} />
                   <ChevronRight
                     size={14}
                     className="shrink-0 text-muted-foreground/40 transition-[color,transform] duration-150 group-hover:translate-x-0.5 group-hover:text-muted-foreground"
