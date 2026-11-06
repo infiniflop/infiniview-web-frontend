@@ -4,7 +4,7 @@
 // cannot rely on any stylesheet, font or component, so everything it needs is inline.
 export default function GlobalError({ reset }: { error: Error; reset: () => void }) {
   return (
-    <html lang="en">
+    <html lang="en" style={{ colorScheme: "dark", background: "#03040a" }}>
       <body
         style={{
           margin: 0,

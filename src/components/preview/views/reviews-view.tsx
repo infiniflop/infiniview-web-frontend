@@ -230,7 +230,7 @@ export function ReviewsView({
                   <GitFork size={14} className="text-muted-foreground" />
                 </div>
 
-                <div className="min-w-0 shrink-0 max-sm:min-w-[calc(100%-24px)]">
+                <div className="min-w-0 max-w-full max-sm:basis-0 max-sm:min-w-[calc(100%-24px)]">
                   <h3 className="truncate text-[14px] font-semibold tracking-[-0.01em] text-foreground">
                     {displayName}
                   </h3>

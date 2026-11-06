@@ -143,8 +143,8 @@ function DemoSidebar({
   return (
     <aside
       className={cn(
-        "fixed z-50 flex h-full shrink-0 flex-col border-r border-sidebar-border bg-sidebar transition-[width,transform] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] md:relative",
-        open ? "translate-x-0" : "-translate-x-full md:translate-x-0",
+        "fixed z-50 flex h-full shrink-0 flex-col border-r border-sidebar-border bg-sidebar transition-[width,transform,visibility] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] md:relative",
+        open ? "translate-x-0" : "-translate-x-full max-md:invisible md:translate-x-0",
       )}
       style={{ width: collapsed ? 56 : 228 }}
     >
@@ -311,14 +311,14 @@ function DemoHeader({
         {label}
       </h1>
 
-      <span className="ml-2 hidden h-6 items-center gap-1.5 border border-primary/30 bg-primary/10 px-2.5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-primary sm:inline-flex">
+      <span className="ml-2 hidden h-6 shrink-0 items-center gap-1.5 whitespace-nowrap border border-primary/30 bg-primary/10 px-2.5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-primary sm:inline-flex">
         Demo · sample data
       </span>
 
       <Link
         href="/"
         prefetch={false}
-        className="ml-1.5 hidden h-6 items-center gap-1.5 border border-border bg-card px-2.5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:border-border-accent hover:text-foreground sm:inline-flex"
+        className="ml-1.5 hidden h-6 shrink-0 items-center gap-1.5 whitespace-nowrap border border-border bg-card px-2.5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:border-border-accent hover:text-foreground lg:inline-flex"
       >
         <X size={11} />
         Exit demo
@@ -329,7 +329,7 @@ function DemoHeader({
           type="button"
           aria-disabled
           title="Search is disabled in the demo"
-          className="hidden h-9 w-56 cursor-not-allowed items-center gap-2 border border-border bg-card px-3 font-mono text-[11px] uppercase tracking-[0.08em] text-muted-foreground transition-colors hover:border-border-accent md:inline-flex"
+          className="hidden h-9 w-56 cursor-not-allowed items-center gap-2 border border-border bg-card px-3 font-mono text-[11px] uppercase tracking-[0.08em] text-muted-foreground transition-colors hover:border-border-accent xl:inline-flex"
         >
           <Search size={12} />
           <span>Search</span>
