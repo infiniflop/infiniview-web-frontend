@@ -66,7 +66,7 @@ One clock, one scroll engine, no competing animators.
 
 ## Engineering notes
 
-- Next 16 App Router + Tailwind 4 retained. Route groups: `(site)` for the marketing pages (own fonts, shell, nav, footer); `/preview` keeps its original fonts, tokens and theme toggle.
+- Next 16 App Router + Tailwind 4 retained. Route groups: `(site)` for the marketing pages (own fonts, shell, nav, footer); `/preview` keeps its original fonts and tokens. There is no light theme anywhere: both route groups are dark only.
 - Design tokens and the glass material live in `src/app/(site)/site.css` inside `@layer components`, so Tailwind utilities can still override.
 - The page is server-rendered; only the interactive pieces are client components. Everything is real HTML (nav, headings, FAQ buttons with `aria-expanded`, tablists with arrow-key support, a skip link, visible focus). Decorative 3D stages are `aria-hidden` and the copy beside them carries the content.
 - Two hydration traps found and fixed: trig-derived SVG coordinates differ between Node and browsers in the last float digits (rounded), and ScrollTriggers created *before* pinned sections measure wrong unless the pins refresh first (`refreshPriority`).
@@ -78,7 +78,7 @@ One clock, one scroll engine, no competing animators.
 
 The details at the edge of the viewport are part of the design, not leftovers:
 
-- **Overscroll and rubber-banding.** `html`, `body` and the canvas fallback are all the same `#03040a` (set by CSS *and* by the inline bootstrap script before first paint, for every path except the legacy `/preview`), so pulling past either end of the page, or an iOS bounce, never flashes white. `color-scheme: dark` themes native scrollbars, form controls and the overscroll area; `theme-color` colours the mobile browser chrome. `/preview` keeps its own light/dark surface.
+- **Overscroll and rubber-banding.** `html`, `body` and the canvas fallback are all the same `#03040a` (set by CSS *and* by the inline bootstrap script before first paint, for every path except the legacy `/preview`, which keeps its own `#07080b` ground), so pulling past either end of the page, or an iOS bounce, never flashes white. `color-scheme: dark` themes native scrollbars, form controls and the overscroll area; `theme-color` colours the mobile browser chrome. `/preview` declares the same dark `color-scheme` with its own `#07080b` surface.
 - **Safe areas.** `viewport-fit=cover` with `env(safe-area-inset-*)` on the nav, gutters and footer, so nothing sits under a notch, the Dynamic Island or the home indicator; `100vh` has an `svh` upgrade so phone URL bars do not cut heroes off.
 - **Platform polish.** Themed scrollbars, autofill and caret colours, tap-highlight off, `text-size-adjust`, `prefers-reduced-transparency`, `prefers-contrast`, `forced-colors` and print styles.
 - **404, error and global-error pages** are designed. The 404 is a document of its own (`global-not-found`, server-rendered, real 404 status) so the marketing stylesheet is loaded by the site routes only and never by `/preview`; the error page renders inside the site layout (nav and footer stay up); `global-error` is dependency-free inline styles. Plus a web manifest, maskable and Apple touch icons, and alt text for the social images.
@@ -87,8 +87,8 @@ The details at the edge of the viewport are part of the design, not leftovers:
 
 - `POST /api/waitlist` keeps its contract (`{ success: true }`, `already_registered` on a duplicate). It now also requires `application/json`, caps the body at 2 KB (counted in bytes, and read as a stream that is cancelled at the limit, so a chunked upload cannot be buffered whole), validates the address type and length, and answers `415 / 413 / 400 / 429`. The 429 limiter (8 requests / 10 min per client IP) is **in memory, per server instance**: a best-effort brake, not a guarantee. It records only accepted requests (a client hammering after a 429 cannot grow its own history) and remembers at most 5,000 clients, forgetting the stalest first. The durable fix is a rate-limit rule at the edge or WAF.
 - Response headers on every route: `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, a `Permissions-Policy` that denies camera, microphone, geolocation, payment and USB, and a restricted CSP (`base-uri`, `form-action`, `object-src 'none'`, `frame-ancestors` limited to this site and `*.infiniview.dev`). A full script-src CSP is not set: Next's inline bootstrap scripts need nonces, which would force every page dynamic. HSTS is left to the platform.
-- Structured data is serialised with `<` escaped. The theme cookie is `Secure` over HTTPS. `.env*` is git-ignored except `.env.example`.
-- Not changed on purpose: the `already_registered` response (product contract, low sensitivity) and the shared `.infiniview.dev` theme-cookie domain (shared with the product app).
+- Structured data is serialised with `<` escaped. No preference cookie or local storage is written: there is no theme to remember. `.env*` is git-ignored except `.env.example`.
+- Not changed on purpose: the `already_registered` response (product contract, low sensitivity).
 
 ### Accessibility and QA
 
@@ -133,7 +133,7 @@ Finished: both marketing routes, mobile / tablet / laptop / large-desktop layout
 
 Not done / worth knowing:
 
-- **Dark only.** The old light theme is dropped on the marketing pages (the glass-over-light-field look needs its own design pass). `/preview` keeps its theme toggle.
+- **Dark only.** Light mode is removed entirely: no selector, no light palette, no saved or OS-derived theme preference. The bootstrap script only flags `js`, sets the marketing surface and arms the reveal failsafe.
 - **Frame rate was not measured on real GPUs.** Visual QA ran in headless Chromium (software GL). The adaptive governor and the `data-perf="low"` fallback exist for that reason; they should be checked on a mid-range laptop and a phone.
 - **Real devices.** The site was checked in Chromium, WebKit (the Safari engine, 27.2) and Firefox 157 on desktop and phone sizes (layout, glass, WebGL, fonts, descenders, focus), but not on real iPhones or Androids: rubber-banding and notch behaviour are built to spec, not seen.
 - The waitlist API was not exercised end to end (no `DATABASE_URL` locally); the client states (invalid, pending, success, already registered, server error, rate limited, timeout) were, against stubbed responses.

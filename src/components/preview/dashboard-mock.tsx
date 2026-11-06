@@ -34,7 +34,6 @@ import { ReviewsView } from "@/components/preview/views/reviews-view";
 import { ReviewDetailView } from "@/components/preview/views/review-detail-view";
 import { FindingsView } from "@/components/preview/views/findings-view";
 import { Button } from "@/components/preview/ui";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { cn } from "@/lib/utils";
 
 type View = "reviews" | "scan-history" | "findings" | "security" | "settings";
@@ -326,7 +325,6 @@ function DemoHeader({
       </Link>
 
       <div className="ml-auto flex items-center gap-2">
-        <ThemeToggle />
         <button
           type="button"
           aria-disabled

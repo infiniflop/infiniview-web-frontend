@@ -6,7 +6,7 @@ import { Nav } from "@/components/site/nav";
 import { Footer } from "@/components/site/footer";
 import { NotFoundContent } from "@/components/site/status-page";
 import { HardNav } from "@/components/site/hard-nav";
-import { themeInitScript } from "@/lib/site/bootstrap";
+import { bootScript } from "@/lib/site/bootstrap";
 import "./globals.css";
 import "./(site)/site.css";
 
@@ -33,7 +33,7 @@ export default function GlobalNotFound() {
     <html lang="en" className={cn("surface-dark", mona404.variable)} suppressHydrationWarning>
       <head>
         {/* flags `js` (and arms the failsafe) only when script runs: with scripts off nothing is gated */}
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        <script dangerouslySetInnerHTML={{ __html: bootScript }} />
       </head>
       <body>
         <HardNav />

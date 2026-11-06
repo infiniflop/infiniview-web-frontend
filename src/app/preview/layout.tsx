@@ -1,6 +1,6 @@
 // Static demo UI. All data is mocked. No backend logic.
 
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Inter_Tight, JetBrains_Mono } from "next/font/google";
 import { cn } from "@/lib/utils";
@@ -29,11 +29,16 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  themeColor: "#07080b",
+  colorScheme: "dark",
+};
+
 export default function PreviewLayout({ children }: { children: ReactNode }) {
   return (
     <div
       className={cn(
-        "preview-root dark bg-background text-foreground",
+        "preview-root bg-background text-foreground",
         interTight.variable,
         jetbrains.variable,
       )}

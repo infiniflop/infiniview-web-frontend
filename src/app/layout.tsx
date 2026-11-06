@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 import { jsonLd } from "@/lib/site/jsonld";
-import { themeInitScript } from "@/lib/site/bootstrap";
+import { bootScript } from "@/lib/site/bootstrap";
 
 const SITE_URL = "https://infiniview.dev";
 const SITE_DESCRIPTION =
@@ -70,7 +70,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        <script dangerouslySetInnerHTML={{ __html: bootScript }} />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: jsonLd(structuredData) }}

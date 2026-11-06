@@ -1,8 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
-
 @theme {
   --font-sans: var(--font-inter-tight), 'Inter Tight', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: var(--font-jetbrains), 'JetBrains Mono', ui-monospace, monospace;
@@ -101,62 +99,6 @@
   color-scheme: dark;
 }
 
-/* Light theme - applied when <html> has the `light` class. The bright lime
-   stays the brand color but flips to a deeper olive variant whenever it is
-   used as foreground text, where bright lime would have poor contrast. */
-.light {
-  --color-bg: #fafaf6;
-  --color-bg-elevated: #f2f2ec;
-  --color-bg-card: #ececdf;
-  --color-bg-card-hover: #e3e3d4;
-  --color-border: #e0e0d3;
-  --color-border-accent: #c8c8b6;
-  --color-text: #0c0d11;
-  --color-text-secondary: #4d5159;
-  --color-text-muted: #7d818b;
-
-  --background: #fafaf6;
-  --foreground: #0c0d11;
-  --card: #ececdf;
-  --card-foreground: #0c0d11;
-  --popover: #ececdf;
-  --popover-foreground: #0c0d11;
-  --secondary: #ececdf;
-  --secondary-foreground: #0c0d11;
-  --muted: #ececdf;
-  --muted-foreground: #7d818b;
-  --accent-foreground: #0c0d11;
-  --destructive-foreground: #fafaf6;
-  --input: #e0e0d3;
-
-  --sidebar: #f2f2ec;
-  --sidebar-foreground: #0c0d11;
-  --sidebar-primary: #d2fb5a;
-  --sidebar-primary-foreground: #07080b;
-  --sidebar-accent: #ececdf;
-  --sidebar-accent-foreground: #0c0d11;
-  --sidebar-border: #e0e0d3;
-  --sidebar-ring: #d2fb5a;
-
-  color-scheme: light;
-}
-
-/* Foreground accents - darkened in light mode so small text stays legible.
-   Background usages of the same colors (e.g. .bg-lime, .bg-red) keep the
-   bright variant from the @theme block. */
-.light .text-lime { color: #5e7c0f; }
-.light .text-amber { color: #a16207; }
-.light .text-cyan { color: #0369a1; }
-.light .text-red { color: #c43030; }
-.light .text-green { color: #15803d; }
-.light .text-teal { color: #0f766e; }
-.light .hover\:text-lime:hover { color: #5e7c0f; }
-
-.light ::selection {
-  background: var(--color-lime);
-  color: #07080b;
-}
-
 body {
   background: var(--color-bg);
   color: var(--color-text);
@@ -177,7 +119,7 @@ button {
 }
 
 /* The /preview route loads its own fonts (next/font variables live on this
-   wrapper, so the theme font stacks are re-declared here to resolve them). */
+   wrapper, so the font stacks are re-declared here to resolve them). */
 
 .preview-root {
   --font-sans: var(--font-inter-tight), 'Inter Tight', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -287,4 +229,3 @@ button {
   inset: 4px;
   border: 1.5px solid #07080b;
 }
-.light .brand-mark::after { border-color: #fafaf6; }
