@@ -209,6 +209,12 @@ export function ReviewsView({
         {reviews.map((review, index) => {
           const pills = getSeverityPills(review);
           const displayName = review.name ?? review.repoFullName;
+          // rows without severity pills say what happened in a short summary; keep the whole text reachable
+          // (the visible clamp is two lines, the accessible description and the tooltip are never cut)
+          const summary = pills
+            ? null
+            : `${review.name ? `${review.repoFullName} · ` : ""}${reviewSubtitle(review)}`;
+          const summaryId = `review-summary-${review.id}`;
           return (
             <div
               key={review.id}
@@ -218,26 +224,42 @@ export function ReviewsView({
               <button
                 type="button"
                 aria-label={`Open review ${displayName}`}
+                aria-describedby={summary ? summaryId : undefined}
                 onClick={() => onSelect(review.id)}
                 className="flex min-w-0 flex-1 cursor-pointer flex-wrap items-center gap-x-3 gap-y-1.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-inset"
               >
                 <span
                   aria-hidden
-                  className="h-8 w-[3px] shrink-0 rounded-full transition-colors duration-300 max-sm:h-auto max-sm:self-stretch"
+                  className={cn(
+                    "h-8 w-[3px] shrink-0 rounded-full transition-colors duration-300 max-sm:h-auto max-sm:self-stretch",
+                    // a two-line summary makes the row taller than the bar: the bar spans the text like it does on phones
+                    summary && "sm:h-auto sm:min-h-8 sm:self-stretch",
+                  )}
                   style={{ background: STATUS_COLOR[review.status] }}
                 />
                 <div className="flex size-8 shrink-0 items-center justify-center bg-secondary max-sm:hidden">
                   <GitFork size={14} className="text-muted-foreground" />
                 </div>
 
-                <div className="min-w-0 max-w-full max-sm:basis-0 max-sm:min-w-[calc(100%-24px)]">
+                <div
+                  className={cn(
+                    "min-w-0 max-w-full max-sm:basis-0 max-sm:min-w-[calc(100%-24px)]",
+                    // identity (bar, icon, title, summary) sits on one line and gets the room; between
+                    // 768 and 1280 the status cluster drops to its own right-aligned line only when it cannot
+                    // sit beside a readable summary, the same way the rows with pills already wrap
+                    summary && "sm:min-w-[16rem] sm:flex-1 sm:basis-0",
+                  )}
+                >
                   <h3 className="truncate text-[14px] font-semibold tracking-[-0.01em] text-foreground">
                     {displayName}
                   </h3>
-                  {!pills && (
-                    <p className="mt-0.5 truncate text-[11.5px] font-medium text-muted-foreground">
-                      {review.name ? `${review.repoFullName} · ` : ""}
-                      {reviewSubtitle(review)}
+                  {summary && (
+                    <p
+                      id={summaryId}
+                      title={summary}
+                      className="mt-0.5 line-clamp-2 text-[11.5px] font-medium text-muted-foreground"
+                    >
+                      {summary}
                     </p>
                   )}
                 </div>

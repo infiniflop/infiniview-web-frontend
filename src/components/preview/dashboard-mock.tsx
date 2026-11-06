@@ -5,7 +5,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState, type ElementType } from "react";
+import { useEffect, useMemo, useRef, useState, type ElementType, type RefObject } from "react";
 import {
   BookOpen,
   ChevronLeft,
@@ -62,6 +62,31 @@ export function DashboardMock() {
   const [selectedReviewId, setSelectedReviewId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  // the open drawer is a small modal moment on phones: focus goes into it, Escape and the close
+  // button (or picking a view) hand focus back to the button that opened it
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const drawerWasOpen = useRef(false);
+
+  useEffect(() => {
+    if (sidebarOpen) {
+      drawerWasOpen.current = true;
+      // one frame later: the closed drawer is visibility:hidden until the open transition has begun
+      const frame = requestAnimationFrame(() => closeButtonRef.current?.focus());
+      const onKey = (e: KeyboardEvent) => {
+        if (e.key === "Escape") setSidebarOpen(false);
+      };
+      document.addEventListener("keydown", onKey);
+      return () => {
+        cancelAnimationFrame(frame);
+        document.removeEventListener("keydown", onKey);
+      };
+    }
+    if (drawerWasOpen.current) {
+      drawerWasOpen.current = false;
+      menuButtonRef.current?.focus(); // no-op where that button is hidden (md and up)
+    }
+  }, [sidebarOpen]);
 
   const selectedReview = selectedReviewId
     ? findReview(selectedReviewId) ?? null
@@ -89,12 +114,17 @@ export function DashboardMock() {
         collapsed={collapsed}
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
+        closeButtonRef={closeButtonRef}
         onToggleCollapsed={() => setCollapsed((c) => !c)}
         onSelectView={selectView}
       />
 
       <div className="flex flex-1 flex-col overflow-hidden">
-        <DemoHeader label={headerLabel} onMenuToggle={() => setSidebarOpen(true)} />
+        <DemoHeader
+          label={headerLabel}
+          onMenuToggle={() => setSidebarOpen(true)}
+          menuButtonRef={menuButtonRef}
+        />
 
         <div className="flex flex-1 overflow-y-auto">
           {view === "reviews" && !selectedReview && (
@@ -130,6 +160,7 @@ function DemoSidebar({
   collapsed,
   open,
   onClose,
+  closeButtonRef,
   onToggleCollapsed,
   onSelectView,
 }: {
@@ -137,14 +168,19 @@ function DemoSidebar({
   collapsed: boolean;
   open: boolean;
   onClose: () => void;
+  closeButtonRef: RefObject<HTMLButtonElement | null>;
   onToggleCollapsed: () => void;
   onSelectView: (v: View) => void;
 }) {
   return (
     <aside
       className={cn(
-        "fixed z-50 flex h-full shrink-0 flex-col border-r border-sidebar-border bg-sidebar transition-[width,transform,visibility] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] md:relative",
-        open ? "translate-x-0" : "-translate-x-full max-md:invisible md:translate-x-0",
+        // visibility flips at once when the drawer opens (so focus can move into it) and only after the slide
+        // when it closes: durations are per property (width, transform, visibility), delays likewise
+        "fixed z-50 flex h-full shrink-0 flex-col border-r border-sidebar-border bg-sidebar transition-[width,transform,visibility] [transition-duration:200ms,200ms,0s] motion-reduce:transition-none ease-[cubic-bezier(0.16,1,0.3,1)] md:relative",
+        open
+          ? "translate-x-0"
+          : "-translate-x-full max-md:invisible md:translate-x-0 [transition-delay:0s,0s,200ms]",
       )}
       style={{ width: collapsed ? 56 : 228 }}
     >
@@ -164,6 +200,7 @@ function DemoSidebar({
         </Link>
         <button
           type="button"
+          ref={closeButtonRef}
           onClick={onClose}
           className="text-muted-foreground hover:text-foreground md:hidden"
           aria-label="Close sidebar"
@@ -292,14 +329,17 @@ function DemoSidebar({
 function DemoHeader({
   label,
   onMenuToggle,
+  menuButtonRef,
 }: {
   label: string;
   onMenuToggle: () => void;
+  menuButtonRef: RefObject<HTMLButtonElement | null>;
 }) {
   return (
     <header className="flex h-16 shrink-0 items-center gap-2 border-b border-border px-4 md:px-5">
       <button
         type="button"
+        ref={menuButtonRef}
         onClick={onMenuToggle}
         className="inline-flex size-8 items-center justify-center text-muted-foreground hover:text-foreground md:hidden"
         aria-label="Open sidebar"
