@@ -66,8 +66,11 @@ const NAV_LABELS = Object.fromEntries(
 ) as Record<View, string>;
 
 // Below md the sidebar is an off-canvas drawer (a modal while open); from md up it is the persistent
-// sidebar and must never carry modal semantics or make the page inert.
-const NARROW_QUERY = "(max-width: 767.98px)";
+// sidebar and must never carry modal semantics or make the page inert. WIDE_QUERY is the md breakpoint
+// exactly as Tailwind emits it (`md:` = @media (min-width:48rem)); NARROW_QUERY is its logical complement
+// (what `max-md:` emits), so no width, fractional ones included, falls between the two.
+const WIDE_QUERY = "(min-width: 48rem)";
+const NARROW_QUERY = `not all and ${WIDE_QUERY}`;
 function subscribeNarrow(onChange: () => void) {
   const mq = window.matchMedia(NARROW_QUERY);
   mq.addEventListener("change", onChange);
@@ -131,7 +134,7 @@ export function DashboardMock() {
       document.addEventListener("keydown", onKey);
       // widening to md or beyond (resize, rotate) hides the overlay and makes the sidebar persistent:
       // the drawer is no longer a modal, so it closes and the page must not stay inert
-      const wide = window.matchMedia("(min-width: 768px)");
+      const wide = window.matchMedia(WIDE_QUERY);
       const onWide = () => {
         if (wide.matches) setSidebarOpen(false);
       };
