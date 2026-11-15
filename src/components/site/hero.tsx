@@ -464,13 +464,14 @@ export function Hero() {
                       data-slot={f.id}
                       data-found={got ? "true" : undefined}
                       data-sev={f.severity}
-                      aria-label={got ? `${f.title}, ${f.severity}. Open its proof.` : `Point the lens at weak point ${i + 1} of ${IDS.length}`}
                       onClick={() => (got ? showFinding(f.id) : seek.current(f.id))}
                     >
                       <i aria-hidden />
                       <span className="tray-long">{got ? NAME[f.id] : `Weak point ${i + 1}`}</span>
-                      <span className="tray-short" aria-hidden>
-                        {got ? SHORT[f.id] : `Point ${i + 1}`}
+                      <span className="tray-short">{got ? SHORT[f.id] : `Point ${i + 1}`}</span>
+                      {/* the name is what is on the button, then the rest: no label that says something else */}
+                      <span className="sr-only">
+                        {got ? `: ${f.title}, ${f.severity}. Open its proof.` : ` of ${IDS.length}. Send the lens to it.`}
                       </span>
                     </button>
                   </li>
