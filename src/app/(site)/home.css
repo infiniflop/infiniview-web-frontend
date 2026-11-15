@@ -346,16 +346,18 @@
     transform: translate3d(calc(var(--lx) * -100cqw + var(--lens) / 2), calc(var(--ly) * -100cqh + var(--lens) / 2), 0);
     will-change: transform;
   }
-  /* WebKit only (hero.tsx): the flat middle of the lens, unfiltered and therefore sharp at any pixel
-     density, laid over the filtered copy and registered with it. It stops where the bezel begins. */
-  .lens-crisp {
-    position: absolute;
-    inset: var(--bezel, 14%);
-    border-radius: calc(var(--lens) * 0.32 - var(--bezel, 0px));
-    overflow: hidden;
-    background: var(--iv-s1);
+  /* WebKit on dense screens (hero.tsx): the filtered copy is drawn at twice the size and shown at
+     half scale, because WebKit rasterises filtered content at one pixel per CSS pixel */
+  .lens-fx[data-ss='2'] {
+    inset: auto;
+    left: 0;
+    top: 0;
+    width: 200%;
+    height: 200%;
+    transform: scale(0.5);
+    transform-origin: 0 0;
   }
-  .lens-view--crisp { transform-origin: 0 0; }
+  .lens-fx[data-ss='2'] .lens-view { transform-origin: 0 0; }
   /* the body of the glass: a rim that catches the light from the upper left, thickness inside it */
   .lens-body {
     position: absolute;
@@ -505,13 +507,13 @@
     color: var(--iv-ink-3);
   }
   /* how to play, until the lens has been moved once: only where the cell has room for it */
-  .tray-hint { display: none; white-space: pre; }
+  .tray-hint { display: none; } /* (the cell's own gap is the space between it and the rest) */
   .tray-hint-touch { display: none; }
   @media (hover: none), (pointer: coarse) {
     .tray-hint-fine { display: none; }
     .tray-hint-touch { display: inline; }
   }
-  @container stage (min-width: 760px) {
+  @media (min-width: 1400px) {
     .tray-hint { display: inline; }
   }
   .tray-go-on {
@@ -1311,7 +1313,7 @@
   .pstage[data-layout='tall'] .p-prod { left: 22px; top: 176px; width: 398px; height: 340px; }
   .pstage[data-layout='tall'] .p-chamber { left: 11px; top: 190px; width: 398px; height: 340px; }
   .pstage[data-layout='tall'] .p-prod-label { right: 6px; top: 167px; }
-  .pstage[data-layout='tall'] .p-torn { left: 30px; top: 163px; padding: 5px 9px; }
+  .pstage[data-layout='tall'] .p-torn { left: 30px; top: 168px; padding: 3px 8px; }
   .pstage[data-layout='tall'] .p-ticks { display: none; }
   .pstage[data-layout='tall'] .p-shell-chip { left: 8px; }
   .pstage[data-layout='tall'] .app { --fs: 11px; }

@@ -254,7 +254,16 @@ export function Pipeline() {
         /* ── 5 · report: proof is bundled and posted; the sandbox is torn down ── */
         tl.to(lanes, { autoAlpha: 0, duration: 0.25 }, 4.02)
           .fromTo(bundle, { autoAlpha: 0, y: 16 }, { autoAlpha: 1, y: 0, duration: 0.45, ease: "expo.out" }, 4.12)
-          .to(qa(".p-find:not([data-find='dup'])"), { x: bundleAt.x, y: bundleAt.y, scale: 0.5, autoAlpha: 0, duration: 0.5, stagger: 0.06, ease: "power3.inOut" }, 4.14)
+          // on the wide stage the findings fly into the bundle beside the app; on the phone stage they are
+          // rows of the app itself and the bundle is above it, so they close where they are (a flight
+          // would drag three bars across the table)
+          .to(
+            qa(".p-find:not([data-find='dup'])"),
+            tallStage
+              ? { autoAlpha: 0, scaleY: 0.5, duration: 0.2, stagger: 0.05, ease: "power2.in" }
+              : { x: bundleAt.x, y: bundleAt.y, scale: 0.5, autoAlpha: 0, duration: 0.5, stagger: 0.06, ease: "power3.inOut" },
+            4.14,
+          )
           .to(qa(".p-file"), { autoAlpha: 1, x: 0, stagger: 0.07, duration: 0.28 }, 4.34)
           // The sandbox is wiped away, top edge down to nothing. It is never dissolved: production is
           // the same app a few pixels behind it, and two half-transparent copies read as a double image.
