@@ -7,6 +7,7 @@ import { faqPage, jsonLd } from "@/lib/site/jsonld";
 import { RouteTransition } from "@/components/site/route-transition";
 import { LightCue } from "@/components/site/light-cue";
 import { MaskedWords } from "@/components/site/ui";
+import { tap } from "@/lib/site/haptics";
 
 export const metadata: Metadata = {
   title: "Pricing",
@@ -156,6 +157,7 @@ export default function PricingPage() {
                   href={p.ctaHref}
                   aria-label={`${p.cta}: ${p.name} plan`}
                   className={`btn ${p.highlighted ? "btn--lime" : "btn--line"}`}
+                  {...tap("medium")}
                 >
                   {p.cta}
                   <ArrowRight className="arrow" size={17} strokeWidth={2.6} />

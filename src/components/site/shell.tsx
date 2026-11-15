@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import Lenis from "lenis";
 import {
@@ -14,9 +14,10 @@ import {
 import { scene } from "@/lib/site/scene";
 import { whenFirstScreen } from "@/lib/site/ready";
 import { DUR, EASE, RISE } from "@/lib/site/motion";
-import { setLenis, scrollToTarget, settleScroll, dropInflight, focusWhenReady, anchorPlan, documentTop, hasInflight } from "@/lib/site/scroll";
+import { setLenis, getLenis, scrollToTarget, settleScroll, dropInflight, focusWhenReady, anchorPlan, documentTop, hasInflight } from "@/lib/site/scroll";
 import { Wall } from "@/components/site/wall";
 import { GlassDefs } from "@/components/site/glass-defs";
+import { Haptics } from "@/components/site/haptics";
 
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
 
@@ -28,6 +29,8 @@ const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
  */
 export function SiteShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  // set by Back/Forward: that navigation's scroll position belongs to the browser
+  const popped = useRef(false);
 
   /* ── Engine: Lenis + damping + pointer. Mounted once. ───────────────── */
   useEffect(() => {
@@ -298,7 +301,10 @@ export function SiteShell({ children }: { children: ReactNode }) {
     // Back/Forward in the middle of a smooth jump: halt Lenis' animation where it is, so it does not
     // drag the page on to the target the visitor just left (the browser restores the saved scroll
     // position right after popstate, and Lenis then follows the native scroll again)
-    const onPop = () => lenis?.scrollTo(window.scrollY, { immediate: true, force: true });
+    const onPop = () => {
+      popped.current = true; // the route effect below leaves this navigation's scroll position to the browser
+      lenis?.scrollTo(window.scrollY, { immediate: true, force: true });
+    };
     window.addEventListener("popstate", onPop);
 
     // the motion layer is up: if the failsafe already un-hid the page because hydration was slow,
@@ -339,9 +345,22 @@ export function SiteShell({ children }: { children: ReactNode }) {
      link that was activated (often the footer), and the next Tab jumps back down the old page. ── */
   // compared against the previous path, not a "first run" flag: StrictMode runs effects twice on load
   const lastPath = useRef(pathname);
+  /* ── A route change ends whatever scroll was in flight. A wheel or touch scroll keeps easing toward
+     its target for about a second; without this, a link pressed in that second opened the next page
+     part-way down (or at its footer), because the smooth scroller carried the old target with it.
+     A new page starts at its top; Back and Forward keep the position the browser restores. ── */
+  useLayoutEffect(() => {
+    if (lastPath.current === pathname) return;
+    dropInflight();
+    const lenis = getLenis();
+    if (!lenis) return;
+    if (popped.current) lenis.scrollTo(window.scrollY, { immediate: true, force: true });
+    else lenis.scrollTo(0, { immediate: true, force: true });
+  }, [pathname]);
   useEffect(() => {
     if (lastPath.current === pathname) return;
     lastPath.current = pathname;
+    popped.current = false;
     // the wall answers the page change (forward to Pricing, back to Home): the colour fringing the
     // shader ties to scroll velocity, decaying on its own
     if (!prefersReducedMotion()) scene.velocity = pathname === "/" ? -1 : 1;
@@ -517,6 +536,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
     <div className="site-root">
       <Wall />
       <GlassDefs />
+      <Haptics />
       <div className="site-content">{children}</div>
     </div>
   );

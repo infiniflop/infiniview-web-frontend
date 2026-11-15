@@ -346,6 +346,16 @@
     transform: translate3d(calc(var(--lx) * -100cqw + var(--lens) / 2), calc(var(--ly) * -100cqh + var(--lens) / 2), 0);
     will-change: transform;
   }
+  /* WebKit only (hero.tsx): the flat middle of the lens, unfiltered and therefore sharp at any pixel
+     density, laid over the filtered copy and registered with it. It stops where the bezel begins. */
+  .lens-crisp {
+    position: absolute;
+    inset: var(--bezel, 14%);
+    border-radius: calc(var(--lens) * 0.32 - var(--bezel, 0px));
+    overflow: hidden;
+    background: var(--iv-s1);
+  }
+  .lens-view--crisp { transform-origin: 0 0; }
   /* the body of the glass: a rim that catches the light from the upper left, thickness inside it */
   .lens-body {
     position: absolute;
@@ -410,31 +420,6 @@
   }
   .lens[data-over]:not([data-over='']) .lens-reticle { --c: var(--iv-red); }
   .lens[data-over]:not([data-over='']) .lens-reticle i { background: var(--iv-red); }
-  .lens-hint {
-    position: absolute;
-    left: 50%;
-    bottom: calc(100% + 12px); /* above the glass: the tray is in front of whatever is below it */
-    transform: translateX(-50%);
-    padding: 6px 11px;
-    border-radius: 999px;
-    background: rgba(9, 11, 16, 0.86);
-    box-shadow: inset 0 0 0 1px var(--iv-line-2);
-    font-family: var(--font-mono);
-    font-size: 0.6875rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--iv-ink);
-    white-space: nowrap;
-    pointer-events: none;
-    transition: opacity var(--d-ui) var(--ease-in);
-  }
-  .lens-hint[data-off] { opacity: 0; }
-  .lens-hint-touch { display: none; }
-  @media (hover: none), (pointer: coarse) {
-    .lens-hint-fine { display: none; }
-    .lens-hint-touch { display: inline; }
-  }
-
   /* ── The tray: what the lens has found ───────────────────────────────
      A ledge in front of the glass (the lens dips behind it, never over it). Its size never changes:
      every slot and the way on are in their places from the start, so a find moves nothing. */
@@ -519,6 +504,16 @@
     text-transform: uppercase;
     color: var(--iv-ink-3);
   }
+  /* how to play, until the lens has been moved once: only where the cell has room for it */
+  .tray-hint { display: none; white-space: pre; }
+  .tray-hint-touch { display: none; }
+  @media (hover: none), (pointer: coarse) {
+    .tray-hint-fine { display: none; }
+    .tray-hint-touch { display: inline; }
+  }
+  @container stage (min-width: 760px) {
+    .tray-hint { display: inline; }
+  }
   .tray-go-on {
     font-size: 0.82rem;
     font-weight: 640;
@@ -541,6 +536,7 @@
     .tray-long { display: none; }
     .tray-short { display: inline; }
     .tray-go { flex: 1 1 100%; height: 40px; box-shadow: inset 0 0 0 1px var(--iv-line); }
+    .tray-hint { display: inline; }
     .tray-go[data-on] { box-shadow: none; }
   }
 
@@ -1149,11 +1145,11 @@
   }
   .p-tick { display: inline-flex; align-items: center; gap: 6px; }
   .p-tick svg { color: var(--iv-lime); }
+  /* (it takes the place of the sandbox's own label, on the plate's upper edge: never over the app) */
   .p-torn {
-    left: 620px;
-    top: 232px;
-    transform: translate(-50%, -50%);
-    padding: 6px 12px;
+    left: 366px;
+    top: -4px;
+    padding: 5px 11px;
     border: 1px dashed var(--iv-line-2);
     border-radius: var(--r-chip);
     background: var(--iv-void);
@@ -1315,11 +1311,14 @@
   .pstage[data-layout='tall'] .p-prod { left: 22px; top: 176px; width: 398px; height: 340px; }
   .pstage[data-layout='tall'] .p-chamber { left: 11px; top: 190px; width: 398px; height: 340px; }
   .pstage[data-layout='tall'] .p-prod-label { right: 6px; top: 167px; }
-  .pstage[data-layout='tall'] .p-torn { left: 210px; top: 360px; }
+  .pstage[data-layout='tall'] .p-torn { left: 30px; top: 163px; padding: 5px 9px; }
   .pstage[data-layout='tall'] .p-ticks { display: none; }
   .pstage[data-layout='tall'] .p-shell-chip { left: 8px; }
   .pstage[data-layout='tall'] .app { --fs: 11px; }
-  .pstage[data-layout='tall'] .p-find { height: 25px; font-size: 0.625rem; padding: 0 7px; }
+  /* a chip here is a whole row of the app (pipeline.tsx sets its width): label left, fix right */
+  .pstage[data-layout='tall'] .p-find { height: 27px; font-size: 0.625rem; padding: 0 8px; }
+  .pstage[data-layout='tall'] .p-find .p-fix { margin-left: auto; }
+  .pstage[data-layout='tall'] .p-find .p-merge { order: 3; }
 
   /* the timeline */
   .pipe-scrub {
@@ -1424,7 +1423,9 @@
   .console-dots { display: flex; gap: 6px; }
   .console-dots i { width: 9px; height: 9px; border-radius: 50%; background: rgba(255, 255, 255, 0.16); }
   .console-name { font-size: 0.92rem; font-weight: 620; letter-spacing: -0.02em; }
-  .console-repo { font-size: 0.78rem; color: var(--iv-ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .console-repo { font-size: 0.78rem; color: var(--iv-ink-3); white-space: nowrap; }
+  /* no room for it on a phone: left out, not cut short */
+  @media (max-width: 560px) { .console-repo { display: none; } }
   .console .app-tag { font-size: 0.625rem; }
   .console-pause {
     position: relative;

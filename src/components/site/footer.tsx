@@ -2,6 +2,7 @@ import { Mark } from "@/components/site/ui";
 import { HashLink } from "@/components/site/hash-link";
 import { SiteLink } from "@/components/site/site-link";
 import { FOOTER_LINKS } from "@/lib/site/content";
+import { HapticsSwitch } from "@/components/site/haptics";
 
 const INTERNAL = new Set(["/pricing", "/preview"]);
 
@@ -71,6 +72,7 @@ export function Footer() {
 
       <div className="wrap foot-base">
         <span>© {new Date().getFullYear()} Infiniview · Built by Infiniflop Labs</span>
+        <HapticsSwitch />
         <a className="link" href="mailto:hello@infiniflop.com">
           hello@infiniflop.com
         </a>

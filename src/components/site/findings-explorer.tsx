@@ -7,6 +7,7 @@ import { gsap, ScrollTrigger, useGSAP, prefersReducedMotion } from "@/lib/site/g
 import { SAMPLE_FINDINGS } from "@/lib/site/content";
 import { aimLight, setMood } from "@/lib/site/scene";
 import { createPill, DUR, EASE } from "@/lib/site/motion";
+import { haptic, tap } from "@/lib/site/haptics";
 
 type Finding = (typeof SAMPLE_FINDINGS)[number];
 
@@ -217,11 +218,13 @@ export function FindingsExplorer() {
   };
 
   const pick = (i: number) => {
+    if (i !== fi || tab !== 0) haptic("selection"); // only when the selection really moves
     setAuto(false);
     setFi(i);
     setTab(0);
   };
   const pickTab = (t: number) => {
+    if (t !== tab) haptic("selection");
     setAuto(false);
     setTab(t);
   };
@@ -291,6 +294,7 @@ export function FindingsExplorer() {
                   type="button"
                   className="console-pause"
                   aria-label={userPaused ? "Resume auto-play" : "Pause auto-play"}
+                  {...tap("light")}
                   onClick={() => {
                     setResumed(userPaused);
                     setUserPaused((v) => !v);
@@ -413,6 +417,7 @@ export function FindingsExplorer() {
                       <button
                         type="button"
                         className="http-replay"
+                        {...tap("light")}
                         tabIndex={fidx === fi && tab === 0 ? 0 : -1}
                         onClick={() => {
                           setAuto(false);

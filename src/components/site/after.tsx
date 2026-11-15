@@ -5,6 +5,7 @@ import { ArrowRight } from "lucide-react";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/site/gsap";
 import { DOCS_URL, ZERO_CONFIG } from "@/lib/site/content";
 import { aimLight, setMood } from "@/lib/site/scene";
+import { tap } from "@/lib/site/haptics";
 
 // What a first connection produces, and what is true of every scan after it: the site's four
 // standing claims (sandboxes deleted, attack paths chained, noise learned down, compliance reports)
@@ -73,7 +74,7 @@ export function After() {
               {ZERO_CONFIG.body}
             </p>
             <div data-reveal>
-              <a href={DOCS_URL} className="btn btn--line">
+              <a href={DOCS_URL} className="btn btn--line" {...tap("light")}>
                 Read the docs
                 <ArrowRight className="arrow" size={16} strokeWidth={2.6} />
               </a>

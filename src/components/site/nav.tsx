@@ -10,6 +10,7 @@ import { getLenis, scrollToTarget, anchorPlan } from "@/lib/site/scroll";
 import { Mark } from "@/components/site/ui";
 import { useSitePrefetch } from "@/lib/site/prefetch";
 import { DOCS_URL } from "@/lib/site/content";
+import { tap } from "@/lib/site/haptics";
 
 const LINKS = [
   { id: "how-it-works", label: "How it works" },
@@ -378,6 +379,7 @@ export function Nav() {
             transitionTypes={["route-back"]}
             aria-label="Infiniview home"
             className="nav-brand"
+            {...tap("selection")}
             onClick={(e) => {
               if (open) setOpen(false); // the menu is a modal: it does not stay up while the page moves behind it
               if (isHome) {
@@ -406,6 +408,7 @@ export function Nav() {
                 data-nav={l.id}
                 aria-current={active === l.id ? "location" : undefined}
                 className="nav-link"
+                {...tap("selection")}
                 onPointerEnter={(e) => movePill(e.currentTarget)}
                 onFocus={(e) => movePill(e.currentTarget)}
                 onBlur={() => restPill()}
@@ -420,6 +423,7 @@ export function Nav() {
               data-nav="pricing"
               aria-current={pathname === "/pricing" ? "page" : undefined}
               className="nav-link"
+              {...tap("selection")}
               onPointerEnter={(e) => movePill(e.currentTarget)}
               onFocus={(e) => movePill(e.currentTarget)}
               onBlur={() => restPill()}
@@ -429,6 +433,7 @@ export function Nav() {
             <a
               href={DOCS_URL}
               className="nav-link"
+              {...tap("selection")}
               onPointerEnter={(e) => movePill(e.currentTarget)}
               onFocus={(e) => movePill(e.currentTarget)}
               onBlur={() => restPill()}
@@ -438,10 +443,10 @@ export function Nav() {
           </div>
 
           <div className="nav-actions">
-            <Link href="/preview" prefetch={false} className="btn btn--glass btn--sm nav-demo">
+            <Link href="/preview" prefetch={false} className="btn btn--glass btn--sm nav-demo" {...tap("selection")}>
               Live demo
             </Link>
-            <button type="button" className="btn btn--lime btn--sm" onClick={earlyAccess}>
+            <button type="button" className="btn btn--lime btn--sm" onClick={earlyAccess} {...tap("medium")}>
               Early access
               <ArrowRight className="arrow" size={15} strokeWidth={2.6} />
             </button>
@@ -453,6 +458,7 @@ export function Nav() {
               aria-expanded={open}
               aria-controls={open ? "site-menu" : undefined}
               onClick={() => setOpen((v) => !v)}
+              {...tap("light")}
             >
               <i aria-hidden />
               <i aria-hidden />
@@ -474,14 +480,15 @@ export function Nav() {
                 href={hrefFor(l.id)}
                 className="nav-menu-link"
                 onClick={() => setOpen(false)}
+                {...tap("selection")}
               >
                 {l.label}
               </SectionLink>
             ))}
-            <Link data-m href="/pricing" prefetch={prefetch} transitionTypes={["route-forward"]} className="nav-menu-link" aria-current={pathname === "/pricing" ? "page" : undefined} onClick={() => setOpen(false)}>
+            <Link data-m href="/pricing" prefetch={prefetch} transitionTypes={["route-forward"]} className="nav-menu-link" aria-current={pathname === "/pricing" ? "page" : undefined} onClick={() => setOpen(false)} {...tap("selection")}>
               Pricing
             </Link>
-            <a data-m href={DOCS_URL} className="nav-menu-link">
+            <a data-m href={DOCS_URL} className="nav-menu-link" {...tap("selection")}>
               Docs
             </a>
             <div data-m className="nav-menu-actions">
@@ -489,11 +496,12 @@ export function Nav() {
                 type="button"
                 className="btn btn--lime"
                 onClick={earlyAccess}
+                {...tap("medium")}
               >
                 Get early access
                 <ArrowRight className="arrow" size={17} strokeWidth={2.6} />
               </button>
-              <Link href="/preview" prefetch={false} className="btn btn--glass" onClick={() => setOpen(false)}>
+              <Link href="/preview" prefetch={false} className="btn btn--glass" onClick={() => setOpen(false)} {...tap("selection")}>
                 Open the live demo
               </Link>
             </div>

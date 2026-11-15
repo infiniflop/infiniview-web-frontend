@@ -6,6 +6,7 @@ import { aimLight, QUIET, setMood } from "@/lib/site/scene";
 import { ARSENAL, LAYER_ITEMS, SCANNER_FAMILIES, STACKS } from "@/lib/site/content";
 import { createPill } from "@/lib/site/motion";
 import { prefersReducedMotion } from "@/lib/site/gsap";
+import { haptic } from "@/lib/site/haptics";
 
 /**
  * "Every layer, covered": the four layers of a scan, each with its number and, next to the number,
@@ -41,6 +42,10 @@ export function Coverage() {
   }, [stack]);
   useEffect(() => () => pill.current?.stop(), []);
   const specific = stack ? ALL_SCANNERS.filter((x) => x.stack === stack) : [];
+  const choose = (next: StackId | null) => {
+    if (next !== stack) haptic("selection"); // the pill slides and the scanners light: felt once, as it changes
+    setStack(next);
+  };
   const pickStack = (e: React.KeyboardEvent<HTMLButtonElement>) => {
     const ids: (StackId | null)[] = [null, ...STACKS.map((x) => x.id)];
     const cur = ids.indexOf(stack);
@@ -51,7 +56,7 @@ export function Coverage() {
     else if (e.key === "End") next = ids.length - 1;
     if (next < 0) return;
     e.preventDefault();
-    setStack(ids[next]);
+    choose(ids[next]);
     picker.current?.querySelectorAll<HTMLElement>("[data-stack]")[next]?.focus();
   };
 
@@ -140,7 +145,7 @@ export function Coverage() {
                             tabIndex={stack === x.id ? 0 : -1}
                             data-stack={x.id ?? "all"}
                             className="cov-stack"
-                            onClick={() => setStack(x.id as StackId | null)}
+                            onClick={() => choose(x.id as StackId | null)}
                             onKeyDown={pickStack}
                           >
                             {x.label}
@@ -174,13 +179,17 @@ export function Coverage() {
                     ))}
                   </>
                 ) : (
-                  <ul className="cov-chips">
-                    {LAYER_ITEMS[layer.id].map((name) => (
-                      <li key={name} className="cov-chip">
-                        {name}
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="cov-fam">
+                    {/* a list shorter than its number is a selection, and says so */}
+                    {LAYER_ITEMS[layer.id].length < layer.count && <p className="t-label">Including</p>}
+                    <ul className="cov-chips">
+                      {LAYER_ITEMS[layer.id].map((name) => (
+                        <li key={name} className="cov-chip">
+                          {name}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 )}
                 {layer.id === "static" && (
                   <p className="cov-key t-small">

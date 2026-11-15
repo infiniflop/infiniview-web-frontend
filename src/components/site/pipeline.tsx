@@ -8,6 +8,7 @@ import { PIPELINE_STEPS } from "@/lib/site/content";
 import { SampleApp } from "@/components/site/sample-app";
 import { scrollToTarget } from "@/lib/site/scroll";
 import { VelocityTracker, clamp, project } from "@/lib/site/motion";
+import { haptic, tap } from "@/lib/site/haptics";
 
 /* Where each probe goes: [lane 0..3, the weak point it lands on (or a spot on the app, as fractions)] */
 const PROBES: { lane: number; hot?: "sqli" | "refund" | "rate"; at?: [number, number] }[] = [
@@ -60,6 +61,11 @@ const PIN_OK = `(min-height: ${TINY}px) and ((orientation: portrait) or (min-hei
  * its timeline. The glass's job in this chapter is containment: it closes around the sample app
  * and becomes the sandbox. Five beats, each with an exact rest pose, playable in both directions.
  */
+/** the run is in the visitor's hands for the next `ms` (a tap or a throw is still settling) */
+const markDriven = (until: { current: number }, ms: number) => {
+  until.current = performance.now() + ms;
+};
+
 export function Pipeline() {
   const root = useRef<HTMLElement>(null);
   // the pinned ScrollTrigger, for the step buttons and the timeline handle
@@ -70,9 +76,13 @@ export function Pipeline() {
     return st ? st.start + clamp(p, 0, 1) * (st.end - st.start) : null;
   };
   /** go to a beat's rest pose (just before the next beat begins, so this step is the active one) */
+  // set whenever the visitor moves the run by hand (drag, throw, step button, arrow key): what the
+  // run does next is their doing, and may be felt. Scrolling the page past it never is.
+  const drivenUntil = useRef(0);
   const jump = (i: number, smooth = true) => {
     const y = progressToScroll((i + 0.94) / N);
     if (y === null) return;
+    markDriven(drivenUntil, 2000);
     scrollToTarget(y, { duration: 1.1, immediate: !smooth });
   };
 
@@ -134,16 +144,50 @@ export function Pipeline() {
         gsap.set(ripples, { autoAlpha: 0, xPercent: -50, yPercent: -50 });
         gsap.set(xray, { clipPath: "inset(0 100% 0 0)" });
         gsap.set(shell, { clipPath: "inset(0 0 100% 0)" });
+        gsap.set(q(".p-app"), { clipPath: "inset(0% 0% 0% 0%)" });
         gsap.set(qa(".p-tick, .p-shell-chip"), { autoAlpha: 0, x: -8 });
         gsap.set(qa(".p-lane"), { autoAlpha: 0, x: -12 });
         gsap.set(qa(".p-file"), { autoAlpha: 0, x: -8 });
         gsap.set(qa(".p-check[data-s]"), { autoAlpha: 0 });
 
         // measured once, with everything in place: the design space never reflows
-        gsap.set([chamber, lanes], { autoAlpha: 1 });
+        // (the sandbox is put at rest first: a rebuild, after a breakpoint change, can find it still in
+        // its entrance pose, and every point measured inside it would be off by that much)
+        gsap.set(chamber, { autoAlpha: 1, x: 0, y: 0, scale: 1 });
+        gsap.set(lanes, { autoAlpha: 1 });
         const hot: Record<string, { x: number; y: number }> = {};
         chamber.querySelectorAll<HTMLElement>(".p-live [data-hot]").forEach((h) => (hot[h.dataset.hot!] = centre(h)));
         const box = centre(chamber);
+        // On the phone stage the app is too small for a chip to sit beside its weak point without
+        // cutting a word in half, so each chip takes one whole row next to it: the column headings
+        // under the search field, the row under the refund, the row above the rate meter.
+        const tallStage = stage.dataset.layout === "tall";
+        const live = chamber.querySelector<HTMLElement>(".p-live")!;
+        const rowsEl = Array.from(live.querySelectorAll<HTMLElement>(".app-row"));
+        const footTop = live.querySelector<HTMLElement>(".app-foot")?.getBoundingClientRect().top ?? Infinity;
+        const seen = rowsEl.filter((r) => r.getBoundingClientRect().bottom <= footTop + 1);
+        const refundRow = live.querySelector<HTMLElement>("[data-hot='refund']")?.closest<HTMLElement>(".app-row");
+        // (measured here, now, with the sandbox at rest: by the time the chips are placed the timeline
+        // has already put it in its entrance pose)
+        const rowAt = (el: Element | null | undefined) => (el ? centre(el) : undefined);
+        const rowFor: Record<string, ReturnType<typeof centre> | undefined> = {
+          sqli: rowAt(rowsEl[0]),
+          refund: rowAt(refundRow?.nextElementSibling),
+          rate: rowAt(seen[seen.length - 1]),
+          dup: rowAt(seen[seen.length - 2]),
+        };
+        /** where a finding's chip rests (and, on the phone stage, how wide it is) */
+        const placeFind = (f: HTMLElement) => {
+          const id = f.dataset.find!;
+          const at = hot[f.dataset.hot!];
+          if (!at) return null;
+          const c = tallStage ? rowFor[id] : undefined;
+          if (c) return { x: c.x - c.w / 2, y: c.y, xPercent: 0, width: c.w };
+          const dup = id === "dup";
+          // the weak points are on the app's right side: each chip ends at its point and reads leftward,
+          // so none of them leaves the stage
+          return { x: at.x + 26 - (dup ? 150 : 0), y: at.y + (dup ? -72 : id === "refund" ? 36 : -36), xPercent: -100, width: undefined };
+        };
         const laneEnds = qa(".p-lane").map((l) => {
           const c = centre(l);
           return { x: c.x + c.w / 2, y: c.y };
@@ -196,16 +240,14 @@ export function Pipeline() {
         /* ── 4 · enrich: findings land where they were found; the duplicate merges ── */
         tl.to(qa(".p-lane"), { autoAlpha: 0.35, duration: 0.3 }, 3.02);
         finds.forEach((f, i) => {
-          const at = hot[f.dataset.hot!];
+          const at = placeFind(f);
           if (!at) return;
-          const dup = f.dataset.find === "dup";
-          // the weak points are on the app's right side: each chip ends at its point and reads leftward,
-          // so none of them leaves the stage
-          gsap.set(f, { x: at.x + 26 - (dup ? 150 : 0), y: at.y + (dup ? -72 : f.dataset.find === "refund" ? 36 : -36), xPercent: -100, yPercent: -50 });
+          gsap.set(f, { x: at.x, y: at.y, xPercent: at.xPercent, yPercent: -50, ...(at.width ? { width: at.width } : {}) });
           tl.fromTo(f, { autoAlpha: 0, scale: 0.8 }, { autoAlpha: 1, scale: 1, duration: 0.4, ease: "back.out(1.8)" }, 3.08 + i * 0.1);
         });
         const dupEl = q(".p-find[data-find='dup']");
-        tl.to(dupEl, { x: (hot.rate?.x ?? 0) + 26, y: (hot.rate?.y ?? 0) - 36, autoAlpha: 0, duration: 0.42, ease: "power3.inOut" }, 3.6)
+        const rateAt = placeFind(q(".p-find[data-find='rate']"));
+        tl.to(dupEl, { x: rateAt?.x ?? 0, y: rateAt?.y ?? 0, autoAlpha: 0, duration: 0.42, ease: "power3.inOut" }, 3.6)
           .to(q(".p-merge"), { autoAlpha: 1, duration: 0.2 }, 3.86)
           .to(qa(".p-fix"), { autoAlpha: 1, stagger: 0.08, duration: 0.25 }, 3.7);
 
@@ -214,8 +256,13 @@ export function Pipeline() {
           .fromTo(bundle, { autoAlpha: 0, y: 16 }, { autoAlpha: 1, y: 0, duration: 0.45, ease: "expo.out" }, 4.12)
           .to(qa(".p-find:not([data-find='dup'])"), { x: bundleAt.x, y: bundleAt.y, scale: 0.5, autoAlpha: 0, duration: 0.5, stagger: 0.06, ease: "power3.inOut" }, 4.14)
           .to(qa(".p-file"), { autoAlpha: 1, x: 0, stagger: 0.07, duration: 0.28 }, 4.34)
-          .to(chamber, { autoAlpha: 0, scale: 0.985, duration: 0.4, ease: "power3.in" }, 4.3)
-          .to(q(".p-torn"), { autoAlpha: 1, duration: 0.3 }, 4.62)
+          // The sandbox is wiped away, top edge down to nothing. It is never dissolved: production is
+          // the same app a few pixels behind it, and two half-transparent copies read as a double image.
+          .to(qa(".p-shell-chip, .p-tick"), { autoAlpha: 0, duration: 0.12 }, 4.28)
+          .to(q(".p-app"), { clipPath: "inset(0% 0% 100% 0%)", duration: 0.42, ease: "power2.inOut" }, 4.3)
+          .to(shell, { clipPath: "inset(0 0 100% 0)", duration: 0.42, ease: "power2.inOut" }, 4.3)
+          .set(chamber, { autoAlpha: 0 }, 4.73)
+          .to(q(".p-torn"), { autoAlpha: 1, duration: 0.3 }, 4.7)
           .to(prod, { autoAlpha: 0.9, duration: 0.4 }, 4.5)
           .to(q(".p-check[data-s='running']"), { autoAlpha: 0, duration: 0.15 }, 4.58)
           .to(q(".p-check[data-s='blocked']"), { autoAlpha: 1, duration: 0.25 }, 4.64)
@@ -324,6 +371,30 @@ export function Pipeline() {
           const tracker = new VelocityTracker();
           let pointerId = -1;
           let grab = 0;
+          // detents: each beat the handle crosses while it is held is one tick, like a picker
+          let detent = -1;
+          const beatAt = (p: number) => Math.min(N - 1, Math.floor(p * N + 0.001));
+          const tick = (p: number) => {
+            const b = beatAt(p);
+            if (b === detent) return;
+            detent = b;
+            haptic("selection");
+          };
+          // the check on the pull request turning to "merge blocked": felt only when the visitor
+          // drove the run there, at the moment it appears
+          let lastT = 0;
+          tl.call(
+            () => {
+              const forward = tl.time() >= lastT;
+              if (forward && performance.now() < drivenUntil.current) haptic("error");
+            },
+            undefined,
+            4.64,
+          );
+          const trackTime = () => {
+            lastT = tl.time();
+          };
+          gsap.ticker.add(trackTime);
           const pFromEvent = (e: PointerEvent) => {
             const r = track.getBoundingClientRect();
             return clamp((e.clientX - r.left - grab) / Math.max(1, r.width), 0, 1);
@@ -341,9 +412,12 @@ export function Pipeline() {
             grab = e.target === handle || handle.contains(e.target as Node) ? e.clientX - hx : 0; // respect where it was grabbed
             dragging = true;
             handle.dataset.held = "true";
+            drivenUntil.current = Infinity;
             tracker.reset();
             tracker.add(e.clientX, 0);
             const p = pFromEvent(e);
+            detent = beatAt(p);
+            haptic("light"); // the handle is picked up
             placeHandle(p);
             const y = st.start + p * (st.end - st.start);
             scrollToTarget(y, { immediate: true });
@@ -354,6 +428,7 @@ export function Pipeline() {
             tracker.add(e.clientX, 0);
             const p = pFromEvent(e);
             placeHandle(p);
+            tick(p);
             scrollToTarget(st.start + p * (st.end - st.start), { immediate: true });
           };
           const onUp = (e: PointerEvent) => {
@@ -366,6 +441,8 @@ export function Pipeline() {
             // settle on the nearest rest pose
             const beat = clamp(Math.round(landed * N), 0, N);
             const p = beat === 0 ? 0 : (beat - 0.06) / N;
+            markDriven(drivenUntil, 1800); // the throw is still the visitor's
+            tick(p); // a throw that lands on another beat is one more detent, felt as it is let go
             scrollToTarget(st.start + p * (st.end - st.start), { duration: 0.9 });
           };
           const onKey = (e: KeyboardEvent) => {
@@ -377,6 +454,7 @@ export function Pipeline() {
             else if (e.key === "End") next = N - 1;
             if (next < 0) return;
             e.preventDefault();
+            markDriven(drivenUntil, 1800);
             scrollToTarget(st.start + ((next + 0.94) / N) * (st.end - st.start), { duration: 0.9 });
           };
           const scrub = q(".pipe-scrub");
@@ -392,6 +470,7 @@ export function Pipeline() {
             handle.removeEventListener("pointerup", onUp);
             handle.removeEventListener("pointercancel", onUp);
             handle.removeEventListener("keydown", onKey);
+            gsap.ticker.remove(trackTime);
             pin.current = null;
             head.kill();
             st.kill();
@@ -428,7 +507,7 @@ export function Pipeline() {
             {PIPELINE_STEPS.map((s, i) => (
               <li key={s.id} data-step data-state={i === 0 ? "active" : "todo"} className="pipe-step">
                 <h3 className="pipe-title">
-                  <button type="button" className="pipe-btn" onClick={() => jump(i)}>
+                  <button type="button" className="pipe-btn" onClick={() => jump(i)} {...tap("selection")}>
                     <span className="pipe-tag t-label">
                       <span aria-hidden>{String(i + 1).padStart(2, "0")}</span>
                       <span>{s.tag}</span>

@@ -1050,6 +1050,62 @@ html.lenis body {
   /* the base strip is full bleed; its content keeps the page's gutters */
   .foot-base.wrap { max-width: none; }
   .foot-base > * { position: relative; }
+
+  /* The visitor's haptics setting. It exists only where a haptic could happen: a touch screen, with
+     motion allowed. Everywhere else it is not in the page at all (not shown, not focusable). */
+  .haptics-switch { display: none; }
+  @media (any-pointer: coarse) and (prefers-reduced-motion: no-preference) {
+    .haptics-switch {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      min-height: 44px; /* a thumb's target */
+      margin-block: -11px;
+      padding: 0;
+      border: 0;
+      background: none;
+      font: inherit;
+      color: var(--iv-ink-2);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .haptics-switch-track {
+      position: relative;
+      width: 34px;
+      height: 20px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: inset 0 0 0 1px var(--iv-line-2);
+      transition: background-color var(--d-ui) var(--ease-out), box-shadow var(--d-ui) var(--ease-out);
+    }
+    .haptics-switch-track i {
+      position: absolute;
+      left: 3px;
+      top: 3px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--iv-ink-3);
+      transition: transform var(--d-ui) var(--spring), background-color var(--d-ui) var(--ease-out);
+    }
+    .haptics-switch[aria-checked='true'] .haptics-switch-track {
+      background: rgba(210, 251, 90, 0.16);
+      box-shadow: inset 0 0 0 1px rgba(210, 251, 90, 0.55);
+    }
+    .haptics-switch[aria-checked='true'] .haptics-switch-track i {
+      transform: translateX(14px);
+      background: var(--iv-lime);
+    }
+    .haptics-switch-state {
+      min-width: 2.1em; /* "On" and "Off" take the same room: nothing beside it moves */
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--iv-ink-3);
+    }
+    .haptics-switch:active .haptics-switch-track { transform: scale(0.94); }
+  }
   @media (min-width: 900px) {
     .foot-top { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); align-items: start; }
     .foot-cols { justify-self: end; width: 100%; max-width: 560px; }

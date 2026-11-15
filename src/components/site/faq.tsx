@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { ScrollTrigger, useGSAP } from "@/lib/site/gsap";
 import { aimLight, QUIET, setMood } from "@/lib/site/scene";
 import { FAQS } from "@/lib/site/content";
+import { tap } from "@/lib/site/haptics";
 
 /** A numeric range ("4-5") must not break at its hyphen (the display face has no non-breaking hyphen). */
 function keepRanges(text: string) {
@@ -68,6 +69,7 @@ export function Faq({
                     aria-controls={`${id}-a-${i}`}
                     className="faq-q"
                     onClick={() => setOpen(isOpen ? -1 : i)}
+                    {...tap("light")}
                   >
                     <span>{f.q}</span>
                     <span className="faq-plus" aria-hidden>

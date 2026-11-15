@@ -6,6 +6,7 @@ import { gsap, prefersReducedMotion } from "@/lib/site/gsap";
 import { cn } from "@/lib/utils";
 import { EMAIL_RE } from "@/lib/site/email";
 import { DUR, EASE } from "@/lib/site/motion";
+import { haptic } from "@/lib/site/haptics";
 
 type Status = "idle" | "loading" | "success" | "already" | "error" | "invalid" | "limited";
 
@@ -44,12 +45,14 @@ export function WaitlistForm({
 
     if (!EMAIL_RE.test(email)) {
       setStatus("invalid");
+      haptic("error");
       shake();
       inputRef.current?.focus();
       return;
     }
 
     setStatus("loading");
+    haptic("medium"); // the press is accepted; the result has its own
     const abort = new AbortController();
     const timer = window.setTimeout(() => abort.abort(), 10_000); // a hung request must not hang the form
     try {
@@ -63,12 +66,15 @@ export function WaitlistForm({
         // the address is saved once the response is ok; an unreadable body must not turn that into an error
         const data = await res.json().catch(() => null);
         setStatus(data?.message === "already_registered" ? "already" : "success");
+        haptic("success");
         return;
       }
       const body = await res.json().catch(() => null);
       setStatus(res.status === 429 ? "limited" : res.status === 400 && body?.error === "invalid_email" ? "invalid" : "error");
+      haptic("error");
     } catch {
       setStatus("error");
+      haptic("error");
     } finally {
       window.clearTimeout(timer);
     }

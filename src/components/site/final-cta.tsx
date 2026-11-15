@@ -7,6 +7,7 @@ import { aimLight, QUIET, scene, setMood } from "@/lib/site/scene";
 import { CTA, DOCS_URL } from "@/lib/site/content";
 import { WaitlistForm } from "@/components/site/waitlist-form";
 import { DUR, EASE } from "@/lib/site/motion";
+import { haptic, tap } from "@/lib/site/haptics";
 
 /**
  * The end. The mark is a frame inside a frame; here its inner frame opens like an aperture and the
@@ -38,6 +39,8 @@ export function FinalCta() {
           start: "top 40%",
           once: true,
           onEnter: () => {
+            // the page's one scroll milestone: the aperture has opened and the screen is lime. Once.
+            haptic("soft");
             const els = gsap.utils.toArray<HTMLElement>("[data-cta]:not([data-revealed])", f);
             if (!els.length) return;
             els.forEach((el) => el.setAttribute("data-revealed", ""));
@@ -122,7 +125,7 @@ export function FinalCta() {
               <WaitlistForm id="waitlist-cta" size="md" />
             </div>
             <div className="cta-actions" data-cta>
-              <a href={DOCS_URL} className="btn btn--ink">
+              <a href={DOCS_URL} className="btn btn--ink" {...tap("light")}>
                 Read the docs
                 <ArrowRight className="arrow" size={17} strokeWidth={2.6} />
               </a>

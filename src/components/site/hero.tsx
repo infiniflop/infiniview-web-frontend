@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { ArrowDown } from "lucide-react";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/site/gsap";
 import { HERO, SAMPLE_FINDINGS } from "@/lib/site/content";
@@ -11,6 +11,7 @@ import { aimLight, setMood } from "@/lib/site/scene";
 import { applyGlassMap, buildGlassMap } from "@/lib/site/glass";
 import { Spring, SPRING, VelocityTracker, clamp, onClock, project } from "@/lib/site/motion";
 import { scrollToTarget } from "@/lib/site/scroll";
+import { haptic, tap } from "@/lib/site/haptics";
 
 // the light stands behind the stage, toward its upper right: its halo shows beside the headline
 const HERO_MOOD = { alert: 0, proof: 0, energy: 0.8, x: 0.86, y: 0.62, spread: 0.26 };
@@ -39,11 +40,26 @@ export function showFinding(id: FindingId) {
   if (target) scrollToTarget(target, { offset: -20, duration: 1.4 });
 }
 
+/** how much the flat middle of the lens magnifies */
+const ZOOM = 1.05;
+const noSubscription = () => () => {};
+const isAppleWebKit = () => (navigator.vendor ?? "").startsWith("Apple");
+
 export function Hero() {
   const root = useRef<HTMLElement>(null);
   const stage = useRef<HTMLDivElement>(null);
   const lens = useRef<HTMLDivElement>(null);
   const view = useRef<HTMLDivElement>(null);
+  // Safari (and every iOS browser) rasterises filtered content at one pixel per CSS pixel, so on a
+  // Retina screen the copy inside the glass is soft. There, the flat middle of the lens is a second,
+  // unfiltered copy laid exactly over the filtered one: the rim still bends, the middle is sharp.
+  const crisp = useSyncExternalStore(noSubscription, isAppleWebKit, () => false);
+  const crispView = useRef<HTMLDivElement>(null);
+  const repaint = useRef(() => {});
+  // the sharp copy mounts after hydration: place it at once, even if the lens is standing still
+  useEffect(() => {
+    if (crisp) repaint.current();
+  }, [crisp]);
   const fx = useRef<HTMLDivElement>(null);
   const glint = useRef<HTMLSpanElement>(null);
   const reticle = useRef<HTMLSpanElement>(null);
@@ -58,6 +74,8 @@ export function Hero() {
     if (foundRef.current.has(id)) return;
     foundRef.current.add(id);
     setFound((cur) => (cur.includes(id) ? cur : [...cur, id]));
+    // the lock is felt as it lands in the tray: a snap for each weak point, the last one completes the set
+    haptic(foundRef.current.size === IDS.length ? "success" : "rigid");
   }, []);
 
   // the opening mood: a cool light behind the stage
@@ -92,6 +110,7 @@ export function Hero() {
     let SW = 0;
     let SH = 0;
     let L = 0;
+    let bezel = 14;
     let hot: { id: FindingId; x: number; y: number }[] = [];
     const sx = new Spring(0, SPRING.soft);
     const sy = new Spring(0, SPRING.soft);
@@ -133,7 +152,9 @@ export function Hero() {
       }
       // the refraction map is built for the lens's exact size
       // a wide, shallow bezel: text bends as it reaches the rim, it is never torn
-      const map = buildGlassMap({ width: L, height: L, radius: L * 0.32, bezel: Math.max(14, L * 0.14), depth: L * 0.1, zoom: 1.05 }, L * 0.038);
+      bezel = Math.max(14, L * 0.14);
+      el.style.setProperty("--bezel", `${bezel.toFixed(1)}px`);
+      const map = buildGlassMap({ width: L, height: L, radius: L * 0.32, bezel, depth: L * 0.1, zoom: ZOOM }, L * 0.038);
       const ok = applyGlassMap(document.getElementById("glass-lens") as SVGFilterElement | null, map, 0.035);
       fxEl.dataset.fx = ok ? "on" : "off";
     };
@@ -162,6 +183,12 @@ export function Hero() {
           ? `translate3d(${left.toFixed(2)}px,${top.toFixed(2)}px,0) rotate(${ang.toFixed(3)}rad) scale(${(1 + s).toFixed(4)},${(1 - s * 0.7).toFixed(4)}) rotate(${(-ang).toFixed(3)}rad)`
           : `translate3d(${left.toFixed(2)}px,${top.toFixed(2)}px,0)`;
       vw.style.transform = `translate3d(${(-left).toFixed(2)}px,${(-top).toFixed(2)}px,0)`;
+      const cv = crispView.current;
+      if (cv) {
+        // the same picture the filter makes in its flat middle: the app magnified about the lens's centre
+        const z = fxEl.dataset.fx === "on" ? ZOOM : 1; // no filter, no magnification to match
+        cv.style.transform = `translate3d(${(-left - bezel + x * (1 - z)).toFixed(2)}px,${(-top - bezel + y * (1 - z)).toFixed(2)}px,0) scale(${z})`;
+      }
       // the highlight slides against the direction of travel and sits toward the light (upper left)
       if (glint.current) {
         const gx = clamp(-sx.velocity * 0.014, -14, 14) + (x / Math.max(1, SW) - 0.5) * -10;
@@ -281,6 +308,7 @@ export function Hero() {
       }
       takeOver();
       mode = "drag";
+      haptic("light"); // the glass is picked up
       const p = toStage(e);
       grabX = p.x - sx.value; // respect where it was grabbed
       grabY = p.y - sy.value;
@@ -339,6 +367,7 @@ export function Hero() {
 
     measure();
     paint();
+    repaint.current = paint;
     el.dataset.live = "true";
     const ro = new ResizeObserver(() => {
       measure();
@@ -434,14 +463,17 @@ export function Hero() {
                   <SampleApp mode="xray" />
                 </div>
               </div>
+              {crisp && (
+                <div className="lens-crisp">
+                  <div ref={crispView} className="lens-view lens-view--crisp">
+                    <SampleApp mode="xray" />
+                  </div>
+                </div>
+              )}
               <span className="lens-body" />
               <span ref={glint} className="lens-glint" />
               <span ref={reticle} className="lens-reticle">
                 <i />
-              </span>
-              <span className="lens-hint" data-off={touched ? "true" : undefined}>
-                <span className="lens-hint-fine">Move the lens</span>
-                <span className="lens-hint-touch">Drag the lens</span>
               </span>
             </div>
           </div>
@@ -465,6 +497,7 @@ export function Hero() {
                       data-found={got ? "true" : undefined}
                       data-sev={f.severity}
                       onClick={() => (got ? showFinding(f.id) : seek.current(f.id))}
+                      {...tap("selection")}
                     >
                       <i aria-hidden />
                       <span className="tray-long">{got ? NAME[f.id] : `Weak point ${i + 1}`}</span>
@@ -485,9 +518,17 @@ export function Hero() {
               data-on={all ? "true" : undefined}
               tabIndex={all ? undefined : -1}
               aria-hidden={all ? undefined : true}
+              {...(all ? tap("medium") : null)}
             >
+              {/* until the lens has been moved, the hint says how (where there is room for it) */}
               <span className="tray-go-off" aria-hidden>
-                Find all three
+                {!touched && (
+                  <span className="tray-hint">
+                    <span className="tray-hint-fine">Move the lens to </span>
+                    <span className="tray-hint-touch">Drag the lens to </span>
+                  </span>
+                )}
+                find all three
               </span>
               <span className="tray-go-on">
                 Replay the proof
