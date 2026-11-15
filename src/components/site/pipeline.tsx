@@ -151,6 +151,8 @@ export function Pipeline() {
         const bundleAt = centre(bundle);
         gsap.set([chamber, lanes], { autoAlpha: 0 });
 
+        // production never drops below this: its smallest grey text still reads at AA (4.5:1) there
+        const PROD_DIM = 0.82;
         const tl = gsap.timeline({ paused: true, defaults: { ease: "power3.out" } });
 
         /* ── 1 · trigger: a pull request opens ─────────────────────────── */
@@ -159,11 +161,11 @@ export function Pipeline() {
           .fromTo(qa(".p-diff i"), { scaleX: 0 }, { scaleX: 1, transformOrigin: "0 50%", stagger: 0.07, duration: 0.3 }, 0.12)
           .fromTo(q(".p-check[data-s='queued']"), { autoAlpha: 0, x: -6 }, { autoAlpha: 1, x: 0, duration: 0.25 }, 0.5)
           .fromTo(q(".p-wire"), { scaleX: 0 }, { scaleX: 1, transformOrigin: "0 50%", duration: 0.35, ease: "power2.inOut" }, 0.6)
-          .fromTo(prod, { autoAlpha: 0.5 }, { autoAlpha: 0.72, duration: 0.4 }, 0.55);
+          .fromTo(prod, { autoAlpha: PROD_DIM }, { autoAlpha: 0.9, duration: 0.4 }, 0.55);
 
         /* ── 2 · sandbox: a copy of the app is sealed in glass ─────────── */
         tl.fromTo(chamber, { autoAlpha: 0, x: 30, y: -30, scale: 0.97 }, { autoAlpha: 1, x: 0, y: 0, scale: 1, duration: 0.6, ease: "expo.out" }, 1)
-          .to(prod, { autoAlpha: 0.3, duration: 0.5 }, 1)
+          .to(prod, { autoAlpha: PROD_DIM, duration: 0.5 }, 1)
           .to(shell, { clipPath: "inset(0 0 0% 0)", duration: 0.55, ease: "power2.inOut" }, 1.25)
           .to(q(".p-shell-chip"), { autoAlpha: 1, x: 0, duration: 0.3 }, 1.55)
           .to(qa(".p-tick"), { autoAlpha: 1, x: 0, stagger: 0.14, duration: 0.3 }, 1.35)
@@ -214,7 +216,7 @@ export function Pipeline() {
           .to(qa(".p-file"), { autoAlpha: 1, x: 0, stagger: 0.07, duration: 0.28 }, 4.34)
           .to(chamber, { autoAlpha: 0, scale: 0.985, duration: 0.4, ease: "power3.in" }, 4.3)
           .to(q(".p-torn"), { autoAlpha: 1, duration: 0.3 }, 4.62)
-          .to(prod, { autoAlpha: 0.72, duration: 0.4 }, 4.5)
+          .to(prod, { autoAlpha: 0.9, duration: 0.4 }, 4.5)
           .to(q(".p-check[data-s='running']"), { autoAlpha: 0, duration: 0.15 }, 4.58)
           .to(q(".p-check[data-s='blocked']"), { autoAlpha: 1, duration: 0.25 }, 4.64)
           .to({}, { duration: 0.12 }, 4.88);

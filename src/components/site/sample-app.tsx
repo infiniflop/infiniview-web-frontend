@@ -69,9 +69,9 @@ export function SampleApp({ mode = "app", label = "Sample app" }: { mode?: "app"
               <div key={r.email} className="app-row">
                 <span className="app-name">{r.name}</span>
                 <span className="app-email">{r.email}</span>
-                <span className="app-plan">{x ? "$2b$10$N9qo8…" : r.plan}</span>
+                <span className="app-plan">{x ? "$2b$10$N9…" : r.plan}</span>
                 <span className="app-order">
-                  {x && i === 0 ? "5 refunds · $210.00" : `${r.order} · ${r.amount}`}
+                  {x && i === 0 ? "5 refunds · $210" : `${r.order} · ${r.amount}`}
                 </span>
                 <span className="app-act" data-hot={i === 0 ? "refund" : undefined}>
                   {x && i === 0 ? "×5 in 1s" : "Refund"}

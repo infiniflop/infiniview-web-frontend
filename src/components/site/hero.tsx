@@ -101,6 +101,9 @@ export function Hero() {
     let t = 0;
     let over: FindingId | null = null;
     let overFor = 0;
+    // where the weak point under the glass is, measured from the glass's centre: the brackets go to it
+    let aimX = 0;
+    let aimY = 0;
     let inView = true;
     let idleTimer = 0;
     const tracker = new VelocityTracker();
@@ -167,7 +170,9 @@ export function Hero() {
       }
       if (reticle.current) {
         const f = focus.value;
-        reticle.current.style.transform = `scale(${(1 - 0.24 * f).toFixed(3)})`;
+        // at the stage's edges the glass stops but the brackets carry on to the weak point
+        const reach = L * 0.27;
+        reticle.current.style.transform = `translate3d(${(clamp(aimX, -reach, reach) * f).toFixed(2)}px,${(clamp(aimY, -reach, reach) * f).toFixed(2)}px,0) scale(${(1 - 0.24 * f).toFixed(3)})`;
         reticle.current.style.opacity = (0.5 + 0.5 * f).toFixed(3);
       }
     };
@@ -192,6 +197,10 @@ export function Hero() {
         if (d < best) {
           best = d;
           near = d < L * 0.42 ? h.id : null;
+          if (near) {
+            aimX = h.x - sx.value;
+            aimY = h.y - sy.value;
+          }
         }
       }
       focus.to(near ? 1 : 0, SPRING.ui);

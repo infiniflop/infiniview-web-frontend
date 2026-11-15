@@ -266,7 +266,8 @@
     color: var(--iv-red-soft);
   }
   .app[data-mode='xray'] .app-title { font-size: 1.08em; letter-spacing: 0; }
-  .app[data-mode='xray'] .app-plan { font-size: 0.92em; }
+  .app[data-mode='xray'] .app-plan,
+  .app[data-mode='xray'] .app-row:nth-child(2) .app-order { font-size: 0.9em; }
   .app[data-mode='xray'] .app-search,
   .app[data-mode='xray'] .app-act[data-hot],
   .app[data-mode='xray'] .app-meter {
