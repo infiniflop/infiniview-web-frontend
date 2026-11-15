@@ -267,6 +267,28 @@ html.lenis body {
   }
   .t-lime { color: var(--iv-lime); }
 
+  /* Headlines of a first screen: each word rises out of its own mask, in reading order; the mask has room for descenders */
+  .hw {
+    display: inline-block;
+    overflow: hidden;
+    overflow: clip;
+    vertical-align: top;
+    padding: 0.08em 0.04em 0.16em;
+    margin: -0.08em -0.04em -0.16em;
+  }
+  .hw > span {
+    display: inline-block;
+    animation: word-in var(--d-hero) var(--ease-out) calc(var(--i) * 55ms) both;
+    will-change: transform;
+  }
+  @keyframes word-in {
+    from { transform: translateY(118%) rotate(4deg); }
+  }
+  .hero-br { display: none; }
+  @media (min-width: 768px) {
+    .hero-br { display: inline; }
+  }
+
   .link {
     color: var(--iv-ink);
     text-decoration: none;
@@ -1124,8 +1146,7 @@ html.lenis body {
   }
   .price-hero .t-display { max-width: 11ch; }
   .price-hero .t-lede { max-width: 46ch; margin-top: clamp(20px, 2.4vw, 32px); }
-  .price-hero > .wrap > * { animation: rise-in var(--d-hero) var(--ease-out) both; }
-  .price-hero > .wrap > *:nth-child(2) { animation-delay: 90ms; }
+  .price-hero .t-lede { animation: rise-in var(--d-hero) var(--ease-out) 200ms both; }
   .plans { padding-bottom: clamp(56px, 7vw, 100px); }
   .plans-grid {
     display: grid;
@@ -1332,7 +1353,9 @@ html.lenis body {
   .pin-spacer > * { position: static !important; inset: auto !important; width: auto !important; height: auto !important; min-height: 0 !important; margin: 0 !important; }
   .pipe-stage-col { display: none !important; }
   .pipe-step { display: grid !important; position: static !important; width: auto !important; height: auto !important; clip-path: none !important; }
-  .pipe-body, .faq-a, .cov-body { grid-template-rows: 1fr !important; }
+  .faq-a { grid-template-rows: 1fr !important; }
+  .pipe-body { position: static !important; height: auto !important; border: 0 !important; }
+  .pipe-steps { padding-bottom: 0 !important; }
   .cta-field { clip-path: none !important; min-height: 0 !important; }
   .hero, .statement-pin, .pipe-pin, .cta, .status { min-height: 0 !important; }
   /* the findings console is a stack of states shown one at a time: print the one on screen */

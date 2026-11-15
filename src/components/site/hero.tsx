@@ -6,6 +6,7 @@ import { gsap, ScrollTrigger, useGSAP } from "@/lib/site/gsap";
 import { HERO, SAMPLE_FINDINGS } from "@/lib/site/content";
 import { WaitlistForm } from "@/components/site/waitlist-form";
 import { SampleApp } from "@/components/site/sample-app";
+import { MaskedWords } from "@/components/site/ui";
 import { aimLight, setMood } from "@/lib/site/scene";
 import { applyGlassMap, buildGlassMap } from "@/lib/site/glass";
 import { Spring, SPRING, VelocityTracker, clamp, onClock, project } from "@/lib/site/motion";
@@ -379,15 +380,7 @@ export function Hero() {
     <section ref={root} id="top" className="hero" aria-labelledby="hero-title">
       <div className="wrap hero-grid">
         <h1 id="hero-title" className="t-display hero-h1" aria-label="Attack your code before anyone else does.">
-          {WORDS.map((w, i) => (
-            <span key={i} aria-hidden>
-              <span className="hw" style={{ ["--i" as string]: i }}>
-                <span>{w.text}</span>
-              </span>
-              {" "}
-              {w.br ? <br className="hero-br" /> : null}
-            </span>
-          ))}
+          <MaskedWords words={WORDS} />
         </h1>
 
         <div className="hero-copy">

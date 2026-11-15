@@ -30,6 +30,8 @@ export const scene = {
   anchor: null as HTMLElement | null,
   ax: 0.5,
   ay: 0.5,
+  /** the anchor's place on screen needs reading again (it scrolled, resized, or was just set) */
+  stale: true,
   /** where the light is on screen right now (0..1 across, 0..1 up): damped toward the anchor or the mood */
   lx: 0.86,
   ly: 0.62,
@@ -64,6 +66,7 @@ export function aimLight(el: HTMLElement | null, ax = 0.5, ay = 0.5) {
   scene.anchor = el;
   scene.ax = ax;
   scene.ay = ay;
+  scene.stale = true;
 }
 
 /** A dim light at the foot of the screen: for chapters that are type alone. */

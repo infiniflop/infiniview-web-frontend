@@ -61,21 +61,27 @@ export function SiteShell({ children }: { children: ReactNode }) {
       scene.py += (scene.ty - scene.py) * kp;
       // the light glides to wherever it has been aimed: behind its anchor (it then scrolls with that
       // surface) or to the mood's own position. A read of one rect per frame; nothing is written to layout.
-      let lx = scene.mood.x;
-      let ly = scene.mood.y;
+      // (the rect is read only when the page has scrolled or resized since the last read, so an
+      // idle page never forces layout from here)
       const a = scene.anchor;
-      if (a && a.isConnected) {
-        const r = a.getBoundingClientRect();
-        if (r.width > 0) {
-          lx = (r.left + r.width * scene.ax) / window.innerWidth;
-          ly = 1 - (r.top + r.height * scene.ay) / window.innerHeight;
+      if (a && !a.isConnected) scene.anchor = null;
+      if (scene.anchor) {
+        if (scene.stale || Math.abs(scene.velocity) > 0.001 || window.scrollY !== lastY) {
+          scene.stale = false;
+          lastY = window.scrollY;
+          const r = scene.anchor.getBoundingClientRect();
+          if (r.width > 0) {
+            aimX = (r.left + r.width * scene.ax) / window.innerWidth;
+            aimY = 1 - (r.top + r.height * scene.ay) / window.innerHeight;
+          }
         }
-      } else if (a) {
-        scene.anchor = null;
+      } else {
+        aimX = scene.mood.x;
+        aimY = scene.mood.y;
       }
       const kl = 1 - Math.exp(-dt * 3.4);
-      scene.lx += (lx - scene.lx) * kl;
-      scene.ly += (clamp(ly, -0.6, 1.6) - scene.ly) * kl;
+      scene.lx += (aimX - scene.lx) * kl;
+      scene.ly += (clamp(aimY, -0.6, 1.6) - scene.ly) * kl;
       // the rim of the nav glass answers the pointer and the scroll: its highlight turns a few degrees
       // (written on the bar itself; a custom property on an ancestor would restyle the whole page)
       const g = scene.px * 16 + scene.velocity * 26;
@@ -86,6 +92,13 @@ export function SiteShell({ children }: { children: ReactNode }) {
     };
     let glint = 0;
     let navBar: HTMLElement | null = null;
+    let aimX = scene.lx;
+    let aimY = scene.ly;
+    let lastY = -1;
+    const onStale = () => {
+      scene.stale = true;
+    };
+    window.addEventListener("resize", onStale);
     gsap.ticker.add(tick);
     gsap.ticker.lagSmoothing(0);
 
@@ -298,6 +311,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
       document.documentElement.classList.remove("surface-dark");
       gsap.ticker.lagSmoothing(500, 33); // GSAP's defaults, which this effect overrode
       gsap.ticker.remove(tick);
+      window.removeEventListener("resize", onStale);
       window.removeEventListener("pointermove", onMove);
       mqReduce.removeEventListener("change", onMotionPref);
       layoutQueries.forEach((mq) => mq.removeEventListener("change", layoutListener));

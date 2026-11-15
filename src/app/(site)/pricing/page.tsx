@@ -6,6 +6,7 @@ import { WaitlistForm } from "@/components/site/waitlist-form";
 import { faqPage, jsonLd } from "@/lib/site/jsonld";
 import { RouteTransition } from "@/components/site/route-transition";
 import { LightCue } from "@/components/site/light-cue";
+import { MaskedWords } from "@/components/site/ui";
 
 export const metadata: Metadata = {
   title: "Pricing",
@@ -94,6 +95,8 @@ const PLAN_NOTES = [
   { label: "Pricing", value: "Finalized before launch" },
 ];
 
+const TITLE = ["Security", "that", "scales", "with", "you."].map((text) => ({ text }));
+
 // the light stands behind the plans (module-level, so the cue's effect does not re-run on render)
 const PRICING_LIGHT = { spread: 0.26, energy: 0.5, alert: 0, proof: 0.35 };
 
@@ -129,8 +132,8 @@ export default function PricingPage() {
         {/* the first screen (headline and plans) is in the server's HTML and enters with CSS at first paint */}
         <section className="price-hero" aria-labelledby="price-title">
           <div className="wrap">
-            <h1 id="price-title" className="t-display">
-              Security that scales with you.
+            <h1 id="price-title" className="t-display" aria-label="Security that scales with you.">
+              <MaskedWords words={TITLE} />
             </h1>
             <p className="t-lede">
               Join the waitlist to lock in launch pricing. Plans for indie hackers, startups, and enterprise.

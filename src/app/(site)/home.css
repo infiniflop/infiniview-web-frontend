@@ -24,24 +24,6 @@
     align-content: start;
   }
   .hero-h1 { margin: 0; }
-  .hero-br { display: none; }
-  /* each word rises out of its own mask, in reading order; the mask has room for descenders */
-  .hw {
-    display: inline-block;
-    overflow: hidden;
-    overflow: clip;
-    vertical-align: top;
-    padding: 0.08em 0.04em 0.16em;
-    margin: -0.08em -0.04em -0.16em;
-  }
-  .hw > span {
-    display: inline-block;
-    animation: word-in var(--d-hero) var(--ease-out) calc(var(--i) * 55ms) both;
-    will-change: transform;
-  }
-  @keyframes word-in {
-    from { transform: translateY(118%) rotate(4deg); }
-  }
   .hero-copy {
     display: flex;
     flex-direction: column;
@@ -266,7 +248,7 @@
   /* the same app, seen by an attacker: everything recedes except what can be broken */
   .app[data-mode='xray'] {
     background: #0b0607;
-    color: rgba(255, 190, 180, 0.52);
+    color: rgba(255, 196, 187, 0.66);
   }
   .app[data-mode='xray'] .app-bar { background: #120809; border-color: rgba(255, 90, 71, 0.22); }
   .app[data-mode='xray'] .app-side,
@@ -279,7 +261,7 @@
   .app[data-mode='xray'] .app-email,
   .app[data-mode='xray'] .app-order,
   .app[data-mode='xray'] .app-route,
-  .app[data-mode='xray'] .app-row--head { color: rgba(255, 176, 164, 0.5); }
+  .app[data-mode='xray'] .app-row--head { color: rgba(255, 196, 187, 0.66); }
   .app[data-mode='xray'] .app-name,
   .app[data-mode='xray'] .app-org { color: rgba(255, 214, 207, 0.78); }
   .app[data-mode='xray'] .app-nav[data-on] { background: rgba(255, 90, 71, 0.14); color: #ffd6cf; }
@@ -291,7 +273,7 @@
     color: var(--iv-red-soft);
   }
   .app[data-mode='xray'] .app-title { font-size: 1.1em; letter-spacing: 0; color: var(--iv-red); }
-  .app[data-mode='xray'] .app-act { border-color: rgba(255, 90, 71, 0.22); color: rgba(255, 176, 164, 0.5); }
+  .app[data-mode='xray'] .app-act { border-color: rgba(255, 90, 71, 0.22); color: rgba(255, 196, 187, 0.66); }
   .app[data-mode='xray'] .app-search,
   .app[data-mode='xray'] .app-act[data-hot],
   .app[data-mode='xray'] .app-meter {
@@ -548,7 +530,8 @@
   }
 
   .tray-short { display: none; }
-  @media (max-width: 640px) {
+  /* the tray is as wide as the stage: on phones and small laptops its slots carry short labels */
+  @media (max-width: 1180px) {
     .tray { gap: 8px 10px; }
     .tray-list { flex-wrap: nowrap; }
     .tray-list li { flex: 1 1 0; }
@@ -571,7 +554,6 @@
   }
 
   @media (min-width: 768px) {
-    .hero-br { display: inline; }
     .hero-assure { display: flex; }
     .hero-lede { max-width: 46ch; }
     .stage { height: clamp(340px, 46vw, 430px); --lens: clamp(190px, 28cqw, 230px); }
@@ -986,7 +968,9 @@
     min-width: 0;
     min-height: 0;
   }
-  /* the steps: on a phone only the active one is shown, in a box of constant height */
+  /* The steps. Their titles are a fixed list; the active step's description appears in one reserved
+     place under the list (it cross-fades, nothing is pushed), so stepping through the run never
+     shifts the layout. On a phone only the active step is shown, in a box of constant height. */
   .pipe-steps {
     position: relative;
     order: 2;
@@ -1019,33 +1003,36 @@
   }
   .pipe-step[data-state='active'] .pipe-name { color: var(--iv-ink); }
   .pipe-step[data-state='active'] .pipe-tag { color: var(--iv-lime); }
-  .pipe-body {
-    display: grid;
-    grid-template-rows: 1fr;
-    transition: grid-template-rows var(--d-open) var(--ease-out);
-  }
   .pipe-body > p {
-    min-height: 0;
-    overflow: hidden;
     padding: 8px 0 14px;
     max-width: 40ch;
-    transition: opacity var(--d-open) var(--ease-out);
   }
-  /* collapsing only happens when script is running, so with no script every step is readable */
+  /* (hiding only happens when script is running, so with no script every step is readable) */
+  html.js:not(.reveal-failsafe) .pipe:not([data-static]) .pipe-body {
+    transition: opacity var(--d-open) var(--ease-out), visibility 0s;
+  }
   html.js:not(.reveal-failsafe) .pipe:not([data-static]) .pipe-step:not([data-state='active']) .pipe-body {
-    grid-template-rows: 0fr;
-    transition: grid-template-rows var(--d-ui) var(--ease-in);
-  }
-  html.js:not(.reveal-failsafe) .pipe:not([data-static]) .pipe-step:not([data-state='active']) .pipe-body > p {
     opacity: 0;
-    padding-block: 0;
     visibility: hidden;
-    transition: opacity 0.14s var(--ease-in), visibility 0s 0.14s, padding 0s var(--d-ui);
+    transition: opacity 0.14s var(--ease-in), visibility 0s 0.14s;
   }
   @media (max-width: 1023px) {
     html.js:not(.reveal-failsafe) .pipe:not([data-static]) .pipe-step { position: absolute; inset: 0 0 auto; border-top-color: var(--iv-line-2); }
     html.js:not(.reveal-failsafe) .pipe:not([data-static]) .pipe-step:not([data-state='active']) { visibility: hidden; opacity: 0; }
     html.js:not(.reveal-failsafe) .pipe:not([data-static]) .pipe-step { transition: opacity var(--d-ui) var(--ease-out), visibility 0s; }
+  }
+  @media (min-width: 1024px) {
+    html.js:not(.reveal-failsafe) .pipe:not([data-static]) .pipe-steps { padding-bottom: 7.4rem; }
+    html.js:not(.reveal-failsafe) .pipe:not([data-static]) .pipe-body {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 7.4rem;
+      border-top: 1px solid var(--iv-line-2);
+    }
+    html.js:not(.reveal-failsafe) .pipe:not([data-static]) .pipe-body > p { padding: 16px 0 0; }
+    html.js:not(.reveal-failsafe) .pipe:not([data-static]) .pipe-btn { padding-bottom: 14px; }
   }
 
   /* the stage: a fixed design space, scaled to its box (so the choreography is the same everywhere) */
@@ -1105,6 +1092,8 @@
   .app-frame { position: absolute; inset: 0; overflow: hidden; container-type: size; }
   .p-live, .p-xray { position: absolute; inset: 0; }
   .p-xray { will-change: clip-path; }
+  /* here the findings arrive as chips of their own, so the attack view's flags stay out of the way */
+  .p-xray .app-flag { display: none; }
   /* the glass of the sandbox: a shell around the app, with the light on its upper left edge */
   .p-shell {
     position: absolute;
@@ -1367,9 +1356,6 @@
     }
     .pipe-steps { order: 0; min-height: 0; }
     .pipe-stage-col { height: 100%; max-height: 720px; }
-    .pipe-btn { padding-top: 16px; }
-    .pipe-body > p { padding-bottom: 18px; }
-    .pipe-step:not([data-state='active']) .pipe-btn { padding-bottom: 16px; }
   }
 }
 

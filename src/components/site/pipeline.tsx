@@ -197,7 +197,7 @@ export function Pipeline() {
           const dup = f.dataset.find === "dup";
           // the weak points are on the app's right side: each chip ends at its point and reads leftward,
           // so none of them leaves the stage
-          gsap.set(f, { x: at.x + 26 - (dup ? 150 : 0), y: at.y + (dup ? -72 : f.dataset.find === "sqli" ? 36 : -36), xPercent: -100, yPercent: -50 });
+          gsap.set(f, { x: at.x + 26 - (dup ? 150 : 0), y: at.y + (dup ? -72 : f.dataset.find === "refund" ? 36 : -36), xPercent: -100, yPercent: -50 });
           tl.fromTo(f, { autoAlpha: 0, scale: 0.8 }, { autoAlpha: 1, scale: 1, duration: 0.4, ease: "back.out(1.8)" }, 3.08 + i * 0.1);
         });
         const dupEl = q(".p-find[data-find='dup']");
@@ -261,7 +261,8 @@ export function Pipeline() {
             { spread: 0.27, energy: 0.6, alert: 0, proof: 0 },
             { spread: 0.3, energy: 0.9, alert: 0.92, proof: 0 },
             { spread: 0.27, energy: 0.65, alert: 0.45, proof: 0 },
-            { spread: 0.27, energy: 0.7, alert: 0, proof: 0.95 },
+            // (the sandbox is gone by the end of this beat, so the light is in the open: it is turned down)
+            { spread: 0.24, energy: 0.42, alert: 0, proof: 0.95 },
           ];
           const aim = () => aimLight(q(".p-chamber"), 0.5, 0.5);
           const placeHandle = (p: number) => {

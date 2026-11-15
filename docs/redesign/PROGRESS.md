@@ -11,10 +11,10 @@ Captures, videos and tooling live outside git in `~/.t3/infiniview-redesign/`
 - [x] 0. Git state verified, dependencies installed, baseline `lint` / `tsc` / `build` green
 - [x] 2a. Audit of the current site (all routes, 4 widths, load-in, Lighthouse, CLS, frame rate on a real GPU)
 - [x] 2a. `plan.md`
-- [ ] 2b. First-hand reference study, `reference-study.md`
-- [ ] 2c. Design skills loaded, `skills-evidence.md`
+- [x] 2b. First-hand reference study, `reference-study.md`
+- [x] 2c. Design skills loaded, `skills-evidence.md`
 - [x] 2d. `concept.md`, `motion-system.md`
-- [ ] 2d. Implementation
+- [x] 2d. Implementation
 - [ ] 2e. Tests (3 browsers × 4 sizes + iPhone WebKit, reduced motion, Lighthouse, CLS, axe, keyboard)
 - [ ] 2f. Four self-review rounds, independent critic, `design-review.md`, README rewrite
 - [ ] 3. Signed commits verified and pushed
@@ -42,3 +42,15 @@ Captures, videos and tooling live outside git in `~/.t3/infiniview-redesign/`
   hero with the lens and tray, threat band with the slab, statement, pinned pipeline with a
   draggable timeline, findings console with replay, coverage, ledger, FAQ, finale, footer, pricing,
   404 and error. `lint`, `tsc`, `build` pass.
+- Found and fixed along the way: an animated ancestor was silently emptying the nav's backdrop
+  filter; WebKit draws nothing when a filtered element holds very wide content (the slab gets a
+  designed fallback there); variable-font contour overlaps show through text-stroke (outlines are
+  now silhouette shadows); the waitlist form overflowed its column at 1024 (now a container query).
+- Headless WebKit and Firefox in Playwright do not render `backdrop-filter: blur()` at all, so the
+  nav's fallback blur cannot be captured there. The fallback tint was made dense enough to pass AA
+  with no blur.
+- The wall's light became a backlight anchored behind each chapter's product surface. A pixel
+  contrast audit (text and background both read from frame differences) measures 1,408 text boxes
+  at 1440 and 390 on both routes: none below AA.
+- axe-core: clean on `/`, `/pricing`, the 404 and every designed state (menu open, form error, all
+  findings found). `/preview` has violations that are on `main` too (not touched).

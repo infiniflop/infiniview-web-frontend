@@ -18,3 +18,24 @@ export function Mark({ size = 26, className = "" }: { size?: number; className?:
     </svg>
   );
 }
+
+/**
+ * A headline whose words rise out of their own masks, in reading order, as a CSS animation that
+ * starts with the first paint (no script). The words move but are never transparent, so the
+ * headline is painted, and counted as the page's largest paint, in the very first frame.
+ * Screen readers get the sentence from the heading's `aria-label`; the spans are hidden from them.
+ */
+export function MaskedWords({ words }: { words: readonly { text: string; br?: boolean }[] }) {
+  return (
+    <>
+      {words.map((w, i) => (
+        <span key={i} aria-hidden>
+          <span className="hw" style={{ ["--i" as string]: i }}>
+            <span>{w.text}</span>
+          </span>{" "}
+          {w.br ? <br className="hero-br" /> : null}
+        </span>
+      ))}
+    </>
+  );
+}
