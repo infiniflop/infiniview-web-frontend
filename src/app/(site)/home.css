@@ -135,6 +135,8 @@
   .app-body {
     display: grid;
     grid-template-columns: 11.5em minmax(0, 1fr);
+    /* one row, exactly as tall as the window allows: the table gives up rows, the footer never leaves */
+    grid-template-rows: minmax(0, 1fr);
     min-height: 0;
   }
   .app-side {
@@ -164,6 +166,7 @@
     display: grid;
     grid-template-rows: auto minmax(0, 1fr) auto;
     min-width: 0;
+    min-height: 0;
     padding: 1.3em 1.5em 0;
   }
   .app-head {
@@ -546,6 +549,9 @@
     .app { --fs: clamp(9px, 2.75cqw, 12px); }
     .app-body { grid-template-columns: minmax(0, 1fr); }
     .app-side { display: none; }
+    .app-foot { font-size: 0.82em; }
+    .app-route { display: none; }
+    .app-foot { justify-content: flex-end; }
     .app-row { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) 5.4em; }
     .app-row > :nth-child(2), .app-row > :nth-child(3) { display: none; }
     .app-main { padding: 1.1em 1.1em 0; }
@@ -574,7 +580,7 @@
       height: auto;
       min-height: 340px;
       max-height: 560px;
-      --lens: clamp(200px, 30cqw, 260px);
+      --lens: clamp(210px, 33cqw, 290px);
     }
   }
   @media (min-width: 1024px) and (max-height: 700px) {

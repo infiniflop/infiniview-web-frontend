@@ -230,7 +230,9 @@ export function Pipeline() {
       // landscape): show the finished state, every step readable, no scroll-scrubbing
       mm.add(`(prefers-reduced-motion: reduce), ${STATIC_Q}`, () => {
         const tl = build();
-        tl.progress(1);
+        // the still shows the run at its fullest moment: the app sealed in the sandbox, seen as an
+        // attacker sees it, with the findings on it (the last beat tears the sandbox down)
+        tl.time(3.98);
         host.dataset.static = "true";
         items.forEach((li) => li.setAttribute("data-state", "active"));
         return () => {

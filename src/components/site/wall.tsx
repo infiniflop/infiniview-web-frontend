@@ -197,8 +197,14 @@ export function Wall() {
       gl.uniform1f(U.vel, reduced ? 0 : scene.velocity);
       // Stacked layouts (phones, portrait tablets) have less room around each surface for the halo,
       // so the light is dimmer there.
-      gl.uniform4f(U.light, scene.lx, scene.ly, m.energy * (portrait ? 0.62 : 1), m.spread * (portrait ? 1.15 : 1));
-      gl.uniform3f(U.mood, m.alert, m.proof, reduced ? 0 : scene.depth);
+      if (reduced) {
+        // one still frame for the whole page: the light cannot follow the chapters, so it is a dim
+        // glow at the foot of the screen that no copy sits on
+        gl.uniform4f(U.light, 0.5, -0.1, 0.26, 0.32);
+      } else {
+        gl.uniform4f(U.light, scene.lx, scene.ly, m.energy * (portrait ? 0.62 : 1), m.spread * (portrait ? 1.15 : 1));
+      }
+      gl.uniform3f(U.mood, reduced ? 0 : m.alert, reduced ? 0 : m.proof, reduced ? 0 : scene.depth);
       gl.uniform1f(U.flute, canvas.width / count);
       gl.uniform1f(U.still, reduced ? 1 : 0);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
