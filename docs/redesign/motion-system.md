@@ -20,8 +20,9 @@ covered.
 | **Leaving** | menus closing, panels collapsing, the old page on a route change | ease-in: `--ease-in` `cubic-bezier(0.55, 0, 0.9, 0.3)`, and always shorter than the arrival |
 | **Touched** | anything the visitor drags, flicks or selects | a spring (below). Never a duration |
 
-Nothing in the interface uses `linear` or a browser default curve, except constant motion (the
-threat band's drift, the hold bar on the proof replay).
+Nothing in the interface uses `linear` or a browser default curve, except constant motion: the
+threat band's drift, the console's autoplay bar, and typed lines (a request in the proof replay, the
+command in the terminal), which appear at the constant rate of a hand on a keyboard.
 
 ## Springs
 
@@ -32,9 +33,9 @@ every one of these can be interrupted and reversed in flight.
 | Token | Stiffness | Damping | Damping ratio | Feel | Used by |
 | --- | --- | --- | --- | --- | --- |
 | `SPRING.follow` | 260 | 28 | 0.87 | follows a hand closely, settles without wobble | the lens tracking the pointer |
-| `SPRING.release` | 170 | 20 | 0.77 | a flick lands with a small overshoot | the lens and the pipeline handle after a drag ends |
-| `SPRING.ui` | 420 | 41 | 1.0 | placed, no overshoot | selection pills, nav indicator, toggles |
-| `SPRING.soft` | 90 | 19 | 1.0 | slow and heavy | the wall's light, camera-like drifts |
+| `SPRING.release` | 170 | 20 | 0.77 | a flick lands with a small overshoot | the lens after a drag ends |
+| `SPRING.ui` | 420 | 41 | 1.0 | placed, no overshoot | selection pills (nav, findings, evidence tabs), the lens sent to a weak point from the tray, the lens's focus brackets |
+| `SPRING.soft` | 90 | 19 | 1.0 | slow and heavy | the lens drifting by itself |
 
 Rules:
 
@@ -44,8 +45,14 @@ Rules:
   only when a gesture supplied momentum.
 - **Momentum projection.** A flick's resting point is projected with Apple's exponential decay
   (`v / 1000 * d / (1 - d)`, `d = 0.994`) and clamped to the stage before the spring is aimed at it.
+  The pipeline's timeline handle uses the same projection to choose which beat a throw lands on; the
+  page then scrolls there (the handle is the scroll position, so it has one source of truth).
+- **Pills stretch.** A selection pill's leading edge is stiffer than its trailing edge, so it
+  reaches toward where it is going and gathers itself on arrival.
+- **Damped followers.** The wall's light and the scroll-driven values are frame-rate independent
+  exponential followers (`x += (target - x) * (1 - exp(-k * dt))`), not springs: they never overshoot.
 - **Velocity shows.** The lens stretches along its direction of travel in proportion to speed
-  (at most 6 %) and relaxes as it stops; the selection pill stretches between its old and new place.
+  (at most 6 %) and relaxes as it stops; its highlight slides against the direction of travel.
 - The CSS twin of `SPRING.ui` is `--spring` (a `linear()` curve with an `--ease-out` fallback) for
   state changes that CSS alone handles, such as a button returning from a press.
 
@@ -88,11 +95,11 @@ No two chapters share a transition.
 
 | Chapter | Lead | How it moves |
 | --- | --- | --- |
-| Hero | headline, then the lens | words rise from masks (CSS); the lens materialises (blur and scale together) and starts to drift |
+| Hero | headline, then the lens | words rise from masks (CSS, from the first paint); the stage arrives as one piece; the lens materialises (blur and scale together) and starts to drift |
 | Threat band | the slab | rows drift, scroll velocity pushes them; what passes through the slab is lit |
 | Statement | the sentence | each word lights as the scroll passes it |
 | Pipeline | the chamber | pinned; five beats scrubbed both ways with exact rest poses; the timeline handle can be dragged |
-| Findings | the console | the window assembles once; the pill and the evidence respond to selection |
+| Findings | the console | the window arrives once; the pills slide on springs; the proof is replayed (typed requests, arriving responses) |
 | Coverage | the numerals | numerals rise from masks, lane lines draw across |
 | Finale | the aperture | a frame opens to full bleed, scrubbed |
 | Route change | the page | the old page leaves with ease-in, the new arrives with ease-out; the nav and the wall persist |

@@ -5,8 +5,8 @@
  *   pnpm og           # in another: rewrites the four card files under src/app
  *   pnpm og --url http://localhost:3000   # another origin
  *
- * Each card is the live wall of fluted glass (a screenshot of the real WebGL canvas, drawn once,
- * with reduced motion), then the mark, the headline and the wordmark set as ordinary page text in
+ * Each card is the live wall of fluted glass (a screenshot of the real WebGL canvas, taken once the
+ * opening light has settled), then the mark, the headline and the wordmark set as ordinary page text in
  * the site's own typeface and display style. Nothing is masked, so the cards cannot lose the tails
  * of g, j, p, q and y. The wall looks whatever the shader says it does today.
  *
@@ -46,10 +46,10 @@ const browser = await chromium.launch({ args: GL_ARGS }).catch((err) => {
 
 try {
   for (const card of CARDS) {
+    // (not reduced motion: that asks the wall for its quiet still frame, and a card wants the hero's light)
     const context = await browser.newContext({
       viewport: { width: WIDTH, height: HEIGHT },
       deviceScaleFactor: SCALE,
-      reducedMotion: "reduce",
     });
     const page = await context.newPage();
     await page.goto(BASE + card.route, { waitUntil: "networkidle" }).catch(() => {
@@ -82,7 +82,7 @@ try {
           <rect x="8.5" y="8.5" width="15" height="15" rx="4.5" stroke="currentColor" stroke-width="2.2" opacity="0.8"/>
           <rect x="13" y="13" width="6" height="6" rx="1.8" fill="currentColor"/>
         </svg>
-        <p style="position:absolute;left:54px;top:232px;margin:0;font-size:112px;font-weight:640;font-stretch:86%;letter-spacing:-0.045em;line-height:0.94;white-space:nowrap">${lines.map((l) => `<span style="display:block">${l}</span>`).join("")}</p>
+        <p style="position:absolute;left:54px;top:232px;margin:0;font-size:118px;font-weight:640;font-stretch:86%;font-variation-settings:'wdth' 86;letter-spacing:-0.045em;line-height:0.94;white-space:nowrap">${lines.map((l) => `<span style="display:block">${l}</span>`).join("")}</p>
         <p style="position:absolute;left:58px;bottom:46px;margin:0;font-family:ui-monospace,Menlo,monospace;font-size:14px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:#bcc2d0">infiniview.dev</p>`;
       document.body.appendChild(layer);
     }, card.lines);

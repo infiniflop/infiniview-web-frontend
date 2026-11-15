@@ -26,6 +26,8 @@ const WORDS: { text: string; br?: boolean }[] = [
 ];
 
 type FindingId = (typeof SAMPLE_FINDINGS)[number]["id"];
+// what a found slot says where there is only room for a word (phones, small laptops)
+const SHORT: Record<FindingId, string> = { sqli: "SQLi", refund: "Replay", rate: "No limit" };
 const IDS = SAMPLE_FINDINGS.map((f) => f.id) as FindingId[];
 
 /** Tell the findings console which finding to show (it listens; see findings-explorer.tsx). */
@@ -59,7 +61,10 @@ export function Hero() {
   // the opening mood: a cool light behind the stage
   useGSAP(() => {
     const light = () => {
-      aimLight(stage.current, 0.72, 0.22);
+      // side by side, the light stands behind the stage's upper right and its halo shows beside the
+      // headline; stacked (tablets, phones) the copy sits right above the stage, so it stands lower
+      const stacked = window.matchMedia("(max-width: 1023px)").matches;
+      aimLight(stage.current, stacked ? 0.6 : 0.72, stacked ? 0.7 : 0.22);
       setMood(HERO_MOOD, 1.2);
     };
     light();
@@ -442,7 +447,7 @@ export function Hero() {
                       <i aria-hidden />
                       <span className="tray-long">{got ? f.title : `Weak point ${i + 1}`}</span>
                       <span className="tray-short" aria-hidden>
-                        {got ? f.category : i + 1}
+                        {got ? SHORT[f.id] : i + 1}
                       </span>
                     </button>
                   </li>
