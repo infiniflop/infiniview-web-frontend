@@ -59,6 +59,23 @@ export function SiteShell({ children }: { children: ReactNode }) {
       const kp = 1 - Math.exp(-dt * 5);
       scene.px += (scene.tx - scene.px) * kp;
       scene.py += (scene.ty - scene.py) * kp;
+      // the light glides to wherever it has been aimed: behind its anchor (it then scrolls with that
+      // surface) or to the mood's own position. A read of one rect per frame; nothing is written to layout.
+      let lx = scene.mood.x;
+      let ly = scene.mood.y;
+      const a = scene.anchor;
+      if (a && a.isConnected) {
+        const r = a.getBoundingClientRect();
+        if (r.width > 0) {
+          lx = (r.left + r.width * scene.ax) / window.innerWidth;
+          ly = 1 - (r.top + r.height * scene.ay) / window.innerHeight;
+        }
+      } else if (a) {
+        scene.anchor = null;
+      }
+      const kl = 1 - Math.exp(-dt * 3.4);
+      scene.lx += (lx - scene.lx) * kl;
+      scene.ly += (clamp(ly, -0.6, 1.6) - scene.ly) * kl;
       // the rim of the nav glass answers the pointer and the scroll: its highlight turns a few degrees
       // (written on the bar itself; a custom property on an ancestor would restyle the whole page)
       const g = scene.px * 16 + scene.velocity * 26;

@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/site/gsap";
-import { setMood } from "@/lib/site/scene";
+import { aimLight, QUIET, setMood } from "@/lib/site/scene";
 import { ARSENAL, LAYER_ITEMS, SCANNER_FAMILIES } from "@/lib/site/content";
 
 /**
@@ -30,12 +30,16 @@ export function Coverage() {
             .fromTo(chips, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.5, ease: "expo.out", stagger: { each: 0.018, from: "start" } }, 0.22);
           return ScrollTrigger.create({ trigger: row, start: "top 86%", once: true, onEnter: () => tl.play() });
         });
+        const quiet = () => {
+          aimLight(null);
+          setMood(QUIET);
+        };
         const mood = ScrollTrigger.create({
           trigger: root.current,
           start: "top 60%",
           end: "bottom 40%",
-          onEnter: () => setMood({ x: 0.96, y: 0.86, spread: 0.22, energy: 0.5, alert: 0, proof: 0 }),
-          onEnterBack: () => setMood({ x: 0.96, y: 0.86, spread: 0.22, energy: 0.5, alert: 0, proof: 0 }),
+          onEnter: quiet,
+          onEnterBack: quiet,
         });
         return () => {
           mood.kill();

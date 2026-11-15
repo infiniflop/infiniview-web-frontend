@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { ScrollTrigger, useGSAP } from "@/lib/site/gsap";
+import { aimLight, QUIET, setMood } from "@/lib/site/scene";
 import { FAQS } from "@/lib/site/content";
 
 /** A numeric range ("4-5") must not break at its hyphen (the display face has no non-breaking hyphen). */
@@ -26,9 +28,20 @@ export function Faq({
   title?: string;
 }) {
   const [open, setOpen] = useState(0);
+  const root = useRef<HTMLElement>(null);
+
+  // a chapter of type alone: the light goes quiet
+  useGSAP(() => {
+    const quiet = () => {
+      aimLight(null);
+      setMood(QUIET);
+    };
+    const st = ScrollTrigger.create({ trigger: root.current, start: "top 60%", end: "bottom 40%", onEnter: quiet, onEnterBack: quiet });
+    return () => st.kill();
+  });
 
   return (
-    <section id={id} className="faq" aria-labelledby={`${id}-title`}>
+    <section ref={root} id={id} className="faq" aria-labelledby={`${id}-title`}>
       <div className="wrap faq-grid">
         <div className="faq-side">
           <h2 id={`${id}-title`} className="t-h2" data-split>

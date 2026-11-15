@@ -121,7 +121,7 @@ export function WaitlistForm({
       action="/api/waitlist"
       noValidate
       aria-busy={status === "loading"}
-      className={cn("w-full", className)}
+      className={cn("waitlist-form", className)}
     >
       <div
         className={cn("waitlist", size === "lg" ? "waitlist--lg" : "waitlist--md")}

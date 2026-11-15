@@ -57,7 +57,7 @@ html.lenis body {
   --iv-s3: #171b24;
   --iv-ink: #f3f5f8;
   --iv-ink-2: #bcc2d0;
-  --iv-ink-3: #8b93a7;
+  --iv-ink-3: #9ba3b6; /* the quietest text: still AA where the wall's halo reaches it (measured from pixels) */
   --iv-lime: #d2fb5a;
   --iv-lime-soft: #e6ff9c;
   --iv-lime-ink: #0b0e03;
@@ -110,6 +110,19 @@ html.lenis body {
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   overflow-x: clip;
+  /* every control has its own press state, so the browser's grey tap flash is off */
+  -webkit-tap-highlight-color: transparent;
+}
+/* controls: no double-tap-zoom wait before a tap registers, and a long press does not select their
+   label (content text stays selectable) */
+.site-root button,
+.site-root .btn,
+.site-root .nav-link,
+.site-root .foot-link {
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .site-root ::selection {
@@ -384,9 +397,11 @@ html.lenis body {
     --glint: 0deg;
     position: relative;
     isolation: isolate;
-    background: rgba(13, 15, 22, 0.62);
-    -webkit-backdrop-filter: blur(22px) saturate(180%);
-    backdrop-filter: blur(22px) saturate(180%);
+    /* dense enough that text on it passes AA with no blur at all (a display headline scrolling
+       under the bar): blur is an enhancement here, never what legibility depends on */
+    background: rgba(12, 14, 20, 0.8);
+    -webkit-backdrop-filter: blur(22px) saturate(180%) brightness(0.55);
+    backdrop-filter: blur(22px) saturate(180%) brightness(0.55);
     box-shadow:
       inset 0 0 0 1px rgba(255, 255, 255, 0.08),
       0 24px 50px -24px rgba(0, 0, 0, 0.85);
@@ -431,7 +446,7 @@ html.lenis body {
   html[data-glass~='nav'] .site-root .nav-bar.glass {
     -webkit-backdrop-filter: url(#glass-nav);
     backdrop-filter: url(#glass-nav);
-    background: rgba(13, 15, 22, 0.5);
+    background: rgba(12, 14, 20, 0.6);
   }
   /* the governor found the machine struggling: glass keeps its tint and rim, loses blur and bending */
   html[data-perf='low'] .site-root .glass {
@@ -496,12 +511,15 @@ html.lenis body {
     padding-left: max(var(--gutter), env(safe-area-inset-left));
     padding-right: max(var(--gutter), env(safe-area-inset-right));
     pointer-events: none;
-    animation: nav-in var(--d-hero) var(--ease-out) 80ms both;
   }
   @keyframes nav-in {
     from { opacity: 0; transform: translateY(-14px); }
   }
   .nav-bar {
+    /* The entrance is on the bar itself, never on an ancestor: an ancestor with an opacity or
+       transform animation becomes the backdrop root, and the glass would have nothing behind it to
+       blur or bend. */
+    animation: nav-in var(--d-hero) var(--ease-out) 80ms backwards;
     pointer-events: auto;
     display: flex;
     align-items: center;
@@ -579,7 +597,7 @@ html.lenis body {
     font-size: 0.9rem;
     font-weight: 520;
     letter-spacing: -0.015em;
-    color: var(--iv-ink-2);
+    color: #e3e6ee;
     text-decoration: none;
     white-space: nowrap;
     transition: color var(--d-hover) var(--ease-out);
@@ -778,10 +796,18 @@ html.lenis body {
     background: var(--iv-lime);
     color: var(--iv-lime-ink);
   }
-  @media (min-width: 521px) {
+  /* The form measures its own column, not the screen: in a narrow column (a phone, or the hero's
+     left column on a small laptop) the field and the button stack, so the placeholder is never cut
+     and the pill never leaves its column. */
+  .waitlist-form {
+    container: waitlist / inline-size;
+    width: 100%;
+    min-width: 0;
+  }
+  @container waitlist (min-width: 431px) {
     .waitlist .btn--lime { min-width: 11.4rem; }
   }
-  @media (max-width: 520px) {
+  @container waitlist (max-width: 430px) {
     .waitlist {
       flex-direction: column;
       align-items: stretch;
@@ -794,6 +820,8 @@ html.lenis body {
       width: 100%;
       border-radius: 18px;
     }
+  }
+  @media (max-width: 520px) {
     .waitlist-done { border-radius: 26px; }
   }
   /* on the lime finale the field is ink on lime */
@@ -832,7 +860,7 @@ html.lenis body {
   }
   /* sized to its column, so "Questions?" never splits inside the word on very wide screens */
   .faq-side .t-h2 { font-size: clamp(2.1rem, min(4.9vw, 13.5cqw), 4.6rem); }
-  .faq-contact { color: var(--iv-ink-3); }
+  .faq-contact { color: var(--iv-ink-2); }
   .faq-list { border-top: 1px solid var(--iv-line-2); }
   .faq-item { border-bottom: 1px solid var(--iv-line); }
   .faq-q {
@@ -966,22 +994,22 @@ html.lenis body {
   .foot-word {
     margin-top: clamp(40px, 6vw, 88px);
     padding-inline: max(calc(var(--gutter) - 0.04em), env(safe-area-inset-left));
-    font-size: 23.4vw;
+    font-size: 22.7vw;
     line-height: 0.74;
     font-weight: 700;
     font-stretch: 100%;
     letter-spacing: -0.065em;
     white-space: nowrap;
+    /* no text-stroke: a variable font's overlapping contours would show as lines inside the letters */
     color: transparent;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.05) 62%, rgba(255, 255, 255, 0.015));
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.36), rgba(255, 255, 255, 0.07) 58%, rgba(255, 255, 255, 0.02));
     -webkit-background-clip: text;
     background-clip: text;
-    -webkit-text-stroke: 1px rgba(255, 255, 255, 0.16);
     user-select: none;
     transform: translateY(0.09em);
   }
   @media (min-width: 1440px) {
-    .foot-word { font-size: min(23.4vw, 345px); }
+    .foot-word { font-size: min(22.7vw, 334px); }
   }
   .foot-base {
     position: relative;
@@ -1178,7 +1206,7 @@ html.lenis body {
     padding: clamp(28px, 4.4vw, 64px);
   }
   .price-cta-pane .t-h2 { max-width: 11ch; }
-  .price-cta-side { display: grid; gap: 4px; min-width: 0; }
+  .price-cta-side { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; min-width: 0; }
   .price-cta-alt { padding-left: 22px; }
   @media (min-width: 900px) {
     .price-cta-pane { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }

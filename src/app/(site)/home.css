@@ -398,32 +398,43 @@
     height: 30%;
     border-radius: 50%;
     pointer-events: none;
-    background: radial-gradient(closest-side, rgba(255, 255, 255, 0.34), transparent);
+    background: radial-gradient(closest-side, rgba(255, 255, 255, 0.22), transparent);
     filter: blur(7px);
     mix-blend-mode: screen;
   }
   /* the mark's inner frame and its point of focus: it tightens over a weak point */
+  /* (drawn as four corner brackets, like a viewfinder, so it never crosses what is being read) */
   .lens-reticle {
+    --c: rgba(255, 255, 255, 0.7);
+    --l: 24%;
+    --t: 1.5px;
     position: absolute;
-    inset: 30%;
-    border-radius: 30%;
-    border: 1.5px solid rgba(255, 255, 255, 0.55);
+    inset: 27%;
     opacity: 0.5;
     pointer-events: none;
-    transition: border-color var(--d-ui) var(--ease-out);
+    background:
+      linear-gradient(var(--c), var(--c)) 0 0 / var(--l) var(--t),
+      linear-gradient(var(--c), var(--c)) 0 0 / var(--t) var(--l),
+      linear-gradient(var(--c), var(--c)) 100% 0 / var(--l) var(--t),
+      linear-gradient(var(--c), var(--c)) 100% 0 / var(--t) var(--l),
+      linear-gradient(var(--c), var(--c)) 0 100% / var(--l) var(--t),
+      linear-gradient(var(--c), var(--c)) 0 100% / var(--t) var(--l),
+      linear-gradient(var(--c), var(--c)) 100% 100% / var(--l) var(--t),
+      linear-gradient(var(--c), var(--c)) 100% 100% / var(--t) var(--l);
+    background-repeat: no-repeat;
   }
   .lens-reticle i {
     position: absolute;
     left: 50%;
     top: 50%;
-    width: 7px;
-    height: 7px;
-    margin: -3.5px;
-    border-radius: 2px;
+    width: 5px;
+    height: 5px;
+    margin: -2.5px;
+    border-radius: 1px;
     background: var(--iv-lime);
-    transition: background-color var(--d-ui) var(--ease-out);
+    opacity: 0.9;
   }
-  .lens[data-over]:not([data-over='']) .lens-reticle { border-color: var(--iv-red); }
+  .lens[data-over]:not([data-over='']) .lens-reticle { --c: var(--iv-red); }
   .lens[data-over]:not([data-over='']) .lens-reticle i { background: var(--iv-red); }
   .lens-hint {
     position: absolute;
@@ -635,8 +646,15 @@
     font-stretch: 82%;
     letter-spacing: -0.045em;
     white-space: nowrap;
-    color: transparent;
-    -webkit-text-stroke: 1px rgba(255, 255, 255, 0.3);
+    /* Outlined type, without the artifacts: a variable font's glyphs are built from overlapping
+       contours, and text-stroke draws every one of them (lines through the A, the f, the z; WebKit
+       even with paint-order). So the outline is the glyph's own silhouette, eight times, one pixel
+       out in each direction, with the ground's colour filled over the middle. */
+    --o: rgba(255, 255, 255, 0.34);
+    color: var(--iv-void);
+    text-shadow:
+      1px 0 var(--o), -1px 0 var(--o), 0 1px var(--o), 0 -1px var(--o),
+      0.7px 0.7px var(--o), -0.7px 0.7px var(--o), 0.7px -0.7px var(--o), -0.7px -0.7px var(--o);
   }
   .threat-item i {
     width: 0.13em;
@@ -647,17 +665,17 @@
   /* inside the slab the same words are caught: solid and lit */
   .threat-rows--lit .threat-item {
     color: var(--iv-lime);
-    -webkit-text-stroke: 0;
+    text-shadow: none;
   }
   .threat-rows--lit .threat-item i { background: var(--iv-lime); }
   .slab {
-    --w: clamp(150px, 24cqw, 360px);
+    --w: clamp(104px, 15cqw, 210px);
     position: absolute;
     left: calc(50cqw - var(--w) / 2);
     top: -9cqh;
     width: var(--w);
     height: 118cqh;
-    border-radius: calc(var(--w) * 0.2);
+    border-radius: calc(var(--w) * 0.3);
     box-shadow: 0 40px 70px -30px rgba(0, 0, 0, 0.9);
   }
   .slab-fx {
@@ -666,6 +684,13 @@
     border-radius: inherit;
     overflow: hidden;
     background: #090b06;
+  }
+  .slab-clip {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    overflow: hidden;
+    contain: paint;
   }
   .slab-fx[data-fx='on'] { filter: url(#glass-slab); }
   html[data-perf='low'] .slab-fx[data-fx='on'] { filter: none; }
@@ -736,9 +761,9 @@
     letter-spacing: 0.08em;
     line-height: 1.5;
     text-transform: uppercase;
-    color: var(--iv-ink-3);
+    color: var(--iv-ink-2);
   }
-  .stats-note { max-width: 60ch; margin-top: 22px; }
+  .stats-note { max-width: 60ch; margin-top: 22px; color: var(--iv-ink-2); }
   @media (min-width: 900px) {
     .stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     .stat { padding: 30px 24px 36px; border-left: 1px solid var(--iv-line); border-bottom: 0; }
@@ -785,6 +810,7 @@
   .cov-copy .t-body { max-width: 34ch; }
   .cov-items { display: grid; gap: 18px; align-content: start; }
   .cov-fam { display: grid; gap: 9px; }
+  .cov-fam .t-label, .cov-key { color: var(--iv-ink-2); }
   .cov-chips { display: flex; flex-wrap: wrap; gap: 6px; }
   .cov-chip {
     display: inline-flex;
@@ -909,7 +935,7 @@
     align-items: end;
   }
   .cta-title { max-width: 9ch; font-size: clamp(3rem, 9.6vw, 9.4rem); }
-  .cta-side { display: grid; gap: 20px; min-width: 0; }
+  .cta-side { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; min-width: 0; }
   .cta-body {
     max-width: 38ch;
     font-size: clamp(1.05rem, 1.3vw, 1.24rem);
@@ -1046,7 +1072,6 @@
     border: 1px dashed rgba(255, 255, 255, 0.2);
     border-radius: var(--r-pane);
     background: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 33px), rgba(255, 255, 255, 0.015);
-    opacity: 0.7;
   }
   /* production's own rows, as a faint skeleton: it is there, and nothing touches it */
   .p-prod-rows {
@@ -1059,16 +1084,18 @@
   .p-prod-rows i { height: 9px; border-radius: 1px; background: rgba(255, 255, 255, 0.07); }
   .p-prod-rows i:nth-child(odd) { width: 86%; }
   .p-prod-label {
-    position: absolute;
-    right: 12px;
-    top: -9px;
+    right: 22px;
+    top: 5px;
+    z-index: 1;
     display: inline-flex;
     align-items: center;
     gap: 6px;
     padding: 0 8px;
     background: var(--iv-void);
     color: var(--iv-ink-3);
+    white-space: nowrap;
   }
+  .pstage[data-layout='tall'] .p-prod-label { right: 12px; top: 167px; }
   .p-chamber {
     left: 320px;
     top: 44px;
@@ -1274,7 +1301,8 @@
     position: relative;
     flex: none;
     padding: 12px 0 2px;
-    touch-action: none;
+    /* the handle takes horizontal drags; a vertical swipe that starts here still scrolls the page */
+    touch-action: pan-y;
     cursor: pointer;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
@@ -1306,7 +1334,7 @@
     border-radius: 999px;
     background: rgba(30, 34, 44, 0.72);
     cursor: grab;
-    touch-action: none;
+    touch-action: pan-y;
     will-change: transform;
     transition: scale 0.5s var(--spring);
   }

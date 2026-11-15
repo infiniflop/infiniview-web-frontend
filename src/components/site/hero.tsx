@@ -2,14 +2,17 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowDown } from "lucide-react";
-import { gsap, useGSAP } from "@/lib/site/gsap";
+import { gsap, ScrollTrigger, useGSAP } from "@/lib/site/gsap";
 import { HERO, SAMPLE_FINDINGS } from "@/lib/site/content";
 import { WaitlistForm } from "@/components/site/waitlist-form";
 import { SampleApp } from "@/components/site/sample-app";
-import { setMood } from "@/lib/site/scene";
+import { aimLight, setMood } from "@/lib/site/scene";
 import { applyGlassMap, buildGlassMap } from "@/lib/site/glass";
 import { Spring, SPRING, VelocityTracker, clamp, onClock, project } from "@/lib/site/motion";
 import { scrollToTarget } from "@/lib/site/scroll";
+
+// the light stands behind the stage, toward its upper right: its halo shows beside the headline
+const HERO_MOOD = { alert: 0, proof: 0, energy: 0.8, x: 0.86, y: 0.62, spread: 0.26 };
 
 const WORDS: { text: string; br?: boolean }[] = [
   { text: "Attack" },
@@ -54,7 +57,14 @@ export function Hero() {
 
   // the opening mood: a cool light behind the stage
   useGSAP(() => {
-    setMood({ alert: 0, proof: 0, energy: 0.62, x: 0.84, y: 0.34, spread: 0.24 }, 1.2);
+    const light = () => {
+      aimLight(stage.current, 0.72, 0.22);
+      setMood(HERO_MOOD, 1.2);
+    };
+    light();
+    // coming back up the page hands the light back to the stage
+    const st = ScrollTrigger.create({ trigger: root.current, start: "top top", end: "bottom 60%", onEnterBack: light });
+    return () => st.kill();
   });
 
   /* ── The lens ──────────────────────────────────────────────────────────
@@ -111,8 +121,8 @@ export function Hero() {
         sy.set(clamp(sy.value, 0, SH));
       }
       // the refraction map is built for the lens's exact size
-      const map = buildGlassMap({ width: L, height: L, radius: L * 0.32, bezel: Math.max(12, L * 0.1), depth: L * 0.16, zoom: 1.06 }, L * 0.075);
-      const ok = applyGlassMap(document.getElementById("glass-lens") as SVGFilterElement | null, map, 0.07);
+      const map = buildGlassMap({ width: L, height: L, radius: L * 0.32, bezel: Math.max(12, L * 0.1), depth: L * 0.16, zoom: 1.06 }, L * 0.06);
+      const ok = applyGlassMap(document.getElementById("glass-lens") as SVGFilterElement | null, map, 0.05);
       fxEl.dataset.fx = ok ? "on" : "off";
     };
 
@@ -237,7 +247,11 @@ export function Hero() {
       if (e.pointerType === "mouse" && fine.matches) return; // the cursor already has it
       if (pointerId !== -1) return; // a second finger does not steal it
       pointerId = e.pointerId;
-      el.setPointerCapture(e.pointerId);
+      try {
+        el.setPointerCapture(e.pointerId); // keeps the drag when the finger leaves the glass
+      } catch {
+        /* a pointer that is already gone cannot be captured: the drag still works while it is over the glass */
+      }
       takeOver();
       mode = "drag";
       const p = toStage(e);

@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { Check, GitPullRequest, Lock, X } from "lucide-react";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/site/gsap";
-import { setMood } from "@/lib/site/scene";
+import { aimLight, setMood } from "@/lib/site/scene";
 import { PIPELINE_STEPS } from "@/lib/site/content";
 import { SampleApp } from "@/components/site/sample-app";
 import { scrollToTarget } from "@/lib/site/scroll";
@@ -116,6 +116,7 @@ export function Pipeline() {
       const build = () => {
         const chamber = q(".p-chamber");
         const shell = q(".p-shell");
+        // (the dashed plate dims and returns; its label is a sibling, so it stays readable throughout)
         const prod = q(".p-prod");
         const pr = q(".p-pr");
         const lanes = q(".p-lanes");
@@ -156,11 +157,11 @@ export function Pipeline() {
           .fromTo(qa(".p-diff i"), { scaleX: 0 }, { scaleX: 1, transformOrigin: "0 50%", stagger: 0.07, duration: 0.3 }, 0.12)
           .fromTo(q(".p-check[data-s='queued']"), { autoAlpha: 0, x: -6 }, { autoAlpha: 1, x: 0, duration: 0.25 }, 0.5)
           .fromTo(q(".p-wire"), { scaleX: 0 }, { scaleX: 1, transformOrigin: "0 50%", duration: 0.35, ease: "power2.inOut" }, 0.6)
-          .fromTo(prod, { autoAlpha: 0.5 }, { autoAlpha: 0.9, duration: 0.4 }, 0.55);
+          .fromTo(prod, { autoAlpha: 0.55 }, { autoAlpha: 1, duration: 0.4 }, 0.55);
 
         /* ── 2 · sandbox: a copy of the app is sealed in glass ─────────── */
         tl.fromTo(chamber, { autoAlpha: 0, x: 30, y: -30, scale: 0.97 }, { autoAlpha: 1, x: 0, y: 0, scale: 1, duration: 0.6, ease: "expo.out" }, 1)
-          .to(prod, { autoAlpha: 0.34, duration: 0.5 }, 1)
+          .to(prod, { autoAlpha: 0.45, duration: 0.5 }, 1)
           .to(shell, { clipPath: "inset(0 0 0% 0)", duration: 0.55, ease: "power2.inOut" }, 1.25)
           .to(q(".p-shell-chip"), { autoAlpha: 1, x: 0, duration: 0.3 }, 1.55)
           .to(qa(".p-tick"), { autoAlpha: 1, x: 0, stagger: 0.14, duration: 0.3 }, 1.35)
@@ -194,11 +195,13 @@ export function Pipeline() {
           const at = hot[f.dataset.hot!];
           if (!at) return;
           const dup = f.dataset.find === "dup";
-          gsap.set(f, { x: at.x + (dup ? 96 : 0), y: at.y + (dup ? 46 : f.dataset.find === "sqli" ? 34 : -34), xPercent: -50, yPercent: -50 });
+          // the weak points are on the app's right side: each chip ends at its point and reads leftward,
+          // so none of them leaves the stage
+          gsap.set(f, { x: at.x + 26 - (dup ? 150 : 0), y: at.y + (dup ? -72 : f.dataset.find === "sqli" ? 36 : -36), xPercent: -100, yPercent: -50 });
           tl.fromTo(f, { autoAlpha: 0, scale: 0.8 }, { autoAlpha: 1, scale: 1, duration: 0.4, ease: "back.out(1.8)" }, 3.08 + i * 0.1);
         });
         const dupEl = q(".p-find[data-find='dup']");
-        tl.to(dupEl, { x: hot.rate?.x ?? 0, y: (hot.rate?.y ?? 0) - 34, autoAlpha: 0, duration: 0.42, ease: "power3.inOut" }, 3.6)
+        tl.to(dupEl, { x: (hot.rate?.x ?? 0) + 26, y: (hot.rate?.y ?? 0) - 36, autoAlpha: 0, duration: 0.42, ease: "power3.inOut" }, 3.6)
           .to(q(".p-merge"), { autoAlpha: 1, duration: 0.2 }, 3.86)
           .to(qa(".p-fix"), { autoAlpha: 1, stagger: 0.08, duration: 0.25 }, 3.7);
 
@@ -209,7 +212,7 @@ export function Pipeline() {
           .to(qa(".p-file"), { autoAlpha: 1, x: 0, stagger: 0.07, duration: 0.28 }, 4.34)
           .to(chamber, { autoAlpha: 0, scale: 0.985, duration: 0.4, ease: "power3.in" }, 4.3)
           .to(q(".p-torn"), { autoAlpha: 1, duration: 0.3 }, 4.62)
-          .to(prod, { autoAlpha: 0.7, duration: 0.4 }, 4.5)
+          .to(prod, { autoAlpha: 1, duration: 0.4 }, 4.5)
           .to(q(".p-check[data-s='running']"), { autoAlpha: 0, duration: 0.15 }, 4.58)
           .to(q(".p-check[data-s='blocked']"), { autoAlpha: 1, duration: 0.25 }, 4.64)
           .to({}, { duration: 0.12 }, 4.88);
@@ -252,13 +255,15 @@ export function Pipeline() {
           let current = -1;
           let dragging = false;
           let trackW = 1;
+          // the light stands behind the sandbox throughout; its colour and strength tell the beat
           const moods = [
-            { x: 0.12, y: 0.74, spread: 0.2, energy: 0.5, alert: 0, proof: 0 },
-            { x: 0.8, y: 0.5, spread: 0.26, energy: 0.6, alert: 0, proof: 0 },
-            { x: 0.8, y: 0.5, spread: 0.3, energy: 0.8, alert: 0.92, proof: 0 },
-            { x: 0.76, y: 0.5, spread: 0.26, energy: 0.6, alert: 0.4, proof: 0 },
-            { x: 0.2, y: 0.44, spread: 0.26, energy: 0.66, alert: 0, proof: 0.9 },
+            { spread: 0.24, energy: 0.45, alert: 0, proof: 0 },
+            { spread: 0.27, energy: 0.6, alert: 0, proof: 0 },
+            { spread: 0.3, energy: 0.9, alert: 0.92, proof: 0 },
+            { spread: 0.27, energy: 0.65, alert: 0.45, proof: 0 },
+            { spread: 0.27, energy: 0.7, alert: 0, proof: 0.95 },
           ];
+          const aim = () => aimLight(q(".p-chamber"), 0.5, 0.5);
           const placeHandle = (p: number) => {
             handle.style.transform = `translate3d(${(p * trackW).toFixed(2)}px,0,0)`;
             fill.style.transform = `scaleX(${p.toFixed(4)})`;
@@ -287,6 +292,7 @@ export function Pipeline() {
               if (idx !== current) {
                 current = idx;
                 setStep(idx);
+                aim();
                 setMood(moods[idx], 1.1);
               }
             },
@@ -298,7 +304,10 @@ export function Pipeline() {
           const head = ScrollTrigger.create({
             trigger: q(".pipe-head"),
             start: "top 80%",
-            onEnter: () => setMood(moods[0], 1),
+            onEnter: () => {
+              aim();
+              setMood(moods[0], 1);
+            },
           });
 
           /* ── the timeline handle: drag it and the run follows ───────────
@@ -314,7 +323,11 @@ export function Pipeline() {
           const onDown = (e: PointerEvent) => {
             if (pointerId !== -1 || (e.pointerType === "mouse" && e.button !== 0)) return;
             pointerId = e.pointerId;
-            handle.setPointerCapture(e.pointerId);
+            try {
+              handle.setPointerCapture(e.pointerId);
+            } catch {
+              /* a pointer that is already gone cannot be captured */
+            }
             const r = track.getBoundingClientRect();
             const hx = r.left + st.progress * r.width;
             grab = e.target === handle || handle.contains(e.target as Node) ? e.clientX - hx : 0; // respect where it was grabbed
@@ -426,10 +439,10 @@ export function Pipeline() {
             <div className="pstage" aria-hidden>
               <div className="pstage-fit">
                 {/* production: never touched */}
+                <span className="p-prod-label t-label">
+                  <Lock size={11} strokeWidth={2.4} /> Production · untouched
+                </span>
                 <div className="p-prod">
-                  <span className="p-prod-label t-label">
-                    <Lock size={11} strokeWidth={2.4} /> Production · untouched
-                  </span>
                   <span className="p-prod-rows">
                     {Array.from({ length: 9 }, (_, i) => (
                       <i key={i} />

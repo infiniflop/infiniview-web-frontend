@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { gsap, ScrollTrigger, SplitText, useGSAP } from "@/lib/site/gsap";
-import { setMood } from "@/lib/site/scene";
+import { aimLight, QUIET, setMood } from "@/lib/site/scene";
 import { STATEMENT, TRUST_STATS, TRUST_NOTE } from "@/lib/site/content";
 
 /**
@@ -30,7 +30,7 @@ export function Statement() {
           // The unlit level is deliberately readable (contrast ≥ 3:1 for large text): it is "not yet read",
           // not hidden.
           split = SplitText.create(el, { type: "words", aria: "none" });
-          gsap.set(split.words, { opacity: 0.4 });
+          gsap.set(split.words, { opacity: 0.46 });
           const tl = gsap.timeline({
             scrollTrigger: {
               trigger: root.current!.querySelector(".statement-pin"),
@@ -48,14 +48,17 @@ export function Statement() {
         if (document.fonts?.status === "loaded") build();
         else document.fonts?.ready.then(build);
 
-        // the light drops behind the sentence and warms toward proof as it is read
+        // a chapter of type alone: the light drops to the foot of the screen and warms toward proof
+        const quiet = () => {
+          aimLight(null);
+          setMood({ ...QUIET, proof: 0.7 });
+        };
         const mood = ScrollTrigger.create({
           trigger: root.current,
           start: "top 70%",
           end: "bottom 40%",
-          onEnter: () => setMood({ x: 0.9, y: 0.12, spread: 0.24, energy: 0.5, alert: 0, proof: 0.6 }),
-          onEnterBack: () => setMood({ x: 0.9, y: 0.12, spread: 0.24, energy: 0.5, alert: 0, proof: 0.6 }),
-          onLeaveBack: () => setMood({ x: 0.84, y: 0.34, spread: 0.24, energy: 0.62, alert: 0, proof: 0 }),
+          onEnter: quiet,
+          onEnterBack: quiet,
         });
 
         return () => {

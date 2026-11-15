@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { ArrowRight } from "lucide-react";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/site/gsap";
 import { DOCS_URL, FEATURES, ZERO_CONFIG } from "@/lib/site/content";
+import { aimLight, setMood } from "@/lib/site/scene";
 
 const LINES = [
   { cmd: true, text: "connect github.com/acme/web-app" },
@@ -39,7 +40,13 @@ export function After() {
           }
         });
         const st = ScrollTrigger.create({ trigger: term, start: "top 78%", once: true, onEnter: () => tl.play() });
+        const light = () => {
+          aimLight(term as HTMLElement, 0.5, 0.5);
+          setMood({ spread: 0.22, energy: 0.6, alert: 0, proof: 0.5 });
+        };
+        const mood = ScrollTrigger.create({ trigger: root.current, start: "top 60%", end: "bottom 40%", onEnter: light, onEnterBack: light });
         return () => {
+          mood.kill();
           st.kill();
           tl.kill();
         };

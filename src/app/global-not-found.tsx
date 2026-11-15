@@ -21,6 +21,8 @@ export const viewport: Viewport = {
   themeColor: "#07080b",
   colorScheme: "dark",
   viewportFit: "cover",
+  // the software keyboard shrinks the layout on Android as it does on iOS, so the form stays in view
+  interactiveWidget: "resizes-content",
 };
 
 /**

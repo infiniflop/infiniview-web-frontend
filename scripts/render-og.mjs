@@ -5,10 +5,10 @@
  *   pnpm og           # in another: rewrites the four card files under src/app
  *   pnpm og --url http://localhost:3000   # another origin
  *
- * Each card is the live corridor (a screenshot of the real WebGL canvas, drawn once, with reduced
- * motion), then the mark, the headline and the wordmark set as ordinary page text in the site's own
- * typeface. Nothing is masked, so the cards cannot lose the tails of g, j, p, q and y the way a
- * split-text headline once did. The corridor looks whatever the shader says it does today.
+ * Each card is the live wall of fluted glass (a screenshot of the real WebGL canvas, drawn once,
+ * with reduced motion), then the mark, the headline and the wordmark set as ordinary page text in
+ * the site's own typeface and display style. Nothing is masked, so the cards cannot lose the tails
+ * of g, j, p, q and y. The wall looks whatever the shader says it does today.
  *
  * The headlines below are checked against each page's <h1>: change the copy on a page and this
  * script refuses to run until the card says the same thing (and its alt text, next to the image,
@@ -36,7 +36,7 @@ const MAX_BYTES = 122_000;
 const argUrl = process.argv.indexOf("--url");
 const BASE = (argUrl > -1 ? process.argv[argUrl + 1] : process.env.OG_BASE_URL) ?? "http://localhost:3100";
 
-// the corridor is drawn in software GL so a card looks the same on every machine
+// the wall is drawn in software GL so a card looks the same on every machine
 const GL_ARGS = ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"];
 
 const browser = await chromium.launch({ args: GL_ARGS }).catch((err) => {
@@ -63,27 +63,27 @@ try {
     }
 
     // the headline's own font stack, loaded before anything is measured or drawn
-    await page.evaluate(() => document.fonts.load('620 92px "Mona Sans"'));
+    await page.evaluate(() => document.fonts.load('640 104px "Mona Sans"'));
     await page.waitForFunction(() => [...document.fonts].some((f) => f.family.includes("Mona Sans") && f.status === "loaded"));
-    await page.waitForSelector("canvas.corridor");
-    await page.waitForTimeout(2500); // the opening mood has settled and the corridor has been drawn
+    await page.waitForSelector("canvas.wall.is-live");
+    await page.waitForTimeout(2500); // the opening mood has settled and the wall has been drawn
 
     await page.evaluate((lines) => {
-      // leave only the corridor: the page content and the dev overlay go
+      // leave only the wall: the page content and the dev overlay go
       for (const sel of [".site-content", ".skip-link", "nextjs-portal"]) {
         document.querySelectorAll(sel).forEach((el) => el.style.setProperty("display", "none", "important"));
       }
       const font = getComputedStyle(document.querySelector("h1")).fontFamily;
       const layer = document.createElement("div");
-      layer.style.cssText = `position:fixed;inset:0;z-index:2147483000;font-family:${font};color:#f3f5fa`;
+      layer.style.cssText = `position:fixed;inset:0;z-index:2147483000;font-family:${font};color:#f3f5f8`;
       layer.innerHTML = `
-        <svg style="position:absolute;left:52px;top:186px;color:#d2fb5a" width="54" height="54" viewBox="0 0 32 32" fill="none">
+        <svg style="position:absolute;left:56px;top:150px;color:#d2fb5a" width="54" height="54" viewBox="0 0 32 32" fill="none">
           <rect x="2" y="2" width="28" height="28" rx="9" stroke="currentColor" stroke-width="2.2"/>
           <rect x="8.5" y="8.5" width="15" height="15" rx="4.5" stroke="currentColor" stroke-width="2.2" opacity="0.8"/>
           <rect x="13" y="13" width="6" height="6" rx="1.8" fill="currentColor"/>
         </svg>
-        <p style="position:absolute;left:52px;top:262px;margin:0;font-size:92px;font-weight:620;letter-spacing:-0.05em;line-height:1;font-variation-settings:'wdth' 100;white-space:nowrap">${lines.map((l) => `<span style="display:block">${l}</span>`).join("")}</p>
-        <p style="position:absolute;right:58px;bottom:44px;margin:0;font-size:15px;font-weight:500;letter-spacing:-0.01em;color:#bec4d4">infiniview</p>`;
+        <p style="position:absolute;left:54px;top:232px;margin:0;font-size:112px;font-weight:640;font-stretch:86%;letter-spacing:-0.045em;line-height:0.94;white-space:nowrap">${lines.map((l) => `<span style="display:block">${l}</span>`).join("")}</p>
+        <p style="position:absolute;left:58px;bottom:46px;margin:0;font-family:ui-monospace,Menlo,monospace;font-size:14px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:#bcc2d0">infiniview.dev</p>`;
       document.body.appendChild(layer);
     }, card.lines);
     await page.waitForTimeout(400);

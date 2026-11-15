@@ -5,6 +5,7 @@ import { Faq } from "@/components/site/faq";
 import { WaitlistForm } from "@/components/site/waitlist-form";
 import { faqPage, jsonLd } from "@/lib/site/jsonld";
 import { RouteTransition } from "@/components/site/route-transition";
+import { LightCue } from "@/components/site/light-cue";
 
 export const metadata: Metadata = {
   title: "Pricing",
@@ -93,6 +94,9 @@ const PLAN_NOTES = [
   { label: "Pricing", value: "Finalized before launch" },
 ];
 
+// the light stands behind the plans (module-level, so the cue's effect does not re-run on render)
+const PRICING_LIGHT = { spread: 0.26, energy: 0.5, alert: 0, proof: 0.35 };
+
 const FAQS = [
   {
     q: "What counts as a scan?",
@@ -121,6 +125,7 @@ export default function PricingPage() {
     <RouteTransition>
       <main id="main">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqPage(FAQS)) }} />
+        <LightCue anchor=".plans-grid" ax={0.5} ay={0.4} mood={PRICING_LIGHT} />
         {/* the first screen (headline and plans) is in the server's HTML and enters with CSS at first paint */}
         <section className="price-hero" aria-labelledby="price-title">
           <div className="wrap">

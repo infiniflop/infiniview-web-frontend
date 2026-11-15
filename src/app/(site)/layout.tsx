@@ -13,6 +13,8 @@ export const viewport: Viewport = {
   colorScheme: "dark",
   // extend under notches/home indicators; the stylesheet pads with env(safe-area-inset-*)
   viewportFit: "cover",
+  // the software keyboard shrinks the layout on Android as it does on iOS, so the form stays in view
+  interactiveWidget: "resizes-content",
 };
 
 export default function SiteLayout({ children }: { children: ReactNode }) {

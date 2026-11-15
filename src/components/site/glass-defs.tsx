@@ -74,15 +74,20 @@ export function GlassDefs() {
         {["glass-lens", "glass-slab"].map((id) => (
           <filter key={id} id={id} x="0" y="0" width="100%" height="100%" colorInterpolationFilters="sRGB" primitiveUnits="userSpaceOnUse">
             <feImage x="0" y="0" width="1" height="1" preserveAspectRatio="none" result="map" />
-            <feOffset in="SourceGraphic" dx="0" dy="0" result="src" />
+            {/* a whisper of blur first: fine text bent through the rim would otherwise alias into speckle */}
+            <feGaussianBlur in="SourceGraphic" stdDeviation="0.3" result="src" />
             <Dispersion />
           </filter>
         ))}
         <filter id="glass-nav" x="0" y="0" width="100%" height="100%" colorInterpolationFilters="sRGB" primitiveUnits="userSpaceOnUse">
           <feImage x="0" y="0" width="1" height="1" preserveAspectRatio="none" result="map" />
-          <feGaussianBlur in="SourceGraphic" stdDeviation="7" result="src" />
+          <feGaussianBlur in="SourceGraphic" stdDeviation="11" result="src" />
           <Dispersion />
-          <feColorMatrix in="bent" type="saturate" values="1.7" />
+          <feColorMatrix in="bent" type="saturate" values="1.7" result="rich" />
+          {/* what is behind the bar is dimmed as well as bent, the way a regular (not clear) glass
+              adjusts the luminosity of its background: a white headline scrolling under the links
+              must not take their contrast below AA */}
+          <feColorMatrix in="rich" type="matrix" values="0.46 0 0 0 0  0 0.46 0 0 0  0 0 0.46 0 0  0 0 0 1 0" />
         </filter>
       </defs>
     </svg>

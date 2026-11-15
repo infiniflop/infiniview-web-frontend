@@ -195,15 +195,9 @@ export function Wall() {
       gl.uniform1f(U.time, reduced ? 7.3 : t);
       gl.uniform2f(U.ptr, reduced ? 0 : scene.px, reduced ? 0 : scene.py);
       gl.uniform1f(U.vel, reduced ? 0 : scene.velocity);
-      // Stacked layouts (phones, portrait tablets) put the copy over the middle of the screen: the
-      // light sits centred and near the bottom edge there, and is dimmer, so copy never sits on it.
-      gl.uniform4f(
-        U.light,
-        portrait ? 0.5 + (m.x - 0.5) * 0.35 : m.x,
-        portrait ? m.y * 0.5 : m.y,
-        m.energy * (portrait ? 0.6 : 1),
-        m.spread * (portrait ? 1.2 : 1),
-      );
+      // Stacked layouts (phones, portrait tablets) have less room around each surface for the halo,
+      // so the light is dimmer there.
+      gl.uniform4f(U.light, scene.lx, scene.ly, m.energy * (portrait ? 0.62 : 1), m.spread * (portrait ? 1.15 : 1));
       gl.uniform3f(U.mood, m.alert, m.proof, reduced ? 0 : scene.depth);
       gl.uniform1f(U.flute, canvas.width / count);
       gl.uniform1f(U.still, reduced ? 1 : 0);

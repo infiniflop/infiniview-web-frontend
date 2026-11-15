@@ -27,12 +27,21 @@ export function ThreatMarquee() {
 
       // the slab's refraction map, for its exact size
       const fx = slabEl.querySelector<HTMLElement>(".slab-fx");
+      // WebKit will not filter an element whose contents are this wide (the rows run to many screens:
+      // it draws nothing at all, whatever clips them), so Safari and every iOS browser get the slab
+      // without the bend: the words are still caught and lit inside it, behind the same rim.
+      const appleWebKit = (navigator.vendor ?? "").startsWith("Apple");
       const build = () => {
         const w = slabEl.offsetWidth;
         const h = slabEl.offsetHeight;
         if (!w || !h || !fx) return;
-        const map = buildGlassMap({ width: w, height: h, radius: Math.min(w, h) * 0.2, bezel: Math.min(26, w * 0.12), depth: 30, zoom: 1.1 }, 22);
-        fx.dataset.fx = applyGlassMap(document.getElementById("glass-slab") as SVGFilterElement | null, map, 0.1) ? "on" : "off";
+        if (appleWebKit) {
+          fx.dataset.fx = "off";
+          return;
+        }
+        // no magnification: a word is lit exactly where it stands, and only the rim bends it
+        const map = buildGlassMap({ width: w, height: h, radius: w * 0.3, bezel: Math.min(22, w * 0.14), depth: 26 }, 16);
+        fx.dataset.fx = applyGlassMap(document.getElementById("glass-slab") as SVGFilterElement | null, map, 0.06) ? "on" : "off";
       };
       build();
       const ro = new ResizeObserver(build);
@@ -114,7 +123,9 @@ export function ThreatMarquee() {
         {rows("base")}
         <div ref={slab} className="slab">
           <div className="slab-fx">
-            <div className="slab-view">{rows("lit")}</div>
+            <div className="slab-clip">
+              <div className="slab-view">{rows("lit")}</div>
+            </div>
           </div>
           <span className="slab-body" />
         </div>

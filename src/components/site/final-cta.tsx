@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { ArrowRight } from "lucide-react";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/site/gsap";
-import { scene, setMood } from "@/lib/site/scene";
+import { aimLight, QUIET, scene, setMood } from "@/lib/site/scene";
 import { CTA, DOCS_URL } from "@/lib/site/content";
 import { WaitlistForm } from "@/components/site/waitlist-form";
 import { DUR, EASE } from "@/lib/site/motion";
@@ -28,13 +28,14 @@ export function FinalCta() {
           {
             clipPath: "inset(0% 0% 0% 0% round 0px)",
             ease: "power2.inOut",
-            scrollTrigger: { trigger: root.current, start: "top 88%", end: "top 6%", scrub: 0.6 },
+            // fully open well before the copy reaches the middle of the screen: nothing is read through a closing edge
+            scrollTrigger: { trigger: root.current, start: "top 96%", end: "top 42%", scrub: 0.5 },
           },
         );
         // the content arrives once the aperture is mostly open (opacity only: it stays focusable)
         ScrollTrigger.create({
           trigger: root.current,
-          start: "top 36%",
+          start: "top 40%",
           once: true,
           onEnter: () => {
             const els = gsap.utils.toArray<HTMLElement>("[data-cta]:not([data-revealed])", f);
@@ -70,14 +71,27 @@ export function FinalCta() {
         });
         ScrollTrigger.create({
           trigger: root.current,
-          start: "top 70%",
+          start: "top 92%",
           end: "bottom 30%",
-          // the light gathers behind the aperture and turns to proof as it opens
-          onEnter: () => setMood({ x: 0.5, y: 0.46, spread: 0.3, energy: 0.9, alert: 0, proof: 1 }, 1.2),
-          onEnterBack: () => setMood({ x: 0.5, y: 0.46, spread: 0.3, energy: 0.9, alert: 0, proof: 1 }, 0.6),
+          // the light stands behind the aperture itself and turns to proof as it opens: it rises into
+          // view with the field, so it is never behind the copy above it
+          onEnter: () => {
+            aimLight(f, 0.5, 0.5);
+            setMood({ spread: 0.26, energy: 0.9, alert: 0, proof: 1 }, 0.8);
+          },
+          onEnterBack: () => {
+            aimLight(f, 0.5, 0.5);
+            setMood({ spread: 0.26, energy: 0.9, alert: 0, proof: 1 }, 0.6);
+          },
           // beyond the finale the wall returns, but quiet: the footer is read, not watched
-          onLeave: () => setMood({ x: 0.5, y: 0.08, spread: 0.26, energy: 0.4, alert: 0, proof: 0.6 }, 1.4),
-          onLeaveBack: () => setMood({ x: 0.92, y: 0.2, spread: 0.22, energy: 0.45, alert: 0, proof: 0 }, 1),
+          onLeave: () => {
+            aimLight(null);
+            setMood({ ...QUIET, proof: 0.6 }, 1.4);
+          },
+          onLeaveBack: () => {
+            aimLight(null);
+            setMood(QUIET, 1);
+          },
         });
         return () => {
           scene.occluded = false;

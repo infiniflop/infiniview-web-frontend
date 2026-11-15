@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowRight, Pause, Play, RotateCcw } from "lucide-react";
 import { gsap, ScrollTrigger, useGSAP, prefersReducedMotion } from "@/lib/site/gsap";
 import { SAMPLE_FINDINGS } from "@/lib/site/content";
-import { setMood } from "@/lib/site/scene";
+import { aimLight, setMood } from "@/lib/site/scene";
 import { createPill, DUR, EASE } from "@/lib/site/motion";
 
 type Finding = (typeof SAMPLE_FINDINGS)[number];
@@ -69,7 +69,11 @@ export function FindingsExplorer() {
           end: "bottom 40%",
           onToggle: (self) => {
             setInView(self.isActive);
-            if (self.isActive) setMood({ x: 0.9, y: 0.7, spread: 0.24, energy: 0.55, alert: 0.5, proof: 0 }, 1.4);
+            if (self.isActive) {
+              // behind the console: a faint vermilion line of light around its edges
+              aimLight(root.current?.querySelector<HTMLElement>(".console") ?? null, 0.5, 0.42);
+              setMood({ spread: 0.3, energy: 0.7, alert: 0.6, proof: 0 }, 1.4);
+            }
           },
         });
         return () => st.kill();
