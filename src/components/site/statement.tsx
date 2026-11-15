@@ -6,9 +6,9 @@ import { aimLight, QUIET, setMood } from "@/lib/site/scene";
 import { STATEMENT, TRUST_STATS, TRUST_NOTE } from "@/lib/site/content";
 
 /**
- * A quiet beat: the argument in one sentence, read out by the scroll. Each word lights as you pass
- * it. Then four numbers, set large and left alone: they are facts, so they are never counted up
- * from a wrong value.
+ * A quiet beat: the argument in one sentence, read out by the scroll as it passes (each word lights
+ * as you reach it; nothing is pinned, so it costs no extra scroll), with four numbers beside it. The
+ * numbers are facts, so they are never counted up from a wrong value.
  */
 export function Statement() {
   const root = useRef<HTMLElement>(null);
@@ -32,15 +32,7 @@ export function Statement() {
           split = SplitText.create(el, { type: "words", aria: "none" });
           gsap.set(split.words, { opacity: 0.46 });
           const tl = gsap.timeline({
-            scrollTrigger: {
-              trigger: root.current!.querySelector(".statement-pin"),
-              start: "top top",
-              end: "+=80%",
-              pin: true,
-              scrub: 0.5,
-              anticipatePin: 1,
-              refreshPriority: 1,
-            },
+            scrollTrigger: { trigger: el, start: "top 82%", end: "bottom 46%", scrub: 0.4 },
           });
           tl.to(split.words, { opacity: 1, stagger: 0.12, ease: "none", duration: 1 });
           st = tl.scrollTrigger;
@@ -75,29 +67,27 @@ export function Statement() {
 
   return (
     <section ref={root} className="statement" aria-labelledby="statement-text">
-      <div className="statement-pin">
-        <div className="wrap">
-          <p id="statement-text" ref={sentence} className="t-display statement-text">
-            {STATEMENT.lead} <span className="t-lime">{STATEMENT.accent}</span>
+      <div className="wrap statement-grid">
+        <p id="statement-text" ref={sentence} className="t-display statement-text">
+          {STATEMENT.lead} <span className="t-lime">{STATEMENT.accent}</span>
+        </p>
+
+        <div className="statement-side">
+          <ul className="stats">
+            {TRUST_STATS.map((s) => (
+              <li key={s.label} className="stat" data-reveal>
+                <span className="stat-num">
+                  {s.value}
+                  {s.suffix}
+                </span>
+                <span className="stat-label">{s.label}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="stats-note t-small" data-reveal="fade">
+            {TRUST_NOTE}
           </p>
         </div>
-      </div>
-
-      <div className="wrap">
-        <ul className="stats">
-          {TRUST_STATS.map((s) => (
-            <li key={s.label} className="stat" data-reveal>
-              <span className="stat-num">
-                {s.value}
-                {s.suffix}
-              </span>
-              <span className="stat-label">{s.label}</span>
-            </li>
-          ))}
-        </ul>
-        <p className="stats-note t-small" data-reveal="fade">
-          {TRUST_NOTE}
-        </p>
       </div>
     </section>
   );

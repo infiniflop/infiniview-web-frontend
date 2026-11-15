@@ -54,7 +54,7 @@ export function SampleApp({ mode = "app", label = "Sample app" }: { mode?: "app"
             <span className="app-search" data-hot="sqli">
               <Search size={13} strokeWidth={2.2} />
               <span>{x ? "q=%' OR 1=1 --" : "Search customers"}</span>
-              {x && <em className="app-flag">SQL injection · search.ts:87</em>}
+              {x && <em className="app-flag">SQL injection</em>}
             </span>
           </div>
           <div className="app-table">
@@ -75,7 +75,6 @@ export function SampleApp({ mode = "app", label = "Sample app" }: { mode?: "app"
                 </span>
                 <span className="app-act" data-hot={i === 0 ? "refund" : undefined}>
                   {x && i === 0 ? "×5 in 1s" : "Refund"}
-                  {x && i === 0 && <em className="app-flag app-flag--left">No idempotency key · handler.ts:142</em>}
                 </span>
               </div>
             ))}
@@ -89,7 +88,6 @@ export function SampleApp({ mode = "app", label = "Sample app" }: { mode?: "app"
                 ))}
               </span>
               <span>{x ? "200 sent · 0 × 429" : "12 req / min"}</span>
-              {x && <em className="app-flag app-flag--up">No rate limit · refund.ts:18</em>}
             </span>
           </div>
         </div>

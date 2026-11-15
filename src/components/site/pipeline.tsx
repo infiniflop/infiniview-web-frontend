@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { Check, GitPullRequest, Lock, X } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, GitPullRequest, Lock, X } from "lucide-react";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/site/gsap";
 import { aimLight, setMood } from "@/lib/site/scene";
 import { PIPELINE_STEPS } from "@/lib/site/content";
@@ -96,8 +96,10 @@ export function Pipeline() {
       const fitStage = () => {
         const tall = window.matchMedia("(max-width: 1023px)").matches;
         stage.dataset.layout = tall ? "tall" : "wide";
-        const dw = tall ? 600 : 960;
-        const dh = tall ? 600 : 560;
+        // the phone layout has its own, narrower design space, so the app in it is drawn about half
+        // again as large as a scaled-down desktop stage would make it
+        const dw = tall ? 420 : 960;
+        const dh = tall ? 548 : 560;
         k = Math.min(stage.clientWidth / dw, stage.clientHeight / dh);
         // centred by percentage, not by the grid: a box wider than its track would overflow one way only
         gsap.set(fit, { scale: k, width: dw, height: dh, xPercent: -50, yPercent: -50 });
@@ -157,11 +159,11 @@ export function Pipeline() {
           .fromTo(qa(".p-diff i"), { scaleX: 0 }, { scaleX: 1, transformOrigin: "0 50%", stagger: 0.07, duration: 0.3 }, 0.12)
           .fromTo(q(".p-check[data-s='queued']"), { autoAlpha: 0, x: -6 }, { autoAlpha: 1, x: 0, duration: 0.25 }, 0.5)
           .fromTo(q(".p-wire"), { scaleX: 0 }, { scaleX: 1, transformOrigin: "0 50%", duration: 0.35, ease: "power2.inOut" }, 0.6)
-          .fromTo(prod, { autoAlpha: 0.55 }, { autoAlpha: 1, duration: 0.4 }, 0.55);
+          .fromTo(prod, { autoAlpha: 0.5 }, { autoAlpha: 0.72, duration: 0.4 }, 0.55);
 
         /* ── 2 · sandbox: a copy of the app is sealed in glass ─────────── */
         tl.fromTo(chamber, { autoAlpha: 0, x: 30, y: -30, scale: 0.97 }, { autoAlpha: 1, x: 0, y: 0, scale: 1, duration: 0.6, ease: "expo.out" }, 1)
-          .to(prod, { autoAlpha: 0.45, duration: 0.5 }, 1)
+          .to(prod, { autoAlpha: 0.3, duration: 0.5 }, 1)
           .to(shell, { clipPath: "inset(0 0 0% 0)", duration: 0.55, ease: "power2.inOut" }, 1.25)
           .to(q(".p-shell-chip"), { autoAlpha: 1, x: 0, duration: 0.3 }, 1.55)
           .to(qa(".p-tick"), { autoAlpha: 1, x: 0, stagger: 0.14, duration: 0.3 }, 1.35)
@@ -212,7 +214,7 @@ export function Pipeline() {
           .to(qa(".p-file"), { autoAlpha: 1, x: 0, stagger: 0.07, duration: 0.28 }, 4.34)
           .to(chamber, { autoAlpha: 0, scale: 0.985, duration: 0.4, ease: "power3.in" }, 4.3)
           .to(q(".p-torn"), { autoAlpha: 1, duration: 0.3 }, 4.62)
-          .to(prod, { autoAlpha: 1, duration: 0.4 }, 4.5)
+          .to(prod, { autoAlpha: 0.72, duration: 0.4 }, 4.5)
           .to(q(".p-check[data-s='running']"), { autoAlpha: 0, duration: 0.15 }, 4.58)
           .to(q(".p-check[data-s='blocked']"), { autoAlpha: 1, duration: 0.25 }, 4.64)
           .to({}, { duration: 0.12 }, 4.88);
@@ -279,7 +281,8 @@ export function Pipeline() {
           const st = ScrollTrigger.create({
             trigger: q(".pipe-pin"),
             start: "top top",
-            end: () => `+=${window.innerHeight * (tall ? 4 : 4.6)}`,
+            // about two thirds of a screen per beat: long enough to read each one, short enough to keep moving
+            end: () => `+=${window.innerHeight * (tall ? 2.9 : 3.3)}`,
             pin: true,
             scrub: 0.6,
             anticipatePin: 1,
@@ -446,11 +449,9 @@ export function Pipeline() {
                   <Lock size={11} strokeWidth={2.4} /> Production · untouched
                 </span>
                 <div className="p-prod">
-                  <span className="p-prod-rows">
-                    {Array.from({ length: 9 }, (_, i) => (
-                      <i key={i} />
-                    ))}
-                  </span>
+                  <div className="app-frame">
+                    <SampleApp label="Production" />
+                  </div>
                 </div>
 
                 {/* the pull request, and the check it will carry */}
@@ -476,7 +477,7 @@ export function Pipeline() {
                       <b className="p-x">
                         <X size={10} strokeWidth={3.4} />
                       </b>
-                      2 critical, 1 high · merge blocked
+                      <span>2 critical, 1 high ·</span> <span>merge blocked</span>
                     </span>
                   </div>
                   <span className="p-wire" />
@@ -561,8 +562,8 @@ export function Pipeline() {
                   aria-valuenow={1}
                   aria-valuetext={`${PIPELINE_STEPS[0].tag}: ${PIPELINE_STEPS[0].title}`}
                 >
-                  <i />
-                  <i />
+                  <ChevronLeft size={13} strokeWidth={2.6} aria-hidden />
+                  <ChevronRight size={13} strokeWidth={2.6} aria-hidden />
                 </span>
               </div>
               <ol className="pipe-ticks t-label" aria-hidden>

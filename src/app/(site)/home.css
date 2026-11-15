@@ -248,35 +248,25 @@
   .app-bars i { width: 0.36em; height: 1.1em; background: rgba(255, 255, 255, 0.14); }
   .app-bars i[data-on] { background: var(--iv-lime); }
 
-  /* the same app, seen by an attacker: everything recedes except what can be broken */
+  /* The same app, seen by an attacker. The glass is clear: everything keeps its place and its
+     colour, a shade quieter, and only what can be broken changes: the payload in the search field,
+     the hashes where the plans were, the refund that ran five times, the limit that is not there. */
   .app[data-mode='xray'] {
-    background: #0b0607;
-    color: rgba(255, 196, 187, 0.66);
+    background: linear-gradient(rgba(255, 90, 71, 0.045), rgba(255, 90, 71, 0.045)), var(--iv-s1);
   }
-  .app[data-mode='xray'] .app-bar { background: #120809; border-color: rgba(255, 90, 71, 0.22); }
-  .app[data-mode='xray'] .app-side,
-  .app[data-mode='xray'] .app-row,
-  .app[data-mode='xray'] .app-foot { border-color: rgba(255, 90, 71, 0.2); }
-  .app[data-mode='xray'] .app-dots i,
-  .app[data-mode='xray'] .app-org i { background: rgba(255, 90, 71, 0.4); }
-  .app[data-mode='xray'] .app-url,
-  .app[data-mode='xray'] .app-nav,
-  .app[data-mode='xray'] .app-email,
-  .app[data-mode='xray'] .app-order,
-  .app[data-mode='xray'] .app-route,
-  .app[data-mode='xray'] .app-row--head { color: rgba(255, 196, 187, 0.66); }
-  .app[data-mode='xray'] .app-name,
-  .app[data-mode='xray'] .app-org { color: rgba(255, 214, 207, 0.78); }
-  .app[data-mode='xray'] .app-nav[data-on] { background: rgba(255, 90, 71, 0.14); color: #ffd6cf; }
-  .app[data-mode='xray'] .app-tag { color: var(--iv-red); border-color: rgba(255, 90, 71, 0.6); }
+  .app[data-mode='xray'] .app-bar {
+    background: linear-gradient(rgba(255, 90, 71, 0.045), rgba(255, 90, 71, 0.045)), var(--iv-s2);
+  }
+  .app[data-mode='xray'] .app-tag { color: var(--iv-red-soft); border-color: rgba(255, 90, 71, 0.6); }
+  .app[data-mode='xray'] .app-name { color: var(--iv-ink-2); }
   .app[data-mode='xray'] .app-title,
   .app[data-mode='xray'] .app-plan,
   .app[data-mode='xray'] .app-row:nth-child(2) .app-order {
     font-family: var(--font-mono);
     color: var(--iv-red-soft);
   }
-  .app[data-mode='xray'] .app-title { font-size: 1.1em; letter-spacing: 0; color: var(--iv-red); }
-  .app[data-mode='xray'] .app-act { border-color: rgba(255, 90, 71, 0.22); color: rgba(255, 196, 187, 0.66); }
+  .app[data-mode='xray'] .app-title { font-size: 1.08em; letter-spacing: 0; }
+  .app[data-mode='xray'] .app-plan { font-size: 0.92em; }
   .app[data-mode='xray'] .app-search,
   .app[data-mode='xray'] .app-act[data-hot],
   .app[data-mode='xray'] .app-meter {
@@ -289,25 +279,23 @@
     background: rgba(255, 90, 71, 0.16);
     box-shadow: 0 0 0 3px rgba(255, 90, 71, 0.14);
   }
+  .app[data-mode='xray'] .app-search svg { color: var(--iv-red-soft); }
   .app[data-mode='xray'] .app-bars i[data-on] { background: var(--iv-red); }
-  /* what was found, pinned to the thing it was found in */
+  /* what it is, said inside the thing it was found in (never floating over a neighbour) */
   .app-flag {
-    position: absolute;
-    left: 0;
-    top: calc(100% + 0.7em);
-    padding: 0.36em 0.7em;
+    flex: none;
+    margin-left: 0.4em;
+    padding: 0.22em 0.55em;
     background: var(--iv-red);
     color: #1b0502;
     font-family: var(--font-mono);
-    font-size: 0.86em;
+    font-size: 0.78em;
     font-style: normal;
     font-weight: 600;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
     white-space: nowrap;
   }
-  .app-flag--left { left: auto; right: 0; }
-  .app-flag--up { left: auto; right: 0; top: auto; bottom: calc(100% + 0.7em); }
 
   /* ── The lens ─────────────────────────────────────────────────────────
      The mark's outer frame, in glass. Inside it is a second copy of the app (attack view), held in
@@ -344,7 +332,7 @@
     inset: 0;
     border-radius: inherit;
     overflow: hidden;
-    background: #0b0607;
+    background: var(--iv-s1);
   }
   .lens-fx[data-fx='on'] { filter: url(#glass-lens); }
   html[data-perf='low'] .lens-fx[data-fx='on'] { filter: none; }
@@ -424,7 +412,7 @@
   .lens-hint {
     position: absolute;
     left: 50%;
-    top: calc(100% + 12px);
+    bottom: calc(100% + 12px); /* above the glass: the tray is in front of whatever is below it */
     transform: translateX(-50%);
     padding: 6px 11px;
     border-radius: 999px;
@@ -446,30 +434,31 @@
     .lens-hint-touch { display: inline; }
   }
 
-  /* ── The tray: what the lens has found ───────────────────────────────── */
+  /* ── The tray: what the lens has found ───────────────────────────────
+     A ledge in front of the glass (the lens dips behind it, never over it). Its size never changes:
+     every slot and the way on are in their places from the start, so a find moves nothing. */
 
   .tray {
     position: relative;
-    z-index: 2;
+    z-index: 4;
     display: flex;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 8px 14px;
-    min-height: 52px;
-    padding: 8px 12px;
+    gap: 8px 12px;
+    min-height: 54px;
+    padding: 9px 10px 9px 14px;
     border-radius: 0 0 var(--r-pane) var(--r-pane);
     background: var(--iv-s2);
   }
-  .tray-count { flex: none; display: flex; gap: 1px; align-items: baseline; }
+  .tray-count { flex: none; display: flex; gap: 1px; align-items: baseline; white-space: nowrap; }
   .tray-count b { font-weight: 600; color: var(--iv-ink); }
-  .tray-list { display: flex; flex: 1; flex-wrap: wrap; gap: 6px; min-width: 0; }
+  .tray-list { display: flex; flex: 1; gap: 6px; min-width: 0; }
   .tray-list li { min-width: 0; }
   .tray-slot {
     display: flex;
     align-items: center;
     gap: 8px;
     max-width: 100%;
-    height: 34px;
+    height: 36px;
     padding: 0 11px;
     border: 1px dashed var(--iv-line-2);
     border-radius: var(--r-chip);
@@ -479,11 +468,10 @@
     font-size: 0.6875rem;
     letter-spacing: 0.04em;
     text-transform: uppercase;
+    white-space: nowrap;
     cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
     transition: color var(--d-hover) var(--ease-out), border-color var(--d-hover) var(--ease-out), background-color var(--d-hover) var(--ease-out);
   }
-  .tray-slot span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
   .tray-slot i {
     width: 7px;
     height: 7px;
@@ -503,46 +491,56 @@
   @media (hover: hover) and (pointer: fine) {
     .tray-slot:hover { color: var(--iv-ink); border-color: rgba(255, 255, 255, 0.4); }
   }
+  /* the way on: a quiet hint until all three are found, then the lime button, in the same box */
   .tray-go {
+    display: inline-grid;
+    flex: none;
+    height: 36px;
+    border-radius: 999px;
+    text-decoration: none;
+    white-space: nowrap;
+    pointer-events: none;
+    transition: background-color var(--d-ui) var(--ease-out), transform 0.6s var(--spring);
+  }
+  .tray-go > span {
+    grid-area: 1 / 1;
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 7px;
-    height: 34px;
-    padding: 0 13px;
-    border-radius: 999px;
-    background: var(--iv-lime);
-    color: var(--iv-lime-ink);
+    padding: 0 14px;
+    transition: opacity var(--d-ui) var(--ease-out);
+  }
+  .tray-go-off {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--iv-ink-3);
+  }
+  .tray-go-on {
     font-size: 0.82rem;
     font-weight: 640;
     letter-spacing: -0.01em;
-    text-decoration: none;
-    white-space: nowrap;
+    color: var(--iv-lime-ink);
     opacity: 0;
-    visibility: hidden;
-    transform: translateY(6px) scale(0.96);
-    transition:
-      opacity var(--d-ui) var(--ease-out),
-      transform 0.6s var(--spring),
-      visibility 0s var(--d-ui);
   }
-  .tray-go[data-on] {
-    opacity: 1;
-    visibility: visible;
-    transform: none;
-    transition-delay: 0s;
-  }
+  .tray-go[data-on] { background: var(--iv-lime); pointer-events: auto; }
+  .tray-go[data-on] .tray-go-off { opacity: 0; }
+  .tray-go[data-on] .tray-go-on { opacity: 1; }
+  .tray-go[data-on]:active { transform: scale(0.97); transition-duration: var(--d-ui), var(--d-press); }
 
   .tray-short { display: none; }
-  /* the tray is as wide as the stage: on phones and small laptops its slots carry short labels */
+  /* the tray is as wide as the stage: on phones and small laptops the slots carry short labels and
+     the way on has a row of its own (there from the start) */
   @media (max-width: 1180px) {
-    .tray { gap: 8px 10px; }
-    .tray-list { flex-wrap: nowrap; }
+    .tray { flex-wrap: wrap; padding: 10px; }
     .tray-list li { flex: 1 1 0; }
-    .tray-slot { width: 100%; justify-content: center; padding: 0 8px; height: 38px; }
+    .tray-slot { width: 100%; justify-content: center; padding: 0 6px; height: 38px; }
     .tray-long { display: none; }
     .tray-short { display: inline; }
-    .tray-go { flex: 1 1 100%; justify-content: center; height: 40px; }
-    .tray-go:not([data-on]) { display: none; }
+    .tray-go { flex: 1 1 100%; height: 40px; box-shadow: inset 0 0 0 1px var(--iv-line); }
+    .tray-go[data-on] { box-shadow: none; }
   }
 
   @container stage (max-width: 560px) {
@@ -705,21 +703,18 @@
       inset 0 -18px 26px -18px rgba(0, 0, 0, 0.6);
   }
 
-  /* ── Statement ───────────────────────────────────────────────────────── */
+  /* ── Statement ───────────────────────────────────────────────────────
+     One sentence, large, and four numbers beside it. No pin: it is read as it passes. */
 
-  .statement { padding-bottom: clamp(24px, 4vw, 64px); }
-  .statement-pin {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    padding-block: 110px 60px;
-  }
-  @supports (height: 1svh) {
-    .statement-pin { min-height: 100svh; }
+  .statement { padding-block: clamp(72px, 9vw, 150px) clamp(40px, 5vw, 80px); }
+  .statement-grid {
+    display: grid;
+    gap: clamp(36px, 5vw, 72px);
+    align-items: end;
   }
   .statement-text {
-    max-width: 14ch;
-    font-size: clamp(2.7rem, 9.4vw, 9.6rem);
+    max-width: 13ch;
+    font-size: clamp(2.7rem, 8.6vw, 8.4rem);
   }
   .stats {
     display: grid;
@@ -729,13 +724,13 @@
   .stat {
     display: flex;
     flex-direction: column;
-    gap: 14px;
-    padding: 26px 20px 30px 0;
+    gap: 12px;
+    padding: 22px 16px 24px 0;
     border-bottom: 1px solid var(--iv-line);
   }
   .stat:nth-child(even) { padding-left: 20px; border-left: 1px solid var(--iv-line); }
   .stat-num {
-    font-size: clamp(3.2rem, 7.4vw, 6.4rem);
+    font-size: clamp(3rem, 5.6vw, 5.2rem);
     line-height: 0.86;
     font-weight: 640;
     font-stretch: 84%;
@@ -751,11 +746,9 @@
     text-transform: uppercase;
     color: var(--iv-ink-2);
   }
-  .stats-note { max-width: 60ch; margin-top: 22px; color: var(--iv-ink-2); }
-  @media (min-width: 900px) {
-    .stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-    .stat { padding: 30px 24px 36px; border-left: 1px solid var(--iv-line); border-bottom: 0; }
-    .stat:first-child { padding-left: 0; border-left: 0; }
+  .stats-note { max-width: 46ch; margin-top: 20px; color: var(--iv-ink-2); }
+  @media (min-width: 1024px) {
+    .statement-grid { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); }
   }
 
   /* ── Coverage ────────────────────────────────────────────────────────── */
@@ -797,6 +790,61 @@
   .cov-copy .t-h3::first-letter { text-transform: uppercase; }
   .cov-copy .t-body { max-width: 34ch; }
   .cov-items { display: grid; gap: 18px; align-content: start; }
+  /* pick your stack: a strip of choices with a glass pill that slides to the chosen one */
+  .cov-pick { display: grid; gap: 10px; margin-bottom: 4px; }
+  .cov-pick .t-label { color: var(--iv-ink-2); }
+  /* (the choices wrap onto as many rows as they need: nothing scrolls sideways or is cut) */
+  .cov-stacks {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    max-width: 100%;
+    padding: 4px;
+    border-radius: 22px;
+    box-shadow: inset 0 0 0 1px var(--iv-line-2);
+    justify-self: start;
+  }
+  .cov-stack-pill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 0;
+    height: 0;
+    border-radius: 999px;
+    background: rgba(127, 230, 255, 0.16);
+    box-shadow: inset 0 0 0 1px rgba(127, 230, 255, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    pointer-events: none;
+    will-change: transform, width, height;
+  }
+  .cov-stack {
+    position: relative;
+    flex: none;
+    height: 36px;
+    padding: 0 13px;
+    border: 0;
+    border-radius: 999px;
+    background: none;
+    color: var(--iv-ink-2);
+    font: inherit;
+    font-size: 0.86rem;
+    font-weight: 560;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color var(--d-hover) var(--ease-out);
+  }
+  .cov-stack[aria-checked='true'] { color: var(--iv-ink); }
+  @media (hover: hover) and (pointer: fine) {
+    .cov-stack:hover { color: var(--iv-ink); }
+  }
+  .cov-pick-out { min-height: 2.6em; color: var(--iv-ink-2); }
+  .cov-chip[data-hit] {
+    border-color: var(--c);
+    border-style: solid;
+    background: color-mix(in srgb, var(--c) 16%, transparent);
+    color: var(--iv-ink);
+  }
+  .cov-chip[data-off] { opacity: 0.34; }
   .cov-fam { display: grid; gap: 9px; }
   .cov-fam .t-label, .cov-key { color: var(--iv-ink-2); }
   .cov-chips { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -811,7 +859,7 @@
     font-size: 0.78rem;
     color: var(--iv-ink);
     white-space: nowrap;
-    transition: border-color var(--d-hover) var(--ease-out), background-color var(--d-hover) var(--ease-out);
+    transition: border-color var(--d-ui) var(--ease-out), background-color var(--d-ui) var(--ease-out), opacity var(--d-ui) var(--ease-out);
   }
   .cov-chip[data-opt] { border-style: dashed; color: var(--iv-ink-2); }
   @media (hover: hover) and (pointer: fine) {
@@ -827,7 +875,7 @@
 
   /* ── After: nothing to set up, and four standing facts ───────────────── */
 
-  .after { padding-block: clamp(72px, 9vw, 140px) clamp(96px, 12vw, 170px); }
+  .after { padding-block: clamp(56px, 7vw, 110px) clamp(72px, 9vw, 130px); }
   .after-grid {
     display: grid;
     gap: 40px clamp(40px, 6vw, 96px);
@@ -860,29 +908,8 @@
   .term-mark { flex: none; color: var(--iv-lime); }
   .term-line[data-cmd] .term-mark { color: var(--iv-ink-3); }
   .term-text { min-width: 0; overflow-wrap: anywhere; }
-  .ledger {
-    display: grid;
-    margin-top: clamp(56px, 7vw, 104px);
-    border-top: 1px solid var(--iv-line-2);
-  }
-  .ledger-item {
-    display: grid;
-    gap: 10px;
-    align-content: start;
-    padding: 24px 0 28px;
-    border-bottom: 1px solid var(--iv-line);
-  }
-  .ledger-item .t-body { max-width: 32ch; }
-  @media (min-width: 640px) {
-    .ledger { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .ledger-item { padding-right: 28px; }
-    .ledger-item:nth-child(even) { padding-left: 28px; border-left: 1px solid var(--iv-line); }
-  }
   @media (min-width: 1024px) {
     .after-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-    .ledger { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-    .ledger-item { padding: 28px 28px 8px; border-left: 1px solid var(--iv-line); border-bottom: 0; }
-    .ledger-item:first-child { padding-left: 0; border-left: 0; }
   }
 
   /* ── Finale ──────────────────────────────────────────────────────────── */
@@ -1057,25 +1084,17 @@
     transform-origin: 50% 50%;
   }
   .pstage-fit > * { position: absolute; }
+  /* production: the same app, behind and beside the sandbox, dimmed and never touched */
   .p-prod {
     left: 350px;
     top: 14px;
     width: 600px;
     height: 392px;
-    border: 1px dashed rgba(255, 255, 255, 0.2);
+    border: 1px dashed rgba(255, 255, 255, 0.24);
     border-radius: var(--r-pane);
-    background: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 33px), rgba(255, 255, 255, 0.015);
+    filter: saturate(0.4);
   }
-  /* production's own rows, as a faint skeleton: it is there, and nothing touches it */
-  .p-prod-rows {
-    position: absolute;
-    inset: 54px 22px 22px 150px;
-    display: grid;
-    align-content: start;
-    gap: 24px;
-  }
-  .p-prod-rows i { height: 9px; border-radius: 1px; background: rgba(255, 255, 255, 0.07); }
-  .p-prod-rows i:nth-child(odd) { width: 86%; }
+  .p-prod .app { background: #090b0f; }
   .p-prod-label {
     right: 22px;
     top: 5px;
@@ -1088,17 +1107,17 @@
     color: var(--iv-ink-3);
     white-space: nowrap;
   }
-  .pstage[data-layout='tall'] .p-prod-label { right: 12px; top: 167px; }
   .p-chamber {
     left: 320px;
     top: 44px;
     width: 600px;
     height: 392px;
   }
-  .app-frame { position: absolute; inset: 0; overflow: hidden; container-type: size; }
+  /* (named like the hero's stage, so the app's compact layout applies to any narrow frame) */
+  .app-frame { position: absolute; inset: 0; overflow: hidden; container: stage / size; }
   .p-live, .p-xray { position: absolute; inset: 0; }
   .p-xray { will-change: clip-path; }
-  /* here the findings arrive as chips of their own, so the attack view's flags stay out of the way */
+  /* here the findings arrive as chips of their own, so the attack view's own tag stays out of the way */
   .p-xray .app-flag { display: none; }
   /* the glass of the sandbox: a shell around the app, with the light on its upper left edge */
   .p-shell {
@@ -1278,17 +1297,28 @@
     color: var(--iv-ink);
   }
   .p-file svg { color: var(--iv-lime); }
-  /* phones and portrait tablets: the pull request and the lanes sit above the sandbox */
-  .pstage[data-layout='tall'] .p-pr { top: 0; width: 290px; }
+  /* Phones and portrait tablets: a design space of their own (420 wide). The pull request and the
+     lanes sit side by side above the sandbox, and the app inside it is the compact one, so its text
+     stays legible instead of being a desktop stage scaled down. */
+  .pstage[data-layout='tall'] .p-pr { top: 0; width: 204px; padding: 12px 13px 13px; }
+  .pstage[data-layout='tall'] .p-pr-title { font-size: 15px; margin-top: 8px; }
   .pstage[data-layout='tall'] .p-wire { display: none; }
+  .pstage[data-layout='tall'] .p-checks { height: 40px; }
+  .pstage[data-layout='tall'] .p-check { flex-wrap: wrap; row-gap: 0; font-size: 10.5px; white-space: normal; }
+  .pstage[data-layout='tall'] .p-check[data-s='blocked'] > span:last-child { flex-basis: 100%; padding-left: 22px; }
   .pstage[data-layout='tall'] .p-lanes,
-  .pstage[data-layout='tall'] .p-bundle { left: 310px; top: 0; width: 290px; }
-  .pstage[data-layout='tall'] .p-lane { height: 32px; }
-  .pstage[data-layout='tall'] .p-file { height: 22px; }
-  .pstage[data-layout='tall'] .p-prod { left: 24px; top: 176px; width: 576px; height: 376px; }
-  .pstage[data-layout='tall'] .p-chamber { left: 12px; top: 192px; width: 576px; height: 376px; }
-  .pstage[data-layout='tall'] .p-torn { left: 300px; top: 380px; }
-  .pstage[data-layout='tall'] .p-ticks { top: auto; bottom: calc(100% + 22px); left: auto; right: 0; display: none; }
+  .pstage[data-layout='tall'] .p-bundle { left: 216px; top: 0; width: 204px; }
+  .pstage[data-layout='tall'] .p-lane { height: 34px; padding: 0 9px 0 10px; font-size: 12.5px; }
+  .pstage[data-layout='tall'] .p-bundle { padding: 12px 13px 10px; }
+  .pstage[data-layout='tall'] .p-file { height: 23px; font-size: 12.5px; }
+  .pstage[data-layout='tall'] .p-prod { left: 22px; top: 176px; width: 398px; height: 340px; }
+  .pstage[data-layout='tall'] .p-chamber { left: 11px; top: 190px; width: 398px; height: 340px; }
+  .pstage[data-layout='tall'] .p-prod-label { right: 6px; top: 167px; }
+  .pstage[data-layout='tall'] .p-torn { left: 210px; top: 360px; }
+  .pstage[data-layout='tall'] .p-ticks { display: none; }
+  .pstage[data-layout='tall'] .p-shell-chip { left: 8px; }
+  .pstage[data-layout='tall'] .app { --fs: 11px; }
+  .pstage[data-layout='tall'] .p-find { height: 25px; font-size: 0.625rem; padding: 0 7px; }
 
   /* the timeline */
   .pipe-scrub {
@@ -1323,7 +1353,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 4px;
+    gap: 0;
     width: var(--hw);
     height: 30px;
     border-radius: 999px;
@@ -1334,7 +1364,7 @@
     transition: scale 0.5s var(--spring);
   }
   .pipe-handle[data-held] { cursor: grabbing; scale: 1.08; }
-  .pipe-handle i { width: 1.5px; height: 10px; border-radius: 2px; background: var(--iv-ink); opacity: 0.8; }
+  .pipe-handle svg { flex: none; margin-inline: -3px; color: var(--iv-ink); opacity: 0.9; }
   .pipe-handle::after {
     /* a 44px hit area around a 30px control */
     content: '';
@@ -1347,7 +1377,12 @@
     margin-top: 16px;
     margin-right: var(--hw);
   }
-  .pipe-ticks li { padding-left: 1px; border-left: 1px solid var(--iv-line-2); padding-left: 8px; overflow: hidden; text-overflow: ellipsis; }
+  .pipe-ticks li { border-left: 1px solid var(--iv-line-2); padding-left: 8px; white-space: nowrap; }
+  /* a phone's track is five 60px cells: the labels are set smaller so none of them is cut */
+  @media (max-width: 520px) {
+    .pipe-ticks { font-size: 0.5625rem; letter-spacing: 0.02em; }
+    .pipe-ticks li { padding-left: 5px; }
+  }
   .pipe[data-static] .pipe-scrub { display: none; }
   .pipe[data-static] .pipe-pin { height: auto; }
   .pipe[data-static] .pstage { height: min(70vw, 520px); flex: none; }

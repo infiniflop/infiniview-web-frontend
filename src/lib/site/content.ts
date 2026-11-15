@@ -272,15 +272,18 @@ export const SCANNER_FAMILIES = [
   {
     title: "Static analysis",
     items: [
-      { name: "Semgrep" }, { name: "ESLint Security" }, { name: "Bandit" }, { name: "gosec" }, { name: "Brakeman" },
-      { name: "SpotBugs" }, { name: "PHPStan" }, { name: "Bearer" }, { name: "njsscan" }, { name: "SonarQube", optIn: true },
+      { name: "Semgrep" }, { name: "ESLint Security", stack: "js" }, { name: "Bandit", stack: "python" },
+      { name: "gosec", stack: "go" }, { name: "Brakeman", stack: "ruby" }, { name: "SpotBugs", stack: "java" },
+      { name: "PHPStan", stack: "php" }, { name: "Bearer" }, { name: "njsscan", stack: "js" },
+      { name: "SonarQube", optIn: true },
     ],
   },
   {
     title: "Dependency audit",
     items: [
-      { name: "npm audit" }, { name: "pip-audit" }, { name: "cargo-audit" }, { name: "OSV Scanner" },
-      { name: "Safety", optIn: true }, { name: "Grype", optIn: true }, { name: "Retire.js", optIn: true }, { name: "Snyk Open Source", optIn: true },
+      { name: "npm audit", stack: "js" }, { name: "pip-audit", stack: "python" }, { name: "cargo-audit", stack: "rust" },
+      { name: "OSV Scanner" }, { name: "Safety", stack: "python", optIn: true }, { name: "Grype", optIn: true },
+      { name: "Retire.js", stack: "js", optIn: true }, { name: "Snyk Open Source", optIn: true },
     ],
   },
   {
@@ -289,8 +292,28 @@ export const SCANNER_FAMILIES = [
   },
   {
     title: "Configuration and IaC",
-    items: [{ name: "Trivy" }, { name: "Checkov" }, { name: "tfsec", optIn: true }, { name: "Hadolint" }, { name: "kube-linter" }],
+    items: [
+      { name: "Trivy" }, { name: "Checkov" }, { name: "tfsec", stack: "terraform", optIn: true },
+      { name: "Hadolint", stack: "docker" }, { name: "kube-linter", stack: "kubernetes" },
+    ],
   },
+] as const satisfies readonly { title: string; items: readonly { name: string; stack?: string; optIn?: boolean }[] }[];
+
+/**
+ * The stacks a scanner can be specific to, as the docs describe each one ("Python security linter",
+ * "Go security analyzer", "Dockerfile linter" …). A scanner with no stack reads any repository.
+ */
+export const STACKS = [
+  { id: "js", label: "JS / TS" },
+  { id: "python", label: "Python" },
+  { id: "go", label: "Go" },
+  { id: "ruby", label: "Ruby" },
+  { id: "java", label: "Java" },
+  { id: "php", label: "PHP" },
+  { id: "rust", label: "Rust" },
+  { id: "docker", label: "Docker" },
+  { id: "terraform", label: "Terraform" },
+  { id: "kubernetes", label: "Kubernetes" },
 ] as const;
 
 export const LAYER_ITEMS = {

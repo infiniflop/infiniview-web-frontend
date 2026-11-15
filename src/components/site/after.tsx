@@ -3,21 +3,26 @@
 import { useRef } from "react";
 import { ArrowRight } from "lucide-react";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/site/gsap";
-import { DOCS_URL, FEATURES, ZERO_CONFIG } from "@/lib/site/content";
+import { DOCS_URL, ZERO_CONFIG } from "@/lib/site/content";
 import { aimLight, setMood } from "@/lib/site/scene";
 
+// What a first connection produces, and what is true of every scan after it: the site's four
+// standing claims (sandboxes deleted, attack paths chained, noise learned down, compliance reports)
+// as lines of a sample run, not as a row of feature cards.
 const LINES = [
   { cmd: true, text: "connect github.com/acme/web-app" },
   { text: "attack surface discovered" },
   { text: "test plan generated" },
   { text: "scan started" },
+  { text: "multi-step attack paths chained" },
+  { text: "noise reduced from learned codebase patterns" },
+  { text: "compliance report: SOC 2, ISO 27001" },
+  { text: "sandbox deleted" },
 ] as const;
 
-const LEDGER = [FEATURES.sandboxes, FEATURES.paths, FEATURES.learning, FEATURES.compliance];
-
 /**
- * What it takes to start (nothing), shown as the four lines a first connection produces, and the
- * four things that are true of every scan, set as a plain ledger. A quiet beat between two loud ones.
+ * What it takes to start (nothing), shown as the log of a sample run: one typed command, then what
+ * follows without anyone doing anything. A quiet beat between two loud ones.
  */
 export function After() {
   const root = useRef<HTMLElement>(null);
@@ -36,7 +41,7 @@ export function After() {
           if (i === 0) {
             tl.set(line, { opacity: 1 }, 0).fromTo(text, { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: 0.9, ease: "steps(31)" }, 0.1);
           } else {
-            tl.fromTo(line, { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.4, ease: "expo.out" }, 0.9 + i * 0.32);
+            tl.fromTo(line, { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.4, ease: "expo.out" }, 0.9 + i * 0.26);
           }
         });
         const st = ScrollTrigger.create({ trigger: term, start: "top 78%", once: true, onEnter: () => tl.play() });
@@ -75,7 +80,7 @@ export function After() {
             </div>
           </div>
 
-          <div className="term pane" role="img" aria-label="Sample run: a repository is connected, its attack surface is discovered, a test plan is generated and the scan starts." data-reveal>
+          <div className="term pane" role="img" aria-label="Sample run: a repository is connected; its attack surface is discovered, a test plan is generated and the scan starts; multi-step attack paths are chained, noise is reduced from learned codebase patterns, a compliance report for SOC 2 and ISO 27001 is produced, and the sandbox is deleted." data-reveal>
             <div className="term-bar" aria-hidden>
               <span className="app-dots">
                 <i />
@@ -95,18 +100,6 @@ export function After() {
             </div>
           </div>
         </div>
-
-        <ul className="ledger">
-          {LEDGER.map((f, i) => (
-            <li key={f.title} className="ledger-item" data-reveal>
-              <span className="t-label" aria-hidden>
-                {String(i + 1).padStart(2, "0")}
-              </span>
-              <h3 className="t-h3">{f.title}</h3>
-              <p className="t-body">{f.body}</p>
-            </li>
-          ))}
-        </ul>
       </div>
     </section>
   );

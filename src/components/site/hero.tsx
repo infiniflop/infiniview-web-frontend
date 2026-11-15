@@ -26,7 +26,9 @@ const WORDS: { text: string; br?: boolean }[] = [
 ];
 
 type FindingId = (typeof SAMPLE_FINDINGS)[number]["id"];
-// what a found slot says where there is only room for a word (phones, small laptops)
+// what a found slot says: the name the pipeline and the console use for it, and a one-word form
+// where there is only room for a word (phones, small laptops)
+const NAME: Record<FindingId, string> = { sqli: "SQL injection", refund: "Replayable refund", rate: "No rate limit" };
 const SHORT: Record<FindingId, string> = { sqli: "SQLi", refund: "Replay", rate: "No limit" };
 const IDS = SAMPLE_FINDINGS.map((f) => f.id) as FindingId[];
 
@@ -127,12 +129,21 @@ export function Hero() {
         sy.set(clamp(sy.value, 0, SH));
       }
       // the refraction map is built for the lens's exact size
-      const map = buildGlassMap({ width: L, height: L, radius: L * 0.32, bezel: Math.max(12, L * 0.1), depth: L * 0.16, zoom: 1.06 }, L * 0.06);
-      const ok = applyGlassMap(document.getElementById("glass-lens") as SVGFilterElement | null, map, 0.05);
+      // a wide, shallow bezel: text bends as it reaches the rim, it is never torn
+      const map = buildGlassMap({ width: L, height: L, radius: L * 0.32, bezel: Math.max(14, L * 0.14), depth: L * 0.1, zoom: 1.05 }, L * 0.038);
+      const ok = applyGlassMap(document.getElementById("glass-lens") as SVGFilterElement | null, map, 0.035);
       fxEl.dataset.fx = ok ? "on" : "off";
     };
 
-    const bounds = () => ({ x0: L * 0.22, x1: SW - L * 0.22, y0: L * 0.2, y1: SH - L * 0.2 });
+    // The glass never leaves the app at the top or the sides (there is nothing of the app for it to
+    // show out there). At the bottom it may dip behind the tray, which sits in front of it like a
+    // ledge, so it can still reach the app's last row.
+    const bounds = () => ({ x0: L * 0.5, x1: SW - L * 0.5, y0: L * 0.5, y1: SH - L * 0.5 + 38 });
+    /** where the glass rests when it is not being steered: fully on the stage, clear of the tray */
+    const park = () => {
+      sx.to(clamp(sx.value, L * 0.5, SW - L * 0.5), SPRING.ui);
+      sy.to(clamp(sy.value, L * 0.5, SH - L * 0.56), SPRING.ui);
+    };
 
     const paint = () => {
       const x = sx.value;
@@ -165,12 +176,11 @@ export function Hero() {
       const reduced = mqReduce.matches;
       t += dt;
       if (mode === "auto" && !reduced && hot.length) {
-        // a slow figure over the search field and the first rows: it shows the first weak point by itself
-        const a = hot.find((h) => h.id === "sqli") ?? hot[0];
-        const cx = a.x - SW * 0.06;
-        const cy = a.y + SH * 0.16;
-        sx.to(cx + Math.cos(t * 0.52) * SW * 0.13, SPRING.soft);
-        sy.to(cy + Math.sin(t * 0.74) * SH * 0.17, SPRING.soft);
+        // a slow figure over the middle of the table: it shows what the glass does (emails beside
+        // their password hashes) without touching a weak point, so the game is left to the visitor
+        const b = bounds();
+        sx.to(clamp(SW * 0.47 + Math.cos(t * 0.52) * SW * 0.12, b.x0, b.x1), SPRING.soft);
+        sy.to(clamp(SH * 0.6 + Math.sin(t * 0.74) * SH * 0.12, b.y0, SH - L * 0.56), SPRING.soft);
       }
       const moving = [sx.step(dt), sy.step(dt)].some(Boolean);
 
@@ -181,7 +191,7 @@ export function Hero() {
         const d = Math.hypot(h.x - sx.value, h.y - sy.value);
         if (d < best) {
           best = d;
-          near = d < L * 0.36 ? h.id : null;
+          near = d < L * 0.42 ? h.id : null;
         }
       }
       focus.to(near ? 1 : 0, SPRING.ui);
@@ -244,7 +254,9 @@ export function Hero() {
       if (e.pointerType !== "mouse" && e.pointerType !== "pen") return;
       if (mode === "follow") {
         mode = "rest";
-        idle(2600);
+        park(); // the pointer has gone to the tray or the page: the glass gets out of the way
+        clock.wake();
+        idle(3200);
       }
     };
 
@@ -276,7 +288,7 @@ export function Hero() {
       // past the edge it follows less and less
       const rx = p.x - grabX;
       const ry = p.y - grabY;
-      const soft = (v: number, lo: number, hi: number) => (v < lo ? lo - (lo - v) * 0.35 : v > hi ? hi + (v - hi) * 0.35 : v);
+      const soft = (v: number, lo: number, hi: number) => (v < lo ? lo - (lo - v) * 0.22 : v > hi ? hi + (v - hi) * 0.22 : v);
       sx.set(soft(rx, b.x0, b.x1));
       sy.set(soft(ry, b.y0, b.y1));
       clock.wake();
@@ -303,12 +315,14 @@ export function Hero() {
       takeOver();
       mode = "seek";
       if (mqReduce.matches) {
-        sx.set(h.x);
-        sy.set(h.y);
+        const b = bounds();
+        sx.set(clamp(h.x, b.x0, b.x1));
+        sy.set(clamp(h.y, b.y0, b.y1));
         markFound(id);
       } else {
-        sx.to(h.x, SPRING.ui);
-        sy.to(h.y, SPRING.ui);
+        const b = bounds();
+        sx.to(clamp(h.x, b.x0, b.x1), SPRING.ui);
+        sy.to(clamp(h.y, b.y0, b.y1), SPRING.ui);
       }
       clock.wake();
       idle(12000);
@@ -445,15 +459,16 @@ export function Hero() {
                       onClick={() => (got ? showFinding(f.id) : seek.current(f.id))}
                     >
                       <i aria-hidden />
-                      <span className="tray-long">{got ? f.title : `Weak point ${i + 1}`}</span>
+                      <span className="tray-long">{got ? NAME[f.id] : `Weak point ${i + 1}`}</span>
                       <span className="tray-short" aria-hidden>
-                        {got ? SHORT[f.id] : i + 1}
+                        {got ? SHORT[f.id] : `Point ${i + 1}`}
                       </span>
                     </button>
                   </li>
                 );
               })}
             </ul>
+            {/* always in its place, so finding the last one moves nothing: a hint until then, the way on after */}
             <a
               className="tray-go"
               href="#findings"
@@ -461,8 +476,13 @@ export function Hero() {
               tabIndex={all ? undefined : -1}
               aria-hidden={all ? undefined : true}
             >
-              Replay the proof
-              <ArrowDown size={14} strokeWidth={2.6} />
+              <span className="tray-go-off" aria-hidden>
+                Find all three
+              </span>
+              <span className="tray-go-on">
+                Replay the proof
+                <ArrowDown size={14} strokeWidth={2.6} />
+              </span>
             </a>
           </div>
         </div>

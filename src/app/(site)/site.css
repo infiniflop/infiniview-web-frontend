@@ -421,7 +421,7 @@ html.lenis body {
     isolation: isolate;
     /* dense enough that text on it passes AA with no blur at all (a display headline scrolling
        under the bar): blur is an enhancement here, never what legibility depends on */
-    background: rgba(12, 14, 20, 0.8);
+    background: rgba(12, 14, 20, 0.86);
     -webkit-backdrop-filter: blur(22px) saturate(180%) brightness(0.55);
     backdrop-filter: blur(22px) saturate(180%) brightness(0.55);
     box-shadow:
@@ -1017,7 +1017,7 @@ html.lenis body {
     margin-top: clamp(40px, 6vw, 88px);
     padding-inline: max(calc(var(--gutter) - 0.04em), env(safe-area-inset-left));
     font-size: 22.7vw;
-    line-height: 0.74;
+    line-height: 0.86;
     font-weight: 700;
     font-stretch: 100%;
     letter-spacing: -0.065em;
@@ -1028,7 +1028,8 @@ html.lenis body {
     -webkit-background-clip: text;
     background-clip: text;
     user-select: none;
-    transform: translateY(0.09em);
+    /* the whole word, down to the baseline: nothing is sliced by the strip under it */
+    padding-bottom: 0.04em;
   }
   @media (min-width: 1440px) {
     .foot-word { font-size: min(22.7vw, 334px); }
@@ -1357,7 +1358,7 @@ html.lenis body {
   .pipe-body { position: static !important; height: auto !important; border: 0 !important; }
   .pipe-steps { padding-bottom: 0 !important; }
   .cta-field { clip-path: none !important; min-height: 0 !important; }
-  .hero, .statement-pin, .pipe-pin, .cta, .status { min-height: 0 !important; }
+  .hero, .pipe-pin, .cta, .status { min-height: 0 !important; }
   /* the findings console is a stack of states shown one at a time: print the one on screen */
   .detail-head:not([data-on='true']),
   .panel:not([data-on='true']) { display: none !important; }
@@ -1377,7 +1378,9 @@ html.lenis body {
 /* ── Route transitions ───────────────────────────────────────────────────
    The page leaves (ease-in: it gathers speed and is gone) and the next one arrives (ease-out: fast,
    then it brakes). Going on, the old page falls back behind the glass and the new one comes forward;
-   going back is the reverse. The wall and the nav are not part of it, so the light never cuts. */
+   going back is the reverse. The new page starts as the old one finishes (out, then in), so two
+   headlines are never on screen together. The wall and the nav are not part of it, so the light
+   never cuts. */
 ::view-transition { pointer-events: none; }
 ::view-transition-group(root) { animation: none; }
 ::view-transition-old(root) { display: none; }
@@ -1392,10 +1395,10 @@ html.lenis body {
 
 ::view-transition-old(.route-out-forward) { animation: 260ms cubic-bezier(0.55, 0, 0.9, 0.3) both route-leave-forward; }
 ::view-transition-old(.route-out-back) { animation: 260ms cubic-bezier(0.55, 0, 0.9, 0.3) both route-leave-back; }
-::view-transition-new(.route-in-forward) { animation: 700ms cubic-bezier(0.23, 1, 0.32, 1) 160ms both route-arrive-forward; }
-::view-transition-new(.route-in-back) { animation: 700ms cubic-bezier(0.23, 1, 0.32, 1) 160ms both route-arrive-back; }
+::view-transition-new(.route-in-forward) { animation: 700ms cubic-bezier(0.23, 1, 0.32, 1) 250ms both route-arrive-forward; }
+::view-transition-new(.route-in-back) { animation: 700ms cubic-bezier(0.23, 1, 0.32, 1) 250ms both route-arrive-back; }
 ::view-transition-old(.route-fade-out) { animation: 200ms cubic-bezier(0.55, 0, 0.9, 0.3) both route-fade-away; }
-::view-transition-new(.route-fade-in) { animation: 480ms cubic-bezier(0.23, 1, 0.32, 1) 100ms both route-fade; }
+::view-transition-new(.route-fade-in) { animation: 480ms cubic-bezier(0.23, 1, 0.32, 1) 200ms both route-fade; }
 
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-old(*), ::view-transition-new(*), ::view-transition-group(*) {
