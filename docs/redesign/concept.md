@@ -62,10 +62,11 @@ same way.
 | --- | --- | --- |
 | Hero | A lens (the mark's outer frame) that shows the sample app as an attacker sees it | Spring-followed drag, velocity squash, findings lock into a tray |
 | Threat band | A slab the attack classes are pulled through; inside it they are caught and lit | Scroll-velocity marquee, refraction in the slab |
-| Statement | None. A quiet beat of type | Words are read by the scroll |
+| Statement | None. A quiet beat of type, with four numbers beside it | Words are read by the scroll (not pinned) |
 | Pipeline | A sealed chamber around the app: the sandbox | Pinned, scrubbed by scroll or by dragging the timeline |
 | Findings | The selection pill that slides between findings and evidence tabs | Liquid pill with spring, replayable HTTP exchange |
-| Coverage | None. Four lanes of real scanner and attack names | Numerals rise out of masks, lane lines draw |
+| Coverage | The selection pill on the stack picker | Numerals rise out of masks, lane lines draw; a picked stack lights its scanners |
+| After | None. A terminal | A sample run is logged line by line |
 | Finale | The mark opens like an aperture and floods the screen with lime | Scrubbed aperture |
 | Navigation | A floating glass capsule over the page | Refracts what scrolls under it (Chromium), designed fallback elsewhere |
 
