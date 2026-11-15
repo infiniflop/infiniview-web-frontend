@@ -121,43 +121,38 @@ export default function PricingPage() {
     <RouteTransition>
       <main id="main">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqPage(FAQS)) }} />
+        {/* the first screen (headline and plans) is in the server's HTML and enters with CSS at first paint */}
         <section className="price-hero" aria-labelledby="price-title">
           <div className="wrap">
-            <h1 id="price-title" className="t-display price-title" data-split>
+            <h1 id="price-title" className="t-display">
               Security that scales with you.
             </h1>
-            <p className="t-lede price-lede" data-reveal>
+            <p className="t-lede">
               Join the waitlist to lock in launch pricing. Plans for indie hackers, startups, and enterprise.
             </p>
           </div>
         </section>
 
-        <section className="wrap plans-wrap" aria-label="Plans">
-          <div className="plans">
+        <section className="wrap plans" aria-label="Plans">
+          <div className="plans-grid">
             {PLANS.map((p) => (
-              <article
-                key={p.id}
-                className={`plan glass${p.highlighted ? " glass--lime plan--hi" : ""}`}
-                data-reveal
-              >
-                <header className="plan-head">
-                  <h2 className="t-h3 plan-name">{p.name}</h2>
+              <article key={p.id} className={`plan pane${p.highlighted ? " plan--hi" : ""}`}>
+                <header className="plan-top">
+                  <h2 className="plan-name">{p.name}</h2>
                   {p.badge && <span className={`chip${p.highlighted ? " chip--ok" : ""}`}>{p.badge}</span>}
                 </header>
-                <p className="t-body plan-desc">{p.desc}</p>
-                <div className="plan-price">
-                  <span className="plan-amount">{p.priceLabel}</span>
-                  <span className="t-small">{p.scans}</span>
-                </div>
+                <p className="plan-desc">{p.desc}</p>
+                <p className="plan-price">{p.priceLabel}</p>
+                <p className="plan-scans t-label">{p.scans}</p>
                 <a
                   href={p.ctaHref}
                   aria-label={`${p.cta}: ${p.name} plan`}
-                  className={`btn ${p.highlighted ? "btn--lime" : "btn--glass"} plan-cta`}
+                  className={`btn ${p.highlighted ? "btn--lime" : "btn--line"}`}
                 >
                   {p.cta}
                   <ArrowRight className="arrow" size={17} strokeWidth={2.6} />
                 </a>
-                <ul className="plan-list">
+                <ul className="plan-feats">
                   {p.features.map((f) => (
                     <li key={f}>
                       <Check size={16} strokeWidth={3} aria-hidden />
@@ -169,10 +164,9 @@ export default function PricingPage() {
             ))}
           </div>
 
-          <ul className="plan-notes glass glass--thin" data-reveal style={{ ["--r" as string]: "999px" }}>
+          <ul className="plan-notes">
             {PLAN_NOTES.map((n) => (
               <li key={n.label}>
-                <i aria-hidden />
                 <span>
                   <b>{n.label}</b>: {n.value}
                 </span>
@@ -184,14 +178,16 @@ export default function PricingPage() {
         <Faq items={FAQS} id="pricing-faq" title="Questions? Answers." />
 
         <section className="wrap price-cta" aria-labelledby="price-cta-title">
-          <div className="glass glass--deep price-cta-card" data-reveal>
+          <div className="pane price-cta-pane" data-reveal>
             <h2 id="price-cta-title" className="t-h2">
               Ready to ship with confidence?
             </h2>
-            <WaitlistForm id="waitlist" />
-            <p className="t-small">
-              Or <Link className="link" href="/preview" prefetch={false}>try the live demo</Link>.
-            </p>
+            <div className="price-cta-side">
+              <WaitlistForm id="waitlist" />
+              <p className="t-small price-cta-alt">
+                Or <Link className="link" href="/preview" prefetch={false}>try the live demo</Link>.
+              </p>
+            </div>
           </div>
         </section>
       </main>

@@ -1,29 +1,32 @@
 "use client";
 
 import { useRef } from "react";
-import { GitPullRequest, Lock, ShieldCheck, Check, FileText, Image as ImageIcon, Terminal, Waypoints, Wrench } from "lucide-react";
+import { Check, GitPullRequest, Lock, X } from "lucide-react";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/site/gsap";
 import { setMood } from "@/lib/site/scene";
 import { PIPELINE_STEPS } from "@/lib/site/content";
+import { SampleApp } from "@/components/site/sample-app";
+import { scrollToTarget } from "@/lib/site/scroll";
+import { VelocityTracker, clamp, project } from "@/lib/site/motion";
 
-/* Probe routes: [lane, target on the app, kind]. Lanes are 0..3 from the top. */
-const PROBES: { lane: number; tx: number; ty: number; kind: "review" | "static" | "runtime" | "interaction"; hit?: string }[] = [
-  { lane: 0, tx: -170, ty: -70, kind: "review" },
-  { lane: 0, tx: 40, ty: -50, kind: "review" },
-  { lane: 0, tx: 150, ty: 60, kind: "review" },
-  { lane: 1, tx: -190, ty: 10, kind: "static" },
-  { lane: 1, tx: 70, ty: 20, kind: "static" },
-  { lane: 1, tx: 170, ty: -20, kind: "static" },
-  { lane: 1, tx: -60, ty: 70, kind: "static" },
-  { lane: 2, tx: 120, ty: -75, kind: "runtime", hit: "search" },
-  { lane: 2, tx: 140, ty: -62, kind: "runtime", hit: "search" },
-  { lane: 2, tx: -150, ty: 30, kind: "runtime", hit: "login" },
-  { lane: 2, tx: -120, ty: 44, kind: "runtime", hit: "login" },
-  { lane: 2, tx: 100, ty: 52, kind: "runtime", hit: "api" },
-  { lane: 3, tx: -165, ty: 78, kind: "interaction", hit: "login" },
-  { lane: 3, tx: 60, ty: 74, kind: "interaction", hit: "api" },
-  { lane: 3, tx: -40, ty: -10, kind: "interaction" },
-  { lane: 3, tx: 175, ty: 12, kind: "interaction" },
+/* Where each probe goes: [lane 0..3, the weak point it lands on (or a spot on the app, as fractions)] */
+const PROBES: { lane: number; hot?: "sqli" | "refund" | "rate"; at?: [number, number] }[] = [
+  { lane: 0, at: [0.34, 0.3] },
+  { lane: 0, at: [0.62, 0.58] },
+  { lane: 0, at: [0.82, 0.76] },
+  { lane: 1, at: [0.3, 0.52] },
+  { lane: 1, at: [0.5, 0.4] },
+  { lane: 1, at: [0.72, 0.68] },
+  { lane: 1, at: [0.9, 0.44] },
+  { lane: 2, hot: "sqli" },
+  { lane: 2, hot: "sqli" },
+  { lane: 2, hot: "refund" },
+  { lane: 2, hot: "refund" },
+  { lane: 2, hot: "rate" },
+  { lane: 3, hot: "refund" },
+  { lane: 3, hot: "rate" },
+  { lane: 3, at: [0.44, 0.82] },
+  { lane: 3, at: [0.66, 0.34] },
 ];
 
 const LANES = [
@@ -33,13 +36,16 @@ const LANES = [
   { k: "interaction", label: "Interaction tests", n: "×7" },
 ] as const;
 
-const FILES = [
-  { icon: ImageIcon, label: "Screenshot" },
-  { icon: Waypoints, label: "HTTP trace" },
-  { icon: Terminal, label: "Console log" },
-  { icon: FileText, label: "Code path" },
-  { icon: Wrench, label: "Fix suggestion" },
-];
+const FILES = ["Screenshot", "HTTP trace", "Console log", "Code path", "Fix suggestion"];
+
+const FINDS = [
+  { id: "sqli", hot: "sqli", sev: "crit", label: "SQL injection" },
+  { id: "refund", hot: "refund", sev: "crit", label: "Replayable refund" },
+  { id: "rate", hot: "rate", sev: "high", label: "Missing rate limit" },
+  { id: "dup", hot: "rate", sev: "high", label: "Missing rate limit" },
+] as const;
+
+const N = PIPELINE_STEPS.length;
 
 // The pinned stage plus the active step's copy cannot fit a short screen. Only a landscape phone is
 // that short in practice; a portrait phone whose browser bars are expanded can read ~550px tall, and
@@ -49,243 +55,330 @@ const TINY = 480; // under this even a portrait screen is too short for the pin
 const STATIC_Q = `(orientation: landscape) and (max-height: ${SHORT - 1}px), (max-height: ${TINY - 1}px)`;
 const PIN_OK = `(min-height: ${TINY}px) and ((orientation: portrait) or (min-height: ${SHORT}px))`;
 
+/**
+ * "From pull request to proof": one run, as a pinned stage scrubbed by the scroll, or by dragging
+ * its timeline. The glass's job in this chapter is containment: it closes around the sample app
+ * and becomes the sandbox. Five beats, each with an exact rest pose, playable in both directions.
+ */
 export function Pipeline() {
   const root = useRef<HTMLElement>(null);
+  // the pinned ScrollTrigger, for the step buttons and the timeline handle
+  const pin = useRef<ScrollTrigger | null>(null);
+
+  const progressToScroll = (p: number) => {
+    const st = pin.current;
+    return st ? st.start + clamp(p, 0, 1) * (st.end - st.start) : null;
+  };
+  /** go to a beat's rest pose (just before the next beat begins, so this step is the active one) */
+  const jump = (i: number, smooth = true) => {
+    const y = progressToScroll((i + 0.94) / N);
+    if (y === null) return;
+    scrollToTarget(y, { duration: 1.1, immediate: !smooth });
+  };
 
   useGSAP(
     () => {
       const mm = gsap.matchMedia();
-      const q = <T extends Element = HTMLElement>(sel: string) =>
-        root.current!.querySelector<T>(sel)!;
-      const qa = <T extends Element = HTMLElement>(sel: string) =>
-        gsap.utils.toArray<T>(sel, root.current!);
+      const host = root.current!;
+      const q = <T extends Element = HTMLElement>(sel: string) => host.querySelector<T>(sel)!;
+      const qa = <T extends Element = HTMLElement>(sel: string) => gsap.utils.toArray<T>(sel, host);
 
-      const stage = q(".stage");
-      const fit = q(".stage-fit");
-      const tilt = q(".stage-tilt");
-      const world = q(".stage-world");
+      const stage = q(".pstage");
+      const fit = q(".pstage-fit");
       const list = q(".pipe-steps");
       const items = qa("[data-step]");
+      const handle = q(".pipe-handle");
+      const track = q(".pipe-track");
+      const fill = q(".pipe-fill");
 
-      /* ── always: scale the 720×560 design space to its box ─────────── */
+      /* ── always: scale the design space to its box ─────────────────── */
+      let k = 1;
       const fitStage = () => {
-        const w = stage.clientWidth;
-        const h = stage.clientHeight;
-        const small = window.matchMedia("(max-width: 1023px)").matches;
-        // phones get a tighter design box so the scene fills the screen
-        const k = small ? Math.min(w / 600, h / 560) : Math.min(w / 720, h / 560);
-        gsap.set(fit, { scale: k });
+        const tall = window.matchMedia("(max-width: 1023px)").matches;
+        stage.dataset.layout = tall ? "tall" : "wide";
+        const dw = tall ? 600 : 960;
+        const dh = tall ? 600 : 560;
+        k = Math.min(stage.clientWidth / dw, stage.clientHeight / dh);
+        // centred by percentage, not by the grid: a box wider than its track would overflow one way only
+        gsap.set(fit, { scale: k, width: dw, height: dh, xPercent: -50, yPercent: -50 });
       };
       fitStage();
       const ro = new ResizeObserver(fitStage);
       ro.observe(stage);
 
+      /** a point in the stage's design space */
+      const centre = (el: Element) => {
+        const f = fit.getBoundingClientRect();
+        const r = el.getBoundingClientRect();
+        return { x: (r.left - f.left + r.width / 2) / k, y: (r.top - f.top + r.height / 2) / k, w: r.width / k, h: r.height / k };
+      };
+
+      const build = () => {
+        const chamber = q(".p-chamber");
+        const shell = q(".p-shell");
+        const prod = q(".p-prod");
+        const pr = q(".p-pr");
+        const lanes = q(".p-lanes");
+        const bundle = q(".p-bundle");
+        const xray = q(".p-xray");
+        const probeEls = qa(".p-probe");
+        const ripples = qa(".p-ripple");
+        const finds = qa(".p-find");
+
+        gsap.set([lanes, bundle, chamber, q(".p-torn")], { autoAlpha: 0 });
+        gsap.set(qa(".p-find, .p-merge, .p-fix"), { autoAlpha: 0 });
+        gsap.set(probeEls, { autoAlpha: 0, xPercent: -50, yPercent: -50 });
+        gsap.set(ripples, { autoAlpha: 0, xPercent: -50, yPercent: -50 });
+        gsap.set(xray, { clipPath: "inset(0 100% 0 0)" });
+        gsap.set(shell, { clipPath: "inset(0 0 100% 0)" });
+        gsap.set(qa(".p-tick, .p-shell-chip"), { autoAlpha: 0, x: -8 });
+        gsap.set(qa(".p-lane"), { autoAlpha: 0, x: -12 });
+        gsap.set(qa(".p-file"), { autoAlpha: 0, x: -8 });
+        gsap.set(qa(".p-check[data-s]"), { autoAlpha: 0 });
+
+        // measured once, with everything in place: the design space never reflows
+        gsap.set([chamber, lanes], { autoAlpha: 1 });
+        const hot: Record<string, { x: number; y: number }> = {};
+        chamber.querySelectorAll<HTMLElement>(".p-live [data-hot]").forEach((h) => (hot[h.dataset.hot!] = centre(h)));
+        const box = centre(chamber);
+        const laneEnds = qa(".p-lane").map((l) => {
+          const c = centre(l);
+          return { x: c.x + c.w / 2, y: c.y };
+        });
+        const bundleAt = centre(bundle);
+        gsap.set([chamber, lanes], { autoAlpha: 0 });
+
+        const tl = gsap.timeline({ paused: true, defaults: { ease: "power3.out" } });
+
+        /* ── 1 · trigger: a pull request opens ─────────────────────────── */
+        // (the pull request is already on the stage when the chapter arrives: an empty stage says nothing)
+        tl.fromTo(pr, { y: -18, scale: 0.97 }, { y: 0, scale: 1, duration: 0.45, ease: "expo.out" }, 0.02)
+          .fromTo(qa(".p-diff i"), { scaleX: 0 }, { scaleX: 1, transformOrigin: "0 50%", stagger: 0.07, duration: 0.3 }, 0.12)
+          .fromTo(q(".p-check[data-s='queued']"), { autoAlpha: 0, x: -6 }, { autoAlpha: 1, x: 0, duration: 0.25 }, 0.5)
+          .fromTo(q(".p-wire"), { scaleX: 0 }, { scaleX: 1, transformOrigin: "0 50%", duration: 0.35, ease: "power2.inOut" }, 0.6)
+          .fromTo(prod, { autoAlpha: 0.5 }, { autoAlpha: 0.9, duration: 0.4 }, 0.55);
+
+        /* ── 2 · sandbox: a copy of the app is sealed in glass ─────────── */
+        tl.fromTo(chamber, { autoAlpha: 0, x: 30, y: -30, scale: 0.97 }, { autoAlpha: 1, x: 0, y: 0, scale: 1, duration: 0.6, ease: "expo.out" }, 1)
+          .to(prod, { autoAlpha: 0.34, duration: 0.5 }, 1)
+          .to(shell, { clipPath: "inset(0 0 0% 0)", duration: 0.55, ease: "power2.inOut" }, 1.25)
+          .to(q(".p-shell-chip"), { autoAlpha: 1, x: 0, duration: 0.3 }, 1.55)
+          .to(qa(".p-tick"), { autoAlpha: 1, x: 0, stagger: 0.14, duration: 0.3 }, 1.35)
+          .to(q(".p-check[data-s='queued']"), { autoAlpha: 0, duration: 0.15 }, 1.5)
+          .to(q(".p-check[data-s='running']"), { autoAlpha: 1, duration: 0.2 }, 1.55);
+
+        /* ── 3 · agents: four lanes fire into the app; it is seen as an attacker sees it ── */
+        tl.to(lanes, { autoAlpha: 1, duration: 0.3 }, 2)
+          .to(qa(".p-lane"), { autoAlpha: 1, x: 0, stagger: 0.07, duration: 0.35 }, 2.03)
+          .to(xray, { clipPath: "inset(0 0% 0 0)", duration: 0.75, ease: "power1.inOut" }, 2.2);
+        PROBES.forEach((p, i) => {
+          const el = probeEls[i];
+          const from = laneEnds[p.lane];
+          const to = p.hot ? hot[p.hot] : { x: box.x - box.w / 2 + box.w * p.at![0], y: box.y - box.h / 2 + box.h * p.at![1] };
+          if (!el || !from || !to) return;
+          const at = 2.22 + i * 0.038;
+          tl.set(el, { x: from.x, y: from.y }, at - 0.01)
+            .to(el, { autoAlpha: 1, duration: 0.05 }, at)
+            .to(el, { x: to.x, y: to.y, duration: 0.42, ease: "power2.in" }, at)
+            .to(el, { autoAlpha: 0, duration: 0.06 }, at + 0.42);
+          const rip = ripples[i];
+          if (rip) {
+            tl.set(rip, { x: to.x, y: to.y }, at)
+              .fromTo(rip, { autoAlpha: 0.9, scale: 0.3 }, { autoAlpha: 0, scale: 1.6, duration: 0.45, ease: "power2.out" }, at + 0.4);
+          }
+        });
+
+        /* ── 4 · enrich: findings land where they were found; the duplicate merges ── */
+        tl.to(qa(".p-lane"), { autoAlpha: 0.35, duration: 0.3 }, 3.02);
+        finds.forEach((f, i) => {
+          const at = hot[f.dataset.hot!];
+          if (!at) return;
+          const dup = f.dataset.find === "dup";
+          gsap.set(f, { x: at.x + (dup ? 96 : 0), y: at.y + (dup ? 46 : f.dataset.find === "sqli" ? 34 : -34), xPercent: -50, yPercent: -50 });
+          tl.fromTo(f, { autoAlpha: 0, scale: 0.8 }, { autoAlpha: 1, scale: 1, duration: 0.4, ease: "back.out(1.8)" }, 3.08 + i * 0.1);
+        });
+        const dupEl = q(".p-find[data-find='dup']");
+        tl.to(dupEl, { x: hot.rate?.x ?? 0, y: (hot.rate?.y ?? 0) - 34, autoAlpha: 0, duration: 0.42, ease: "power3.inOut" }, 3.6)
+          .to(q(".p-merge"), { autoAlpha: 1, duration: 0.2 }, 3.86)
+          .to(qa(".p-fix"), { autoAlpha: 1, stagger: 0.08, duration: 0.25 }, 3.7);
+
+        /* ── 5 · report: proof is bundled and posted; the sandbox is torn down ── */
+        tl.to(lanes, { autoAlpha: 0, duration: 0.25 }, 4.02)
+          .fromTo(bundle, { autoAlpha: 0, y: 16 }, { autoAlpha: 1, y: 0, duration: 0.45, ease: "expo.out" }, 4.12)
+          .to(qa(".p-find:not([data-find='dup'])"), { x: bundleAt.x, y: bundleAt.y, scale: 0.5, autoAlpha: 0, duration: 0.5, stagger: 0.06, ease: "power3.inOut" }, 4.14)
+          .to(qa(".p-file"), { autoAlpha: 1, x: 0, stagger: 0.07, duration: 0.28 }, 4.34)
+          .to(chamber, { autoAlpha: 0, scale: 0.985, duration: 0.4, ease: "power3.in" }, 4.3)
+          .to(q(".p-torn"), { autoAlpha: 1, duration: 0.3 }, 4.62)
+          .to(prod, { autoAlpha: 0.7, duration: 0.4 }, 4.5)
+          .to(q(".p-check[data-s='running']"), { autoAlpha: 0, duration: 0.15 }, 4.58)
+          .to(q(".p-check[data-s='blocked']"), { autoAlpha: 1, duration: 0.25 }, 4.64)
+          .to({}, { duration: 0.12 }, 4.88);
+        return tl;
+      };
+
+      const setStep = (idx: number) => {
+        items.forEach((li, i) => li.setAttribute("data-state", i < idx ? "done" : i === idx ? "active" : "todo"));
+        list.setAttribute("data-idx", String(idx));
+        handle.setAttribute("aria-valuenow", String(idx + 1));
+        handle.setAttribute("aria-valuetext", `${PIPELINE_STEPS[idx].tag}: ${PIPELINE_STEPS[idx].title}`);
+      };
+
       // Reduced motion, or a screen too short for the pinned stage plus its copy (a phone in
       // landscape): show the finished state, every step readable, no scroll-scrubbing
       mm.add(`(prefers-reduced-motion: reduce), ${STATIC_Q}`, () => {
-        gsap.set(qa(".pane"), { xPercent: -50, yPercent: -50, autoAlpha: 1 });
-        gsap.set(q(".pane--prod"), { x: 0, y: 40, z: -170, autoAlpha: 0.5 });
-        gsap.set(q(".pane--sandbox"), { autoAlpha: 0 });
-        gsap.set(q(".pane--agents"), { autoAlpha: 0 });
-        gsap.set(q(".pane--findings"), { autoAlpha: 0 });
-        gsap.set(q(".pane--report"), { x: 0, y: 0, z: 140 });
-        gsap.set(q(".pane--pr"), { x: -240, y: -190, z: 210 });
-        gsap.set(q(".pane--comment"), { x: 160, y: 200, z: 210 });
-        gsap.set(world, { rotationX: 14, rotationY: -18 });
-        gsap.set(qa("[data-probe]"), { autoAlpha: 0 });
+        const tl = build();
+        tl.progress(1);
+        host.dataset.static = "true";
         items.forEach((li) => li.setAttribute("data-state", "active"));
-        // leaving this layout (a phone rotated back to portrait, motion switched on) must hand the
-        // steps back in their opening state, or every body stays expanded inside the pinned stage
         return () => {
-          items.forEach((li, i) => li.setAttribute("data-state", i === 0 ? "active" : "todo"));
-          list.setAttribute("data-idx", "0");
+          tl.revert();
+          delete host.dataset.static;
+          setStep(0);
         };
       });
 
       // the breakpoint is a condition, so crossing 1023px (rotating a tablet, resizing a window)
-      // tears this setup down and rebuilds it with the right offsets, pin length and tilt
+      // tears this setup down and rebuilds it with the right layout and pin length
       mm.add(
         {
-          full: `(min-width: 1024px) and ${PIN_OK} and (prefers-reduced-motion: no-preference)`,
-          small: `(max-width: 1023px) and ${PIN_OK} and (prefers-reduced-motion: no-preference)`,
+          wide: `(min-width: 1024px) and ${PIN_OK} and (prefers-reduced-motion: no-preference)`,
+          tall: `(max-width: 1023px) and ${PIN_OK} and (prefers-reduced-motion: no-preference)`,
         },
         (ctx) => {
-        const isSmall = !!ctx.conditions?.small;
-        const P = gsap.utils.toArray<HTMLElement>(".pane", root.current!);
-        gsap.set(P, { xPercent: -50, yPercent: -50, autoAlpha: 0 });
-
-        const prod = q(".pane--prod");
-        const sb = q(".pane--sandbox");
-        const ag = q(".pane--agents");
-        const fd = q(".pane--findings");
-        const rp = q(".pane--report");
-        const pr = q(".pane--pr");
-        const cm = q(".pane--comment");
-
-        const prX = isSmall ? -128 : -240;
-        const cmX = isSmall ? 120 : 150;
-        gsap.set(prod, { x: 0, y: 44, z: -170 });
-        gsap.set(sb, { x: 0, y: 0, z: -170 });
-        gsap.set(ag, { x: 0, y: -4, z: 150 });
-        gsap.set(fd, { x: 0, y: 0, z: 110 });
-        gsap.set(rp, { x: 120, y: 8, z: 100 });
-        gsap.set(pr, { x: prX, y: -190, z: 210 });
-        gsap.set(cm, { x: cmX, y: 206, z: 210 });
-        gsap.set(world, { rotationX: 20, rotationY: -26 });
-        gsap.set(qa(".sb-step"), { autoAlpha: 0, x: -10 });
-        gsap.set(qa(".app > *"), { autoAlpha: 0 });
-        gsap.set(qa(".lane"), { autoAlpha: 0, x: -14 });
-        gsap.set(qa("[data-chip]"), { autoAlpha: 0, scale: 0.7 });
-        gsap.set(qa(".file"), { autoAlpha: 0, y: 12 });
-        gsap.set(qa("[data-probe]"), { autoAlpha: 0 });
-        gsap.set(qa("[data-merge]"), { autoAlpha: 0, scale: 0.7 });
-        gsap.set(qa("[data-fix]"), { autoAlpha: 0, y: 6 });
-        gsap.set(qa(".torn"), { autoAlpha: 0 });
-        gsap.set(qa("[data-probe]"), { xPercent: -50, yPercent: -50 });
-
-        // path lengths for the connector draw-on (no plugin needed)
-        qa<SVGPathElement>(".conn").forEach((p) => {
-          const len = p.getTotalLength();
-          p.style.strokeDasharray = `${len}`;
-          p.style.strokeDashoffset = `${len}`;
-        });
-
-        const tl = gsap.timeline({ paused: true, defaults: { ease: "power3.out" } });
-
-        /* ── 1 · trigger ─────────────────────────────────────────────── */
-        tl.to(prod, { autoAlpha: 0.55, duration: 0.4 }, 0)
-          .fromTo(pr, { autoAlpha: 0, y: -330, z: 380, rotationZ: -10 }, { autoAlpha: 1, y: -190, z: 210, rotationZ: 0, duration: 0.75, ease: "back.out(1.5)" }, 0.08)
-          .fromTo(qa(".pr-line"), { scaleX: 0 }, { scaleX: 1, transformOrigin: "0 50%", stagger: 0.05, duration: 0.3 }, 0.5)
-          .fromTo(qa(".pr-ring"), { scale: 0.5, autoAlpha: 0.8 }, { scale: 2.2, autoAlpha: 0, duration: 0.7, ease: "power2.out" }, 0.55);
-
-        /* ── 2 · sandbox ─────────────────────────────────────────────── */
-        tl.to(prod, { autoAlpha: 0.32, duration: 0.5 }, 1)
-          .to(sb, { autoAlpha: 1, z: -40, duration: 0.9 }, 1)
-          .fromTo(qa(".sb-edge"), { scale: 0.96, autoAlpha: 0 }, { scale: 1, autoAlpha: 1, duration: 0.7 }, 1.05)
-          .to(qa(".sb-step"), { autoAlpha: 1, x: 0, stagger: 0.17, duration: 0.4 }, 1.3)
-          .fromTo(qa(".sb-bar i"), { scaleX: 0 }, { scaleX: 1, transformOrigin: "0 50%", duration: 0.7, ease: "power1.inOut" }, 1.3)
-          .to(qa(".app > *"), { autoAlpha: 1, stagger: 0.07, duration: 0.45 }, 1.55)
-          .to(pr, { z: 170, duration: 0.5 }, 1.1);
-
-        /* ── 3 · agents ──────────────────────────────────────────────── */
-        tl.to(ag, { autoAlpha: 1, z: 80, duration: 0.7 }, 2)
-          .to(qa(".lane"), { autoAlpha: 1, x: 0, stagger: 0.09, duration: 0.45 }, 2.1)
-          .to(qa(".sb-step, .sb-bar"), { autoAlpha: 0.0, duration: 0.3 }, 2.15);
-
-        const probeEls = qa("[data-probe]");
-        PROBES.forEach((p, i) => {
-          const el = probeEls[i];
-          const laneY = -70 + p.lane * 44;
-          const startX = 250 - (i % 3) * 14;
-          const at = 2.35 + i * 0.045;
-          tl.set(el, { x: startX, y: laneY, z: 80 }, at - 0.01)
-            .to(el, { autoAlpha: 1, duration: 0.06 }, at)
-            .to(el, { x: p.tx, y: p.ty, z: -34, duration: 0.5, ease: "power2.in" }, at)
-            .to(el, { autoAlpha: 0, duration: 0.08 }, at + 0.5);
-          const rip = qa(".ripple")[i];
-          if (rip) {
-            tl.fromTo(rip, { autoAlpha: 0.9, scale: 0.2 }, { autoAlpha: 0, scale: 1.5, duration: 0.55, ease: "power2.out" }, at + 0.48);
-          }
-        });
-        // app elements take hits
-        tl.to(qa('[data-hit="search"]'), { "--hit": 1, duration: 0.3 }, 2.95)
-          .to(qa('[data-hit="login"]'), { "--hit": 1, duration: 0.3 }, 3.05)
-          .to(qa('[data-hit="api"]'), { "--hit": 1, duration: 0.3 }, 3.15);
-
-        /* ── 4 · enrich ──────────────────────────────────────────────── */
-        tl.to(ag, { autoAlpha: 0, z: 30, duration: 0.45 }, 3.15)
-          .to(fd, { autoAlpha: 1, duration: 0.3 }, 3.2)
-          .to(qa("[data-chip]"), { autoAlpha: 1, scale: 1, stagger: 0.11, duration: 0.5, ease: "back.out(1.6)" }, 3.3)
-          .to(qa(".conn"), { strokeDashoffset: 0, stagger: 0.14, duration: 0.7, ease: "power2.inOut" }, 3.55)
-          .to(qa("[data-dup]"), { x: (i: number) => (i === 0 ? 55 : -55), y: (i: number) => (i === 0 ? 16 : -16), duration: 0.6, ease: "power3.inOut" }, 3.75)
-          .to(qa("[data-dup='b']"), { autoAlpha: 0, duration: 0.2 }, 4.2)
-          .to(qa("[data-merge]"), { autoAlpha: 1, scale: 1, duration: 0.35 }, 4.1)
-          .to(qa("[data-fix]"), { autoAlpha: 1, y: 0, stagger: 0.12, duration: 0.4 }, 3.95);
-
-        /* ── 5 · report ──────────────────────────────────────────────── */
-        tl.to(fd, { autoAlpha: 0, z: 40, duration: 0.5 }, 4.25)
-          .to(rp, { autoAlpha: 1, z: 150, x: isSmall ? 0 : 40, duration: 0.7 }, 4.3)
-          .to(qa(".file"), { autoAlpha: 1, y: 0, stagger: 0.08, duration: 0.4 }, 4.5)
-          .to(sb, { scaleY: 0.02, autoAlpha: 0, duration: 0.55, ease: "power3.in" }, 4.35)
-          .to(ag, { autoAlpha: 0, duration: 0.3 }, 4.3)
-          .to(prod, { autoAlpha: 0.16, duration: 0.5 }, 4.3) // the bundle sits in front of it: its label must not read as a collision
-          .fromTo(cm, { autoAlpha: 0, y: 260, z: 300 }, { autoAlpha: 1, y: 206, z: 210, duration: 0.7, ease: "back.out(1.3)" }, 4.55)
-          .to(pr, { z: 210, duration: 0.4 }, 4.5)
-          .fromTo(qa(".torn"), { autoAlpha: 0, y: 8 }, { autoAlpha: 1, y: 0, duration: 0.4 }, 4.5)
-          .to({}, { duration: 0.2 }, 4.9);
-
-        // slow orbit while the story runs
-        tl.to(world, { rotationY: -10, rotationX: 10, duration: 5, ease: "none" }, 0);
-
-        const total = tl.duration();
-        const rect = () => window.innerHeight;
-        let current = -1;
-        const moods = [
-          { alert: 0, energy: 0.6, portal: 0.45 },
-          { alert: 0, energy: 0.55, portal: 0.4 },
-          { alert: 0.85, energy: 0.8, portal: 0.35 },
-          { alert: 0.35, energy: 0.6, portal: 0.4 },
-          { alert: 0, energy: 0.65, portal: 0.6 },
-        ];
-
-        const st = ScrollTrigger.create({
-          trigger: q(".pipe-pin"),
-          start: "top top",
-          end: () => `+=${rect() * (isSmall ? 4.2 : 5)}`,
-          pin: true,
-          scrub: 0.7,
-          anticipatePin: 1,
-          invalidateOnRefresh: true,
-          // pins refresh first so later triggers (nav spy, CTA ink) measure past the pin spacers
-          refreshPriority: 1,
-          animation: tl,
-          onUpdate: (self) => {
-            const t = self.progress * total;
-            const idx = Math.min(PIPELINE_STEPS.length - 1, Math.floor(t + 0.001));
-            const within = Math.min(1, Math.max(0, t - idx));
-            list.style.setProperty("--prog", String(within));
-            if (idx !== current) {
-              current = idx;
-              items.forEach((li, i) =>
-                li.setAttribute("data-state", i < idx ? "done" : i === idx ? "active" : "todo"),
-              );
-              list.setAttribute("data-idx", String(idx));
-              setMood(moods[idx], 1.2);
-            }
-          },
-        });
-
-        // the chapter opens on a calmer light than the statement ends on, so its heading and lede read
-        // over the corridor; scrolling back up restores the statement's final glow
-        const head = ScrollTrigger.create({
-          trigger: q(".pipe-head"),
-          start: "top 88%",
-          onEnter: () => setMood(moods[0], 1),
-          onLeaveBack: () => setMood({ alert: 0, energy: 1, portal: 0.85 }, 1),
-        });
-
-        // pointer parallax on a wrapper so it composes with the scroll orbit
-        let off: (() => void) | undefined;
-        if (!isSmall && !window.matchMedia("(hover: none)").matches) {
-          const rx = gsap.quickTo(tilt, "rotationX", { duration: 0.9, ease: "power3.out" });
-          const ry = gsap.quickTo(tilt, "rotationY", { duration: 0.9, ease: "power3.out" });
-          const move = (e: PointerEvent) => {
-            const r = stage.getBoundingClientRect();
-            const nx = ((e.clientX - r.left) / r.width) * 2 - 1;
-            const ny = ((e.clientY - r.top) / r.height) * 2 - 1;
-            ry(Math.max(-1, Math.min(1, nx)) * 7);
-            rx(Math.max(-1, Math.min(1, ny)) * -5);
+          const tall = !!ctx.conditions?.tall;
+          fitStage();
+          const tl = build();
+          const total = tl.duration();
+          let current = -1;
+          let dragging = false;
+          let trackW = 1;
+          const moods = [
+            { x: 0.12, y: 0.74, spread: 0.2, energy: 0.5, alert: 0, proof: 0 },
+            { x: 0.8, y: 0.5, spread: 0.26, energy: 0.6, alert: 0, proof: 0 },
+            { x: 0.8, y: 0.5, spread: 0.3, energy: 0.8, alert: 0.92, proof: 0 },
+            { x: 0.76, y: 0.5, spread: 0.26, energy: 0.6, alert: 0.4, proof: 0 },
+            { x: 0.2, y: 0.44, spread: 0.26, energy: 0.66, alert: 0, proof: 0.9 },
+          ];
+          const placeHandle = (p: number) => {
+            handle.style.transform = `translate3d(${(p * trackW).toFixed(2)}px,0,0)`;
+            fill.style.transform = `scaleX(${p.toFixed(4)})`;
           };
-          stage.addEventListener("pointermove", move);
-          off = () => stage.removeEventListener("pointermove", move);
-        }
+          const measureTrack = () => {
+            trackW = Math.max(1, track.clientWidth);
+          };
+          measureTrack();
 
-        return () => {
-          off?.();
-          head.kill();
-          st.kill();
-          tl.kill();
-        };
+          const st = ScrollTrigger.create({
+            trigger: q(".pipe-pin"),
+            start: "top top",
+            end: () => `+=${window.innerHeight * (tall ? 4 : 4.6)}`,
+            pin: true,
+            scrub: 0.6,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+            // pins refresh first so later triggers (nav spy, the finale) measure past the pin spacers
+            refreshPriority: 1,
+            animation: tl,
+            onRefresh: measureTrack,
+            onUpdate: (self) => {
+              const t = self.progress * total;
+              const idx = Math.min(N - 1, Math.floor(t + 0.001));
+              if (!dragging) placeHandle(self.progress);
+              if (idx !== current) {
+                current = idx;
+                setStep(idx);
+                setMood(moods[idx], 1.1);
+              }
+            },
+          });
+          pin.current = st;
+          placeHandle(st.progress);
+
+          // the chapter opens on a calm light; scrolling back up hands the light back to the statement
+          const head = ScrollTrigger.create({
+            trigger: q(".pipe-head"),
+            start: "top 80%",
+            onEnter: () => setMood(moods[0], 1),
+          });
+
+          /* ── the timeline handle: drag it and the run follows ───────────
+             1:1 while the pointer is down (the handle is the pointer, the page scrolls to match);
+             on release the run carries on to where the throw would land and settles on a beat. */
+          const tracker = new VelocityTracker();
+          let pointerId = -1;
+          let grab = 0;
+          const pFromEvent = (e: PointerEvent) => {
+            const r = track.getBoundingClientRect();
+            return clamp((e.clientX - r.left - grab) / Math.max(1, r.width), 0, 1);
+          };
+          const onDown = (e: PointerEvent) => {
+            if (pointerId !== -1 || (e.pointerType === "mouse" && e.button !== 0)) return;
+            pointerId = e.pointerId;
+            handle.setPointerCapture(e.pointerId);
+            const r = track.getBoundingClientRect();
+            const hx = r.left + st.progress * r.width;
+            grab = e.target === handle || handle.contains(e.target as Node) ? e.clientX - hx : 0; // respect where it was grabbed
+            dragging = true;
+            handle.dataset.held = "true";
+            tracker.reset();
+            tracker.add(e.clientX, 0);
+            const p = pFromEvent(e);
+            placeHandle(p);
+            const y = st.start + p * (st.end - st.start);
+            scrollToTarget(y, { immediate: true });
+            e.preventDefault();
+          };
+          const onMove = (e: PointerEvent) => {
+            if (e.pointerId !== pointerId) return;
+            tracker.add(e.clientX, 0);
+            const p = pFromEvent(e);
+            placeHandle(p);
+            scrollToTarget(st.start + p * (st.end - st.start), { immediate: true });
+          };
+          const onUp = (e: PointerEvent) => {
+            if (e.pointerId !== pointerId) return;
+            pointerId = -1;
+            dragging = false;
+            delete handle.dataset.held;
+            const v = tracker.get().x / Math.max(1, track.clientWidth); // progress per second
+            const landed = clamp(pFromEvent(e) + project(v * 1000, 0.99) / 1000, 0, 1);
+            // settle on the nearest rest pose
+            const beat = clamp(Math.round(landed * N), 0, N);
+            const p = beat === 0 ? 0 : (beat - 0.06) / N;
+            scrollToTarget(st.start + p * (st.end - st.start), { duration: 0.9 });
+          };
+          const onKey = (e: KeyboardEvent) => {
+            const cur = Math.max(0, current);
+            let next = -1;
+            if (e.key === "ArrowRight" || e.key === "ArrowDown") next = Math.min(N - 1, cur + 1);
+            else if (e.key === "ArrowLeft" || e.key === "ArrowUp") next = Math.max(0, cur - 1);
+            else if (e.key === "Home") next = 0;
+            else if (e.key === "End") next = N - 1;
+            if (next < 0) return;
+            e.preventDefault();
+            scrollToTarget(st.start + ((next + 0.94) / N) * (st.end - st.start), { duration: 0.9 });
+          };
+          const scrub = q(".pipe-scrub");
+          scrub.addEventListener("pointerdown", onDown);
+          handle.addEventListener("pointermove", onMove);
+          handle.addEventListener("pointerup", onUp);
+          handle.addEventListener("pointercancel", onUp);
+          handle.addEventListener("keydown", onKey);
+
+          return () => {
+            scrub.removeEventListener("pointerdown", onDown);
+            handle.removeEventListener("pointermove", onMove);
+            handle.removeEventListener("pointerup", onUp);
+            handle.removeEventListener("pointercancel", onUp);
+            handle.removeEventListener("keydown", onKey);
+            pin.current = null;
+            head.kill();
+            st.kill();
+            tl.revert();
+            handle.style.transform = "";
+            fill.style.transform = "";
+            setStep(0);
+          };
         },
       );
 
@@ -299,11 +392,11 @@ export function Pipeline() {
 
   return (
     <section ref={root} id="how-it-works" className="pipe" aria-labelledby="pipe-title">
-      <div className="wrap pipe-head">
+      <div className="wrap sec-head pipe-head">
         <h2 id="pipe-title" className="t-h2" data-split>
           From pull request to proof.
         </h2>
-        <p className="t-lede pipe-lede" data-reveal>
+        <p className="t-lede" data-reveal>
           Code review, security testing, and interaction testing: fully automated, fully sandboxed.
         </p>
       </div>
@@ -313,172 +406,155 @@ export function Pipeline() {
           <ol className="pipe-steps" data-idx="0">
             {PIPELINE_STEPS.map((s, i) => (
               <li key={s.id} data-step data-state={i === 0 ? "active" : "todo"} className="pipe-step">
-                <span className="pipe-bar" aria-hidden>
-                  <i />
-                </span>
-                <div>
-                  <h3 className="t-h3 pipe-title">
-                    {/* the phase name is part of the step's name for assistive tech, not a label above it */}
-                    <span className="sr-only">{s.tag}: </span>
-                    {s.title}
-                  </h3>
-                  <div className="pipe-body">
-                    <p className="t-body">{s.body}</p>
-                  </div>
+                <h3 className="pipe-title">
+                  <button type="button" className="pipe-btn" onClick={() => jump(i)}>
+                    <span className="pipe-tag t-label">
+                      <span aria-hidden>{String(i + 1).padStart(2, "0")}</span>
+                      <span>{s.tag}</span>
+                    </span>
+                    <span className="pipe-name">{s.title}</span>
+                  </button>
+                </h3>
+                <div className="pipe-body">
+                  <p className="t-body">{s.body}</p>
                 </div>
               </li>
             ))}
           </ol>
 
-          <div className="stage-col">
-            <div className="stage" aria-hidden>
-              <div className="stage-fit">
-                <div className="stage-tilt">
-                  <div className="stage-world">
-                    {/* production — never touched */}
-                    <div className="pane pane--prod">
-                      <div className="pane-title">
-                        <Lock size={15} /> Production
-                        <span className="pane-sub">untouched</span>
-                      </div>
-                      <div className="prod-grid" />
-                    </div>
-
-                    {/* sandbox */}
-                    <div className="pane pane--sandbox">
-                      <div className="sb-edge" />
-                      <div className="pane-title">
-                        <ShieldCheck size={16} /> Sandbox
-                        <span className="chip chip--ok">
-                          <i /> Isolated from production
-                        </span>
-                      </div>
-                      <div className="sb-steps">
-                        {["Clone", "Build", "Deploy"].map((t) => (
-                          <div key={t} className="sb-step">
-                            <Check size={13} strokeWidth={3} />
-                            {t}
-                          </div>
-                        ))}
-                        <div className="sb-bar">
-                          <i />
-                        </div>
-                      </div>
-                      <div className="app">
-                        <div className="app-top">
-                          <b />
-                          <span />
-                          <span />
-                          <span />
-                        </div>
-                        <div className="app-login" data-hit="login">
-                          <u />
-                          <em />
-                          <em />
-                          <s />
-                        </div>
-                        <div className="app-search" data-hit="search">
-                          <span />
-                        </div>
-                        <div className="app-table" data-hit="api">
-                          {[0, 1, 2, 3].map((r) => (
-                            <div key={r}>
-                              <span />
-                              <span />
-                              <span />
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      {PROBES.map((_, i) => (
-                        <i key={i} className="ripple" style={{ left: `calc(50% + ${PROBES[i].tx}px)`, top: `calc(50% + ${PROBES[i].ty}px)`, ["--c" as string]: `var(--k-${PROBES[i].kind})` }} />
-                      ))}
-                    </div>
-
-                    {/* agent lanes */}
-                    <div className="pane pane--agents">
-                      {LANES.map((l) => (
-                        <div key={l.k} className="lane" style={{ ["--c" as string]: `var(--k-${l.k})` }}>
-                          <span className="lane-label">{l.label}</span>
-                          <span className="lane-n">{l.n}</span>
-                          <span className="lane-track" />
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* probes (3D: they fly from the agent plane into the sandbox) */}
-                    {PROBES.map((p, i) => (
-                      <i key={i} data-probe className="probe" style={{ ["--c" as string]: `var(--k-${p.kind})` }} />
+          <div className="pipe-stage-col">
+            <div className="pstage" aria-hidden>
+              <div className="pstage-fit">
+                {/* production: never touched */}
+                <div className="p-prod">
+                  <span className="p-prod-label t-label">
+                    <Lock size={11} strokeWidth={2.4} /> Production · untouched
+                  </span>
+                  <span className="p-prod-rows">
+                    {Array.from({ length: 9 }, (_, i) => (
+                      <i key={i} />
                     ))}
+                  </span>
+                </div>
 
-                    {/* findings */}
-                    <div className="pane pane--findings">
-                      <svg className="conns" viewBox="-270 -170 540 340" fill="none">
-                        <path className="conn" d="M -140 8 C -90 -40, 20 -60, 110 -52" />
-                        <path className="conn" d="M 110 -52 C 140 -10, 80 40, -10 62" />
-                        <path className="conn conn--red" d="M -140 8 C -150 40, -170 60, -150 90" />
-                      </svg>
-                      <div data-chip className="fchip fchip--crit" style={{ left: "calc(50% + 56px)", top: "calc(50% - 62px)" }}>
-                        <i /> SQL injection
-                        <span data-fix className="fix">fix</span>
-                      </div>
-                      <div data-chip className="fchip fchip--high" style={{ left: "calc(50% - 205px)", top: "calc(50% - 6px)" }}>
-                        <i /> Broken auth
-                        <span data-fix className="fix">fix</span>
-                      </div>
-                      <div data-chip data-dup="a" className="fchip fchip--med" style={{ left: "calc(50% - 40px)", top: "calc(50% + 62px)" }}>
-                        <i /> Missing rate limit
-                      </div>
-                      <div data-chip data-dup="b" className="fchip fchip--med" style={{ left: "calc(50% + 70px)", top: "calc(50% + 94px)" }}>
-                        <i /> Missing rate limit
-                      </div>
-                      <div data-merge className="merge" style={{ left: "calc(50% + 6px)", top: "calc(50% + 48px)" }}>
-                        merged ×2
-                      </div>
-                    </div>
+                {/* the pull request, and the check it will carry */}
+                <div className="p-pr pane">
+                  <div className="p-pr-top t-label">
+                    <GitPullRequest size={13} strokeWidth={2.2} /> Pull request #247
+                  </div>
+                  <p className="p-pr-title">Add refund retries</p>
+                  <div className="p-diff">
+                    <i data-k="add" />
+                    <i data-k="add" />
+                    <i data-k="del" />
+                    <i />
+                  </div>
+                  <div className="p-checks">
+                    <span className="p-check" data-s="queued">
+                      <b className="p-dot" /> Infiniview · queued
+                    </span>
+                    <span className="p-check" data-s="running">
+                      <b className="p-spin" /> Infiniview · running
+                    </span>
+                    <span className="p-check" data-s="blocked">
+                      <b className="p-x">
+                        <X size={10} strokeWidth={3.4} />
+                      </b>
+                      2 critical, 1 high · merge blocked
+                    </span>
+                  </div>
+                  <span className="p-wire" />
+                </div>
 
-                    {/* proof bundle */}
-                    <div className="pane pane--report">
-                      <div className="pane-title">
-                        <FileText size={16} /> Proof bundle
-                      </div>
-                      <ul>
-                        {FILES.map((f) => (
-                          <li key={f.label} className="file">
-                            <f.icon size={16} />
-                            {f.label}
-                            <Check size={14} strokeWidth={3} className="file-ok" />
-                          </li>
-                        ))}
-                      </ul>
-                      <p className="torn">Sandbox torn down</p>
+                {/* the four layers of a scan */}
+                <div className="p-lanes">
+                  {LANES.map((l) => (
+                    <div key={l.k} className="p-lane" style={{ ["--c" as string]: `var(--k-${l.k})` }}>
+                      <span>{l.label}</span>
+                      <b>{l.n}</b>
                     </div>
+                  ))}
+                </div>
 
-                    {/* the PR */}
-                    <div className="pane pane--pr">
-                      <i className="pr-ring" />
-                      <div className="pane-title">
-                        <GitPullRequest size={16} /> Pull request #247
-                      </div>
-                      <div className="pr-diff">
-                        <div className="pr-line pr-line--add" />
-                        <div className="pr-line pr-line--add" />
-                        <div className="pr-line pr-line--del" />
-                        <div className="pr-line" />
-                      </div>
+                {/* the sandbox: the app, sealed in glass */}
+                <div className="p-chamber">
+                  <div className="p-app app-frame pane">
+                    <div className="p-live">
+                      <SampleApp label="Sandbox" />
                     </div>
-                    <div className="pane pane--comment">
-                      <div className="comment-head">
-                        <span className="comment-av" /> infiniview
-                        <span className="pane-sub">commented</span>
-                      </div>
-                      <p>Findings with proof attached.</p>
+                    <div className="p-xray">
+                      <SampleApp mode="xray" />
                     </div>
                   </div>
+                  <div className="p-shell" />
+                  <span className="chip chip--ok p-shell-chip">
+                    <i /> Isolated from production
+                  </span>
+                  <div className="p-ticks t-label">
+                    {["Clone", "Build", "Deploy"].map((t) => (
+                      <span key={t} className="p-tick">
+                        <Check size={11} strokeWidth={3.2} /> {t}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <p className="p-torn t-label">Sandbox torn down</p>
+
+                {PROBES.map((p, i) => (
+                  <i key={i} className="p-probe" style={{ ["--c" as string]: `var(--k-${LANES[p.lane].k})` }} />
+                ))}
+                {PROBES.map((p, i) => (
+                  <i key={i} className="p-ripple" style={{ ["--c" as string]: `var(--k-${LANES[p.lane].k})` }} />
+                ))}
+
+                {/* what was found, pinned to where it was found */}
+                {FINDS.map((f) => (
+                  <span key={f.id} className={`p-find chip chip--${f.sev}`} data-find={f.id} data-hot={f.hot}>
+                    <i /> {f.label}
+                    {f.id !== "dup" && <em className="p-fix">fix</em>}
+                    {f.id === "rate" && <em className="p-merge">merged ×2</em>}
+                  </span>
+                ))}
+
+                {/* the proof bundle */}
+                <div className="p-bundle pane">
+                  <div className="p-pr-top t-label">Proof bundle</div>
+                  <ul>
+                    {FILES.map((f) => (
+                      <li key={f} className="p-file">
+                        <Check size={12} strokeWidth={3.2} /> {f}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
             </div>
-            <p className="stage-cap t-small">Illustration with sample data.</p>
+
+            {/* the run's timeline: scrub it by hand */}
+            <div className="pipe-scrub">
+              <div className="pipe-track">
+                <span className="pipe-fill" />
+                <span
+                  className="pipe-handle glass"
+                  role="slider"
+                  tabIndex={0}
+                  aria-label="Scrub through the run"
+                  aria-orientation="horizontal"
+                  aria-valuemin={1}
+                  aria-valuemax={N}
+                  aria-valuenow={1}
+                  aria-valuetext={`${PIPELINE_STEPS[0].tag}: ${PIPELINE_STEPS[0].title}`}
+                >
+                  <i />
+                  <i />
+                </span>
+              </div>
+              <ol className="pipe-ticks t-label" aria-hidden>
+                {PIPELINE_STEPS.map((s) => (
+                  <li key={s.id}>{s.tag}</li>
+                ))}
+              </ol>
+            </div>
           </div>
         </div>
       </div>

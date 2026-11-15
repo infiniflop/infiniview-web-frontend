@@ -9,7 +9,7 @@ import { Footer } from "@/components/site/footer";
 import "./site.css";
 
 export const viewport: Viewport = {
-  themeColor: "#03040a",
+  themeColor: "#07080b",
   colorScheme: "dark",
   // extend under notches/home indicators; the stylesheet pads with env(safe-area-inset-*)
   viewportFit: "cover",

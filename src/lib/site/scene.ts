@@ -3,16 +3,14 @@
 import { gsap } from "@/lib/site/gsap";
 
 /**
- * Shared, mutable scene state. The corridor shader reads this every frame;
- * sections nudge `mood` as they enter so the world around the glass changes
- * with the story (alert = attackers red, portal = light at the end).
+ * Shared, mutable scene state. The wall shader reads this every frame; chapters move the light
+ * behind the glass as they come into view, so the world changes with the story (alert = attackers,
+ * proof = verified) without any section owning the canvas.
  */
 export const scene = {
-  /** camera travel, in frame spacings (scroll-driven, damped) */
+  /** scroll position in screen heights (damped) */
   depth: 0,
   target: 0,
-  /** fly-in offset on first load, animated to 0 */
-  intro: -5,
   /** normalised scroll velocity, damped (-1..1) */
   velocity: 0,
   /** pointer in -1..1 (raw + damped) */
@@ -23,20 +21,23 @@ export const scene = {
   /** set while something opaque covers the whole viewport (the lime finale): skip drawing */
   occluded: false,
   mood: {
-    /** 0 lime/white light → 1 attack red */
+    /** 0 cool light, 1 vermilion: an attack is under way */
     alert: 0,
-    /** overall brightness of rings and probes */
-    energy: 1,
-    /** light at the vanishing point */
-    portal: 0.55,
-    /** corridor width multiplier */
-    width: 1,
+    /** 0 cool light, 1 lime: verified proof */
+    proof: 0,
+    /** brightness of the light behind the wall */
+    energy: 0.62,
+    /** where the light sits: 0..1 across, 0..1 up */
+    x: 0.84,
+    y: 0.34,
+    /** its radius, in screen heights */
+    spread: 0.24,
   },
 };
 
 export type Mood = typeof scene.mood;
 
-export function setMood(to: Partial<Mood>, duration = 1.4) {
+export function setMood(to: Partial<Mood>, duration = 1.6) {
   gsap.to(scene.mood, {
     ...to,
     duration,

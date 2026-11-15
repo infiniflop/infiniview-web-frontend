@@ -4,11 +4,11 @@ import { useRef } from "react";
 import { gsap, ScrollTrigger, SplitText, useGSAP } from "@/lib/site/gsap";
 import { setMood } from "@/lib/site/scene";
 import { STATEMENT, TRUST_STATS, TRUST_NOTE } from "@/lib/site/content";
-import { Counter } from "@/components/site/counter";
 
 /**
- * The argument in one sentence, read out by the scroll: each word lights as you
- * travel through it, then four plates of proof arrive from the depth.
+ * A quiet beat: the argument in one sentence, read out by the scroll. Each word lights as you pass
+ * it. Then four numbers, set large and left alone: they are facts, so they are never counted up
+ * from a wrong value.
  */
 export function Statement() {
   const root = useRef<HTMLElement>(null);
@@ -23,7 +23,6 @@ export function Statement() {
         let split: SplitText | null = null;
         let st: ScrollTrigger | undefined;
         let cancelled = false;
-        let lastMoodStep = -1;
 
         const build = () => {
           if (cancelled) return;
@@ -31,24 +30,16 @@ export function Statement() {
           // The unlit level is deliberately readable (contrast ≥ 3:1 for large text): it is "not yet read",
           // not hidden.
           split = SplitText.create(el, { type: "words", aria: "none" });
-          gsap.set(split.words, { opacity: 0.42 });
+          gsap.set(split.words, { opacity: 0.4 });
           const tl = gsap.timeline({
             scrollTrigger: {
               trigger: root.current!.querySelector(".statement-pin"),
               start: "top top",
-              end: "+=85%",
+              end: "+=80%",
               pin: true,
-              scrub: 0.6,
+              scrub: 0.5,
               anticipatePin: 1,
               refreshPriority: 1,
-              onUpdate: (self) => {
-                // a new tween per scroll tick is needless churn: only when the value actually moves a step
-                const q = Math.round(self.progress * 20);
-                if (q !== lastMoodStep) {
-                  lastMoodStep = q;
-                  setMood({ portal: 0.55 + (q / 20) * 0.3 }, 0.6);
-                }
-              },
             },
           });
           tl.to(split.words, { opacity: 1, stagger: 0.12, ease: "none", duration: 1 });
@@ -57,8 +48,19 @@ export function Statement() {
         if (document.fonts?.status === "loaded") build();
         else document.fonts?.ready.then(build);
 
+        // the light drops behind the sentence and warms toward proof as it is read
+        const mood = ScrollTrigger.create({
+          trigger: root.current,
+          start: "top 70%",
+          end: "bottom 40%",
+          onEnter: () => setMood({ x: 0.9, y: 0.12, spread: 0.24, energy: 0.5, alert: 0, proof: 0.6 }),
+          onEnterBack: () => setMood({ x: 0.9, y: 0.12, spread: 0.24, energy: 0.5, alert: 0, proof: 0.6 }),
+          onLeaveBack: () => setMood({ x: 0.84, y: 0.34, spread: 0.24, energy: 0.62, alert: 0, proof: 0 }),
+        });
+
         return () => {
           cancelled = true;
+          mood.kill();
           st?.kill();
           split?.revert();
         };
@@ -72,24 +74,25 @@ export function Statement() {
     <section ref={root} className="statement" aria-labelledby="statement-text">
       <div className="statement-pin">
         <div className="wrap">
-          <p id="statement-text" ref={sentence} className="t-h2 statement-text">
+          <p id="statement-text" ref={sentence} className="t-display statement-text">
             {STATEMENT.lead} <span className="t-lime">{STATEMENT.accent}</span>
           </p>
         </div>
       </div>
 
       <div className="wrap">
-        <ul className="plates">
+        <ul className="stats">
           {TRUST_STATS.map((s) => (
-            <li key={s.label} className="plate glass" data-reveal="scale">
-              <span className="plate-num t-display">
-                <Counter value={s.value} suffix={s.suffix} />
+            <li key={s.label} className="stat" data-reveal>
+              <span className="stat-num">
+                {s.value}
+                {s.suffix}
               </span>
-              <span className="plate-label">{s.label}</span>
+              <span className="stat-label">{s.label}</span>
             </li>
           ))}
         </ul>
-        <p className="plates-note t-small" data-reveal="fade">
+        <p className="stats-note t-small" data-reveal="fade">
           {TRUST_NOTE}
         </p>
       </div>

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Plus } from "lucide-react";
 import { FAQS } from "@/lib/site/content";
 
 /** A numeric range ("4-5") must not break at its hyphen (the display face has no non-breaking hyphen). */
@@ -43,7 +42,7 @@ export function Faq({
           </p>
         </div>
 
-        <div className="faq-list glass glass--deep" data-reveal>
+        <div className="faq-list" data-reveal>
           {items.map((f, i) => {
             const isOpen = open === i;
             return (
@@ -59,7 +58,8 @@ export function Faq({
                   >
                     <span>{f.q}</span>
                     <span className="faq-plus" aria-hidden>
-                      <Plus size={20} strokeWidth={2.2} />
+                      <i />
+                      <i />
                     </span>
                   </button>
                 </h3>

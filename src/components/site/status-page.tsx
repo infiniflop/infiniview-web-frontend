@@ -5,16 +5,22 @@ import { ArrowRight } from "lucide-react";
 export function NotFoundContent() {
   return (
     <main id="main" className="status wrap">
-      <h1 className="t-display status-title">This frame doesn’t exist.</h1>
+      <p className="status-code">
+        <span className="chip chip--crit">
+          <i /> 404
+        </span>
+        <span className="t-label">Not found</span>
+      </p>
+      <h1 className="t-display status-title">Nothing here to break.</h1>
       <p className="t-lede status-lede">
-        The page you’re after (a 404) isn’t part of the corridor. It may have moved, or the link may be wrong.
+        This page (a 404) doesn’t exist. It may have moved, or the link may be wrong.
       </p>
       <div className="status-actions">
         <Link href="/" prefetch={false} className="btn btn--lime">
           Back to the start
           <ArrowRight className="arrow" size={17} strokeWidth={2.6} />
         </Link>
-        <Link href="/preview" prefetch={false} className="btn btn--glass">
+        <Link href="/preview" prefetch={false} className="btn btn--line">
           See the live demo
         </Link>
       </div>

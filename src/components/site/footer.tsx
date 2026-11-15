@@ -11,7 +11,7 @@ const COLS = [
     links: [
       { label: "How it works", href: "/#how-it-works" },
       { label: "Findings", href: "/#findings" },
-      { label: "Arsenal", href: "/#arsenal" },
+      { label: "Coverage", href: "/#coverage" },
       { label: "Pricing", href: "/pricing" },
     ],
   },
@@ -31,7 +31,7 @@ export function Footer() {
       <div className="wrap">
         <div className="foot-top">
           <div className="foot-brand">
-            <Mark size={34} className="text-[var(--iv-lime)]" />
+            <Mark size={32} className="text-[var(--iv-lime)]" />
             <p className="foot-line">Attack your code before anyone else does.</p>
           </div>
           <nav aria-label="Footer" className="foot-cols">

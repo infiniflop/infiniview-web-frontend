@@ -4,14 +4,14 @@
 // cannot rely on any stylesheet, font or component, so everything it needs is inline.
 export default function GlobalError({ reset }: { error: Error; reset: () => void }) {
   return (
-    <html lang="en" style={{ colorScheme: "dark", background: "#03040a" }}>
+    <html lang="en" style={{ colorScheme: "dark", background: "#07080b" }}>
       <body
         style={{
           margin: 0,
           minHeight: "100vh",
           display: "grid",
           placeItems: "center",
-          background: "#03040a",
+          background: "#07080b",
           color: "#f3f5fa",
           fontFamily: "ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif",
           textAlign: "center",

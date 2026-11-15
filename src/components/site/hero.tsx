@@ -1,234 +1,458 @@
 "use client";
 
-import { useRef } from "react";
-import { gsap, SplitText, useGSAP } from "@/lib/site/gsap";
-import { HERO } from "@/lib/site/content";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ArrowDown } from "lucide-react";
+import { gsap, useGSAP } from "@/lib/site/gsap";
+import { HERO, SAMPLE_FINDINGS } from "@/lib/site/content";
 import { WaitlistForm } from "@/components/site/waitlist-form";
-import { ScanCard } from "@/components/site/scan-card";
+import { SampleApp } from "@/components/site/sample-app";
 import { setMood } from "@/lib/site/scene";
-import { whenFirstScreen } from "@/lib/site/ready";
+import { applyGlassMap, buildGlassMap } from "@/lib/site/glass";
+import { Spring, SPRING, VelocityTracker, clamp, onClock, project } from "@/lib/site/motion";
+import { scrollToTarget } from "@/lib/site/scroll";
+
+const WORDS: { text: string; br?: boolean }[] = [
+  { text: "Attack" },
+  { text: "your" },
+  { text: "code", br: true },
+  { text: "before" },
+  { text: "anyone" },
+  { text: "else" },
+  { text: "does." },
+];
+
+type FindingId = (typeof SAMPLE_FINDINGS)[number]["id"];
+const IDS = SAMPLE_FINDINGS.map((f) => f.id) as FindingId[];
+
+/** Tell the findings console which finding to show (it listens; see findings-explorer.tsx). */
+export function showFinding(id: FindingId) {
+  window.dispatchEvent(new CustomEvent("iv:finding", { detail: id }));
+  const target = document.getElementById("findings");
+  if (target) scrollToTarget(target, { offset: -20, duration: 1.4 });
+}
 
 export function Hero() {
   const root = useRef<HTMLElement>(null);
-  const h1 = useRef<HTMLHeadingElement>(null);
-  const cardWrap = useRef<HTMLDivElement>(null);
-  // the headline's letters (set by the split), and whether its entrance has finished: the pointer
-  // only plays the type once the line has landed
-  const chars = useRef<HTMLElement[]>([]);
-  const landed = useRef(false);
+  const stage = useRef<HTMLDivElement>(null);
+  const lens = useRef<HTMLDivElement>(null);
+  const view = useRef<HTMLDivElement>(null);
+  const fx = useRef<HTMLDivElement>(null);
+  const glint = useRef<HTMLSpanElement>(null);
+  const reticle = useRef<HTMLSpanElement>(null);
 
-  useGSAP(
-    () => {
-      const mm = gsap.matchMedia();
+  const [found, setFound] = useState<FindingId[]>([]);
+  const [touched, setTouched] = useState(false);
+  // the lens loop lives outside React: these let the tray talk to it
+  const seek = useRef<(id: FindingId) => void>(() => {});
+  const foundRef = useRef<Set<FindingId>>(new Set());
 
-      mm.add("(prefers-reduced-motion: reduce)", () => {
-        gsap.set(h1.current, { autoAlpha: 1 });
-      });
+  const markFound = useCallback((id: FindingId) => {
+    if (foundRef.current.has(id)) return;
+    foundRef.current.add(id);
+    setFound((cur) => (cur.includes(id) ? cur : [...cur, id]));
+  }, []);
 
-      mm.add("(prefers-reduced-motion: no-preference)", () => {
-        const el = h1.current;
-        if (!el) return;
-        // the failsafe already showed this page (slow connection): do not hide it again to play the intro
-        if (document.documentElement.classList.contains("reveal-failsafe")) {
-          gsap.set(el, { autoAlpha: 1 });
-          return;
-        }
-
-        // The whole first screen waits for the corridor's first frame and the web font (capped), then
-        // plays as one piece: nothing is visible while it waits, so there are no stray fragments of
-        // text over an empty background and no replay when a late canvas arrives.
-        let split: ReturnType<typeof SplitText.create> | null = null;
-        let tl: gsap.core.Timeline | null = null;
-        const play = () => {
-          // The headline is split into masked lines. autoSplit re-splits when the web font finishes
-          // loading or the width changes, so line breaks are never frozen at fallback-font metrics
-          // (document.fonts.status can read "loaded" before the font was even requested).
-          split = SplitText.create(el, {
-            type: "lines,chars",
-            mask: "lines",
-            autoSplit: true,
-            linesClass: "split-line",
-            charsClass: "split-char",
-            aria: "auto",
-            onSplit(self) {
-              chars.current = self.chars as HTMLElement[];
-              return gsap.fromTo(
-                self.lines,
-                // The mask is padded for descenders, so the lines start well below it: at 135% the
-                // tops of capitals still showed inside the padding as stray slivers.
-                { yPercent: 190, rotate: 3.5, fontVariationSettings: "'wdth' 72" },
-                {
-                  yPercent: 0,
-                  rotate: 0,
-                  fontVariationSettings: "'wdth' 100",
-                  transformOrigin: "0% 100%",
-                  duration: 1.6,
-                  ease: "expo.out",
-                  stagger: 0.12,
-                  delay: 0.05,
-                  // the headline itself only becomes visible as its first line starts to move
-                  onStart: () => {
-                    gsap.set(el, { autoAlpha: 1 });
-                  },
-                  onComplete: () => {
-                    landed.current = true;
-                  },
-                },
-              );
-            },
-          });
-
-          // everything else arrives around the headline
-          tl = gsap.timeline({ defaults: { ease: "expo.out" } });
-          // (the nav's own entrance lives in the shell: it is layout, and must not replay each time the
-          // visitor comes back to this page)
-          tl.fromTo(
-            root.current!.querySelectorAll("[data-intro]"),
-            { opacity: 0, y: 34 },
-            { opacity: 1, y: 0, duration: 1.2, stagger: 0.11 },
-            0.4,
-          );
-        };
-        const cancelGate = whenFirstScreen(play);
-
-        return () => {
-          cancelGate();
-          tl?.kill();
-          split?.revert();
-        };
-      });
-
-      // The card tilts toward the pointer: depth you can feel. It is a media condition of its own, so
-      // if the motion or pointer preference changes while the page is open the listener is removed
-      // and the card is released.
-      mm.add("(prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine)", () => {
-        const card = cardWrap.current;
-        if (!card) return;
-        gsap.set(card, { transformPerspective: 1100, transformOrigin: "50% 60%" });
-        const rx = gsap.quickTo(card, "rotationX", { duration: 0.9, ease: "power3.out" });
-        const ry = gsap.quickTo(card, "rotationY", { duration: 0.9, ease: "power3.out" });
-        const move = (e: PointerEvent) => {
-          const nx = (e.clientX / window.innerWidth) * 2 - 1;
-          const ny = (e.clientY / window.innerHeight) * 2 - 1;
-          ry(nx * 6);
-          rx(-ny * 5);
-        };
-        window.addEventListener("pointermove", move, { passive: true });
-        return () => window.removeEventListener("pointermove", move);
-      });
-
-      // The headline is set in a variable face, so the pointer can reshape it: letters near the cursor
-      // swell wider and heavier and relax again as it leaves. Springy on the way in (it is the
-      // interface answering a hand), unhurried on the way out. Centres are measured at rest, once,
-      // and again after a resize or re-split; nothing reads layout per frame.
-      mm.add("(prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine)", () => {
-        const host = h1.current;
-        if (!host) return;
-        const R = 230; // reach of the pointer, px
-        let centres: { x: number; y: number }[] = [];
-        let cur: number[] = [];
-        let dirty = true;
-        let px = -1e4;
-        let py = -1e4;
-        let raf = 0;
-        const measure = () => {
-          const list = chars.current;
-          // measured with the type at rest, so the centres do not drift with the swell
-          list.forEach((c) => (c.style.fontVariationSettings = ""));
-          centres = list.map((c) => {
-            const r = c.getBoundingClientRect();
-            return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
-          });
-          cur = list.map(() => 0);
-          dirty = false;
-        };
-        const frame = () => {
-          raf = 0;
-          const list = chars.current;
-          if (!landed.current || !list.length) return;
-          if (dirty || centres.length !== list.length) measure();
-          let moving = false;
-          for (let i = 0; i < list.length; i++) {
-            const dx = centres[i].x - px;
-            const dy = (centres[i].y - py) * 0.7; // a little taller than wide: whole words react, not just a letter
-            const d = Math.hypot(dx, dy);
-            const target = d < R ? Math.cos((d / R) * Math.PI * 0.5) ** 2 : 0;
-            const rate = target > cur[i] ? 0.22 : 0.09; // in fast, out slow
-            const next = cur[i] + (target - cur[i]) * rate;
-            if (Math.abs(next - cur[i]) > 0.002 || next > 0.002) moving = true;
-            cur[i] = next < 0.002 ? 0 : next;
-            const t = cur[i];
-            list[i].style.fontVariationSettings = t === 0 ? "" : `'wght' ${Math.round(620 + 230 * t)}, 'wdth' ${(100 + 14 * t).toFixed(1)}`;
-          }
-          if (moving) raf = requestAnimationFrame(frame);
-        };
-        const kick = () => {
-          if (!raf) raf = requestAnimationFrame(frame);
-        };
-        const onMove = (e: PointerEvent) => {
-          px = e.clientX;
-          py = e.clientY;
-          kick();
-        };
-        const onLeave = () => {
-          px = -1e4;
-          py = -1e4;
-          kick();
-        };
-        const onResize = () => {
-          dirty = true;
-        };
-        window.addEventListener("pointermove", onMove, { passive: true });
-        document.documentElement.addEventListener("pointerleave", onLeave);
-        window.addEventListener("resize", onResize);
-        return () => {
-          window.removeEventListener("pointermove", onMove);
-          document.documentElement.removeEventListener("pointerleave", onLeave);
-          window.removeEventListener("resize", onResize);
-          cancelAnimationFrame(raf);
-          chars.current.forEach((c) => (c.style.fontVariationSettings = ""));
-        };
-      });
-
-      return () => mm.revert(); // also reverts the SplitText, timelines and tilt created inside
-    },
-    { scope: root },
-  );
-
-  // the opening mood: cool light, a calm portal
+  // the opening mood: a cool light behind the stage
   useGSAP(() => {
-    setMood({ alert: 0, energy: 1, portal: 0.55, width: 1 }, 1.2);
+    setMood({ alert: 0, proof: 0, energy: 0.62, x: 0.84, y: 0.34, spread: 0.24 }, 1.2);
   });
+
+  /* ── The lens ──────────────────────────────────────────────────────────
+     A piece of glass on two springs. While a pointer holds it, it IS the pointer (no easing); when
+     it is let go it carries on at the speed it had, toward where a throw would land. Left alone it
+     drifts over the app by itself. Nothing here goes through React state per frame. */
+  useEffect(() => {
+    const st = stage.current;
+    const el = lens.current;
+    const vw = view.current;
+    const fxEl = fx.current;
+    if (!st || !el || !vw || !fxEl) return;
+
+    const mqReduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const fine = window.matchMedia("(hover: hover) and (pointer: fine)");
+
+    let SW = 0;
+    let SH = 0;
+    let L = 0;
+    let hot: { id: FindingId; x: number; y: number }[] = [];
+    const sx = new Spring(0, SPRING.soft);
+    const sy = new Spring(0, SPRING.soft);
+    const focus = new Spring(0, SPRING.ui); // 0 far from a weak point, 1 on it
+    type Mode = "auto" | "follow" | "drag" | "seek" | "rest";
+    let mode: Mode = "auto";
+    let t = 0;
+    let over: FindingId | null = null;
+    let overFor = 0;
+    let inView = true;
+    let idleTimer = 0;
+    const tracker = new VelocityTracker();
+    let grabX = 0;
+    let grabY = 0;
+    let pointerId = -1;
+
+    const measure = () => {
+      const r = st.getBoundingClientRect();
+      const first = SW === 0;
+      SW = r.width;
+      SH = r.height;
+      L = el.offsetWidth;
+      hot = [];
+      st.querySelectorAll<HTMLElement>(".stage-app [data-hot]").forEach((h) => {
+        const b = h.getBoundingClientRect();
+        hot.push({ id: h.dataset.hot as FindingId, x: b.left - r.left + b.width / 2, y: b.top - r.top + b.height / 2 });
+      });
+      if (first) {
+        // start where the server's CSS put it, so nothing jumps when the loop takes over
+        const cs = getComputedStyle(st);
+        sx.set(SW * (parseFloat(cs.getPropertyValue("--lx")) || 0.34));
+        sy.set(SH * (parseFloat(cs.getPropertyValue("--ly")) || 0.42));
+      } else {
+        sx.set(clamp(sx.value, 0, SW));
+        sy.set(clamp(sy.value, 0, SH));
+      }
+      // the refraction map is built for the lens's exact size
+      const map = buildGlassMap({ width: L, height: L, radius: L * 0.32, bezel: Math.max(12, L * 0.1), depth: L * 0.16, zoom: 1.06 }, L * 0.075);
+      const ok = applyGlassMap(document.getElementById("glass-lens") as SVGFilterElement | null, map, 0.07);
+      fxEl.dataset.fx = ok ? "on" : "off";
+    };
+
+    const bounds = () => ({ x0: L * 0.22, x1: SW - L * 0.22, y0: L * 0.2, y1: SH - L * 0.2 });
+
+    const paint = () => {
+      const x = sx.value;
+      const y = sy.value;
+      const reduced = mqReduce.matches;
+      const speed = Math.hypot(sx.velocity, sy.velocity);
+      const s = reduced ? 0 : Math.min(0.06, speed / 9000);
+      const ang = Math.atan2(sy.velocity, sx.velocity);
+      const left = x - L / 2;
+      const top = y - L / 2;
+      el.style.transform =
+        s > 0.002
+          ? `translate3d(${left.toFixed(2)}px,${top.toFixed(2)}px,0) rotate(${ang.toFixed(3)}rad) scale(${(1 + s).toFixed(4)},${(1 - s * 0.7).toFixed(4)}) rotate(${(-ang).toFixed(3)}rad)`
+          : `translate3d(${left.toFixed(2)}px,${top.toFixed(2)}px,0)`;
+      vw.style.transform = `translate3d(${(-left).toFixed(2)}px,${(-top).toFixed(2)}px,0)`;
+      // the highlight slides against the direction of travel and sits toward the light (upper left)
+      if (glint.current) {
+        const gx = clamp(-sx.velocity * 0.014, -14, 14) + (x / Math.max(1, SW) - 0.5) * -10;
+        const gy = clamp(-sy.velocity * 0.014, -14, 14) + (y / Math.max(1, SH) - 0.5) * -8;
+        glint.current.style.transform = `translate3d(${gx.toFixed(1)}px,${gy.toFixed(1)}px,0)`;
+      }
+      if (reticle.current) {
+        const f = focus.value;
+        reticle.current.style.transform = `scale(${(1 - 0.24 * f).toFixed(3)})`;
+        reticle.current.style.opacity = (0.5 + 0.5 * f).toFixed(3);
+      }
+    };
+
+    const frame = (dt: number) => {
+      const reduced = mqReduce.matches;
+      t += dt;
+      if (mode === "auto" && !reduced && hot.length) {
+        // a slow figure over the search field and the first rows: it shows the first weak point by itself
+        const a = hot.find((h) => h.id === "sqli") ?? hot[0];
+        const cx = a.x - SW * 0.06;
+        const cy = a.y + SH * 0.16;
+        sx.to(cx + Math.cos(t * 0.52) * SW * 0.13, SPRING.soft);
+        sy.to(cy + Math.sin(t * 0.74) * SH * 0.17, SPRING.soft);
+      }
+      const moving = [sx.step(dt), sy.step(dt)].some(Boolean);
+
+      // which weak point is under the middle of the glass?
+      let near: FindingId | null = null;
+      let best = Infinity;
+      for (const h of hot) {
+        const d = Math.hypot(h.x - sx.value, h.y - sy.value);
+        if (d < best) {
+          best = d;
+          near = d < L * 0.36 ? h.id : null;
+        }
+      }
+      focus.to(near ? 1 : 0, SPRING.ui);
+      const focusing = focus.step(dt);
+      if (near !== over) {
+        over = near;
+        overFor = 0;
+        el.dataset.over = near ?? "";
+      } else if (near) {
+        overFor += dt;
+        // only a visitor finds things: the lens drifting by itself does not play the game for them
+        if (overFor > 0.22 && mode !== "auto") markFound(near);
+      }
+      paint();
+      return inView && (mode === "auto" ? !reduced : moving || focusing || mode === "drag" || (near !== null && !foundRef.current.has(near)));
+    };
+    const clock = onClock(frame);
+
+    const toStage = (e: PointerEvent) => {
+      const r = st.getBoundingClientRect();
+      return { x: e.clientX - r.left, y: e.clientY - r.top };
+    };
+    const goAuto = () => {
+      if (mqReduce.matches) return;
+      mode = "auto";
+      clock.wake();
+    };
+    const idle = (ms: number) => {
+      window.clearTimeout(idleTimer);
+      idleTimer = window.setTimeout(goAuto, ms);
+    };
+    const takeOver = () => {
+      window.clearTimeout(idleTimer);
+      if (!el.dataset.touched) {
+        el.dataset.touched = "true";
+        setTouched(true);
+      }
+    };
+
+    /* fine pointers: the glass follows the cursor over the stage */
+    const onMove = (e: PointerEvent) => {
+      if (e.pointerType !== "mouse" && e.pointerType !== "pen") return;
+      if (mode === "drag") return;
+      takeOver();
+      mode = "follow";
+      const p = toStage(e);
+      const b = bounds();
+      const tx = clamp(p.x, b.x0, b.x1);
+      const ty = clamp(p.y, b.y0, b.y1);
+      if (mqReduce.matches) {
+        sx.set(tx);
+        sy.set(ty);
+      } else {
+        sx.to(tx, SPRING.follow);
+        sy.to(ty, SPRING.follow);
+      }
+      clock.wake();
+    };
+    const onLeave = (e: PointerEvent) => {
+      if (e.pointerType !== "mouse" && e.pointerType !== "pen") return;
+      if (mode === "follow") {
+        mode = "rest";
+        idle(2600);
+      }
+    };
+
+    /* touch: pick the glass up. 1:1 while the finger is down, a spring with its velocity after */
+    const onDown = (e: PointerEvent) => {
+      if (e.pointerType === "mouse" && fine.matches) return; // the cursor already has it
+      if (pointerId !== -1) return; // a second finger does not steal it
+      pointerId = e.pointerId;
+      el.setPointerCapture(e.pointerId);
+      takeOver();
+      mode = "drag";
+      const p = toStage(e);
+      grabX = p.x - sx.value; // respect where it was grabbed
+      grabY = p.y - sy.value;
+      tracker.reset();
+      tracker.add(p.x, p.y);
+      el.dataset.held = "true";
+      clock.wake();
+    };
+    const onDrag = (e: PointerEvent) => {
+      if (e.pointerId !== pointerId) return;
+      const p = toStage(e);
+      tracker.add(p.x, p.y);
+      const b = bounds();
+      // past the edge it follows less and less
+      const rx = p.x - grabX;
+      const ry = p.y - grabY;
+      const soft = (v: number, lo: number, hi: number) => (v < lo ? lo - (lo - v) * 0.35 : v > hi ? hi + (v - hi) * 0.35 : v);
+      sx.set(soft(rx, b.x0, b.x1));
+      sy.set(soft(ry, b.y0, b.y1));
+      clock.wake();
+    };
+    const onUp = (e: PointerEvent) => {
+      if (e.pointerId !== pointerId) return;
+      pointerId = -1;
+      delete el.dataset.held;
+      const v = tracker.get();
+      const b = bounds();
+      const reduced = mqReduce.matches;
+      mode = "rest";
+      // a flick throws it: aim at where the momentum would carry it, clamped to the stage
+      sx.to(clamp(sx.value + (reduced ? 0 : project(v.x)), b.x0, b.x1), SPRING.release, reduced ? 0 : v.x);
+      sy.to(clamp(sy.value + (reduced ? 0 : project(v.y)), b.y0, b.y1), SPRING.release, reduced ? 0 : v.y);
+      clock.wake();
+      idle(9000);
+    };
+
+    /* keyboard and tray: send the glass to a weak point */
+    seek.current = (id) => {
+      const h = hot.find((p) => p.id === id);
+      if (!h) return;
+      takeOver();
+      mode = "seek";
+      if (mqReduce.matches) {
+        sx.set(h.x);
+        sy.set(h.y);
+        markFound(id);
+      } else {
+        sx.to(h.x, SPRING.ui);
+        sy.to(h.y, SPRING.ui);
+      }
+      clock.wake();
+      idle(12000);
+    };
+
+    measure();
+    paint();
+    el.dataset.live = "true";
+    const ro = new ResizeObserver(() => {
+      measure();
+      paint();
+      clock.wake();
+    });
+    ro.observe(st);
+    ro.observe(el);
+    const io = new IntersectionObserver(([e]) => {
+      inView = e.isIntersecting;
+      if (inView) clock.wake();
+    });
+    io.observe(st);
+    const onPref = () => {
+      if (mqReduce.matches) {
+        mode = "rest";
+        sx.to(sx.value);
+        sy.to(sy.value);
+      } else goAuto();
+      clock.wake();
+    };
+    mqReduce.addEventListener("change", onPref);
+
+    st.addEventListener("pointermove", onMove);
+    st.addEventListener("pointerleave", onLeave);
+    el.addEventListener("pointerdown", onDown);
+    el.addEventListener("pointermove", onDrag);
+    el.addEventListener("pointerup", onUp);
+    el.addEventListener("pointercancel", onUp);
+    if (!mqReduce.matches) clock.wake();
+
+    return () => {
+      clock.stop();
+      window.clearTimeout(idleTimer);
+      ro.disconnect();
+      io.disconnect();
+      mqReduce.removeEventListener("change", onPref);
+      st.removeEventListener("pointermove", onMove);
+      st.removeEventListener("pointerleave", onLeave);
+      el.removeEventListener("pointerdown", onDown);
+      el.removeEventListener("pointermove", onDrag);
+      el.removeEventListener("pointerup", onUp);
+      el.removeEventListener("pointercancel", onUp);
+      delete el.dataset.live;
+      seek.current = () => {};
+    };
+  }, [markFound]);
+
+  // the mark in the tray ticks as each one lands (a one-shot, not a loop)
+  const trayRef = useRef<HTMLDivElement>(null);
+  const lastCount = useRef(0);
+  useEffect(() => {
+    if (found.length <= lastCount.current) return;
+    lastCount.current = found.length;
+    const id = found[found.length - 1];
+    const slot = trayRef.current?.querySelector<HTMLElement>(`[data-slot="${id}"]`);
+    if (!slot || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const tw = gsap.fromTo(slot, { scale: 0.94 }, { scale: 1, duration: 0.5, ease: "back.out(2.2)", clearProps: "transform" });
+    return () => {
+      tw.kill();
+    };
+  }, [found]);
+
+  const all = found.length === IDS.length;
 
   return (
     <section ref={root} id="top" className="hero" aria-labelledby="hero-title">
       <div className="wrap hero-grid">
-        <div className="hero-copy">
-          <h1 id="hero-title" ref={h1} className="t-display hero-h1" data-hero-title>
-            {/* block only on wide screens; a <br> would be honoured by SplitText at every width */}
-            <span className="md:block">Attack your code</span> <span>before anyone else does.</span>
-          </h1>
-        </div>
+        <h1 id="hero-title" className="t-display hero-h1" aria-label="Attack your code before anyone else does.">
+          {WORDS.map((w, i) => (
+            <span key={i} aria-hidden>
+              <span className="hw" style={{ ["--i" as string]: i }}>
+                <span>{w.text}</span>
+              </span>
+              {" "}
+              {w.br ? <br className="hero-br" /> : null}
+            </span>
+          ))}
+        </h1>
 
-        <div className="hero-sub">
-          <p className="t-lede hero-lede" data-intro>
-            {HERO.lede}
-          </p>
-          <div data-intro>
-            <WaitlistForm id="waitlist" />
-          </div>
-          <ul className="hero-assure" data-intro>
+        <div className="hero-copy">
+          <p className="t-lede hero-lede">{HERO.lede}</p>
+          <WaitlistForm id="waitlist" />
+          <ul className="hero-assure">
             {HERO.assurances.map((a) => (
-              <li key={a}>
-                <i aria-hidden />
-                {a}
-              </li>
+              <li key={a}>{a}</li>
             ))}
           </ul>
         </div>
 
-        <div ref={cardWrap} className="hero-card" data-intro>
-          <ScanCard />
+        <div className="hero-stage-col">
+          <div ref={stage} className="stage" data-all={all ? "true" : undefined}>
+            <div className="stage-app pane" aria-hidden>
+              <SampleApp />
+            </div>
+
+            {/* the lens: a registered copy of the app in attack view, bent by the glass around it */}
+            <div ref={lens} className="lens" aria-hidden>
+              <div ref={fx} className="lens-fx">
+                <div ref={view} className="lens-view">
+                  <SampleApp mode="xray" />
+                </div>
+              </div>
+              <span className="lens-body" />
+              <span ref={glint} className="lens-glint" />
+              <span ref={reticle} className="lens-reticle">
+                <i />
+              </span>
+              <span className="lens-hint" data-off={touched ? "true" : undefined}>
+                <span className="lens-hint-fine">Move the lens</span>
+                <span className="lens-hint-touch">Drag the lens</span>
+              </span>
+            </div>
+          </div>
+
+          <div ref={trayRef} className="tray pane" role="group" aria-label="Sample findings hidden in this app">
+            <p className="tray-count t-label" aria-live="polite">
+              <b>{found.length}</b>
+              <span aria-hidden>/</span>
+              <span className="sr-only"> of </span>
+              {IDS.length} found
+            </p>
+            <ul className="tray-list">
+              {SAMPLE_FINDINGS.map((f, i) => {
+                const got = found.includes(f.id);
+                return (
+                  <li key={f.id}>
+                    <button
+                      type="button"
+                      className="tray-slot"
+                      data-slot={f.id}
+                      data-found={got ? "true" : undefined}
+                      data-sev={f.severity}
+                      aria-label={got ? `${f.title}, ${f.severity}. Open its proof.` : `Point the lens at weak point ${i + 1} of ${IDS.length}`}
+                      onClick={() => (got ? showFinding(f.id) : seek.current(f.id))}
+                    >
+                      <i aria-hidden />
+                      <span className="tray-long">{got ? f.title : `Weak point ${i + 1}`}</span>
+                      <span className="tray-short" aria-hidden>
+                        {got ? f.category : i + 1}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+            <a
+              className="tray-go"
+              href="#findings"
+              data-on={all ? "true" : undefined}
+              tabIndex={all ? undefined : -1}
+              aria-hidden={all ? undefined : true}
+            >
+              Replay the proof
+              <ArrowDown size={14} strokeWidth={2.6} />
+            </a>
+          </div>
         </div>
       </div>
     </section>

@@ -3,17 +3,18 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowRight, Menu, X } from "lucide-react";
-import { gsap, ScrollTrigger, useGSAP, prefersReducedMotion, spring } from "@/lib/site/gsap";
+import { ArrowRight } from "lucide-react";
+import { gsap, ScrollTrigger, useGSAP, prefersReducedMotion } from "@/lib/site/gsap";
+import { Spring, SPRING, onClock } from "@/lib/site/motion";
 import { getLenis, scrollToTarget, anchorPlan } from "@/lib/site/scroll";
-import { Mark, Magnetic } from "@/components/site/ui";
+import { Mark } from "@/components/site/ui";
 import { useSitePrefetch } from "@/lib/site/prefetch";
 import { DOCS_URL } from "@/lib/site/content";
 
 const LINKS = [
   { id: "how-it-works", label: "How it works" },
   { id: "findings", label: "Findings" },
-  { id: "arsenal", label: "Arsenal" },
+  { id: "coverage", label: "Coverage" },
   { id: "faq", label: "FAQ" },
 ];
 
@@ -106,21 +107,52 @@ export function Nav() {
   // only hand focus back to the burger when the menu was dismissed with the keyboard
   const returnFocus = useRef(false);
 
-  /* ── sliding pill ───────────────────────────────────────────────────── */
+  /* ── sliding pill ─────────────────────────────────────────────────────
+     A small piece of glass on two springs (its left edge and its width). It keeps its velocity when
+     the pointer moves on to another link, and it stretches a little in the direction it is going:
+     the left edge and the right edge are not equally stiff, so it reads as liquid, not as a box. */
+  const pillState = useRef<{ x: Spring; w: Spring; clock: ReturnType<typeof onClock>; shown: boolean } | null>(null);
   const movePill = useCallback((target: HTMLElement | null, instant = false) => {
     const pill = pillRef.current;
     const wrap = linksRef.current;
     if (!pill || !wrap) return;
+    if (!pillState.current) {
+      const x = new Spring(0, SPRING.ui);
+      const w = new Spring(10, SPRING.ui);
+      const clock = onClock((dt) => {
+        const a = x.step(dt);
+        const b = w.step(dt);
+        // (width is layout, but of one absolutely positioned box with no children: a scale would
+        // squash the pill's round ends)
+        pill.style.transform = `translate3d(${x.value.toFixed(2)}px,0,0)`;
+        pill.style.width = `${Math.max(1, w.value).toFixed(2)}px`;
+        return a || b;
+      });
+      pillState.current = { x, w, clock, shown: false };
+    }
+    const st = pillState.current;
     if (!target) {
-      gsap.to(pill, { autoAlpha: 0, duration: 0.25, overwrite: "auto" });
+      st.shown = false;
+      pill.style.opacity = "0";
       return;
     }
     const wr = wrap.getBoundingClientRect();
     const tr = target.getBoundingClientRect();
-    const vars = { x: tr.left - wr.left, width: tr.width, autoAlpha: 1 };
-    if (instant) gsap.set(pill, vars);
-    else gsap.to(pill, { ...vars, duration: 0.7, ease: spring, overwrite: "auto" });
+    const left = tr.left - wr.left;
+    if (instant || !st.shown || prefersReducedMotion()) {
+      st.x.set(left);
+      st.w.set(tr.width);
+    } else {
+      // the leading edge arrives first: going right the width grows ahead of the move, going left it follows
+      const right = left > st.x.target;
+      st.x.to(left, right ? SPRING.ui : SPRING.follow);
+      st.w.to(tr.width, right ? SPRING.follow : SPRING.ui);
+    }
+    st.shown = true;
+    pill.style.opacity = "1";
+    st.clock.wake();
   }, []);
+  useEffect(() => () => pillState.current?.clock.stop(), []);
 
   useEffect(() => {
     if (!exiting) return;
@@ -128,8 +160,9 @@ export function Nav() {
     if (!m) return;
     const items = m.querySelectorAll("[data-m]");
     gsap.killTweensOf([m, items]);
-    gsap.to(items, { y: -20, autoAlpha: 0, duration: 0.26, ease: "power3.in", stagger: { each: 0.025, from: "end" } });
-    gsap.to(m, { autoAlpha: 0, duration: 0.32, delay: 0.06, ease: "power3.in", onComplete: () => setExiting(false) });
+    // leaving: everything goes at once, quicker than it came, gathering speed
+    gsap.to(items, { y: -16, autoAlpha: 0, duration: 0.2, ease: "power3.in" });
+    gsap.to(m, { autoAlpha: 0, duration: 0.24, ease: "power3.in", onComplete: () => setExiting(false) });
     return () => {
       gsap.killTweensOf([m, items]);
     };
@@ -241,11 +274,12 @@ export function Nav() {
       if (reduced) {
         gsap.set([m, items], { autoAlpha: 1 });
       } else {
-        gsap.fromTo(m, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.35, ease: "power2.out" });
+        gsap.fromTo(m, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.28, ease: "power2.out" });
+        // links arrive one after another in reading order; the whole sequence stays under half a second
         gsap.fromTo(
           items,
-          { y: 44, autoAlpha: 0 },
-          { y: 0, autoAlpha: 1, duration: 0.9, ease: "expo.out", stagger: 0.07, delay: 0.1 },
+          { y: 24, autoAlpha: 0 },
+          { y: 0, autoAlpha: 1, duration: 0.6, ease: "expo.out", stagger: 0.045, delay: 0.04 },
         );
       }
       // wait until the first link is actually visible: hidden elements cannot take focus
@@ -337,11 +371,7 @@ export function Nav() {
   return (
     <>
       <header className="site-nav">
-        <nav
-          aria-label="Primary"
-          className="nav-bar glass glass--thin"
-          style={{ ["--r" as string]: "999px" }}
-        >
+        <nav aria-label="Primary" className="nav-bar glass">
           <Link
             href="/"
             prefetch={prefetch}
@@ -358,7 +388,7 @@ export function Nav() {
               }
             }}
           >
-            <Mark size={26} className="text-[var(--iv-lime)]" />
+            <Mark size={24} className="text-[var(--iv-lime)]" />
             <span className="nav-word">infiniview</span>
           </Link>
 
@@ -411,16 +441,10 @@ export function Nav() {
             <Link href="/preview" prefetch={false} className="btn btn--glass btn--sm nav-demo">
               Live demo
             </Link>
-            <Magnetic strength={0.22}>
-              <button
-                type="button"
-                className="btn btn--lime btn--sm"
-                onClick={earlyAccess}
-              >
-                Early access
-                <ArrowRight className="arrow" size={15} strokeWidth={2.6} />
-              </button>
-            </Magnetic>
+            <button type="button" className="btn btn--lime btn--sm" onClick={earlyAccess}>
+              Early access
+              <ArrowRight className="arrow" size={15} strokeWidth={2.6} />
+            </button>
             <button
               ref={burgerRef}
               type="button"
@@ -430,14 +454,15 @@ export function Nav() {
               aria-controls={open ? "site-menu" : undefined}
               onClick={() => setOpen((v) => !v)}
             >
-              {open ? <X size={20} /> : <Menu size={20} />}
+              <i aria-hidden />
+              <i aria-hidden />
             </button>
           </div>
         </nav>
       </header>
 
       {(open || exiting) && (
-        <div id="site-menu" ref={menuRef} inert={!open} data-lenis-prevent className="nav-menu glass glass--deep" style={{ ["--r" as string]: "0px" }} role="dialog" aria-modal="true" aria-label="Menu">
+        <div id="site-menu" ref={menuRef} inert={!open} data-lenis-prevent className="nav-menu" role="dialog" aria-modal="true" aria-label="Menu">
           {/* data-lenis-prevent: Lenis is stopped while the menu is open and would cancel wheel and
               touch gestures, so the menu (which scrolls by itself on short screens) opts out of it */}
           <div className="nav-menu-inner">
@@ -459,7 +484,7 @@ export function Nav() {
             <a data-m href={DOCS_URL} className="nav-menu-link">
               Docs
             </a>
-            <div data-m className="mt-6 flex flex-col gap-3">
+            <div data-m className="nav-menu-actions">
               <button
                 type="button"
                 className="btn btn--lime"

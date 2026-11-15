@@ -8,8 +8,8 @@ export default function manifest(): MetadataRoute.Manifest {
       "AI-powered code review, SAST, DAST, and penetration testing — fully automated in cloud sandboxes.",
     start_url: "/",
     display: "browser",
-    background_color: "#03040a",
-    theme_color: "#03040a",
+    background_color: "#07080b",
+    theme_color: "#07080b",
     icons: [
       { src: "/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
       { src: "/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },

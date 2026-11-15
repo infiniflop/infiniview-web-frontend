@@ -5,7 +5,8 @@
 export const DOCS_URL = process.env.NEXT_PUBLIC_DOCS_URL ?? "https://docs.infiniview.dev";
 
 export const HERO = {
-  lede: "Connect your repo and Infiniview runs a full security audit, code review, and interaction stress test on every pull request and on demand, inside isolated cloud sandboxes.",
+  // the product's public one-liner, as used on the docs and the company site
+  lede: "Infiniview connects to your GitHub, deploys your app in a sandbox, and runs real attacks against it. You get replayable proof of what broke.",
   assurances: ["Isolated cloud sandboxes", "No test cases to write", "Nothing touches production"],
 };
 
@@ -261,6 +262,45 @@ export const ARSENAL = [
     body: "Computer-vision agents interact with your running app like real users. They fill forms, click buttons, test auth flows, and discover broken states no static tool can find.",
   },
 ] as const;
+
+/**
+ * What each layer is made of, by name. The 26 scanners are the list published in the product docs
+ * (docs.infiniview.dev/scanners): four families, six of them opt-in. The attack classes and
+ * interaction tests are the ones this site has always named (see THREATS and ARSENAL above).
+ */
+export const SCANNER_FAMILIES = [
+  {
+    title: "Static analysis",
+    items: [
+      { name: "Semgrep" }, { name: "ESLint Security" }, { name: "Bandit" }, { name: "gosec" }, { name: "Brakeman" },
+      { name: "SpotBugs" }, { name: "PHPStan" }, { name: "Bearer" }, { name: "njsscan" }, { name: "SonarQube", optIn: true },
+    ],
+  },
+  {
+    title: "Dependency audit",
+    items: [
+      { name: "npm audit" }, { name: "pip-audit" }, { name: "cargo-audit" }, { name: "OSV Scanner" },
+      { name: "Safety", optIn: true }, { name: "Grype", optIn: true }, { name: "Retire.js", optIn: true }, { name: "Snyk Open Source", optIn: true },
+    ],
+  },
+  {
+    title: "Secrets detection",
+    items: [{ name: "Gitleaks" }, { name: "detect-secrets" }, { name: "TruffleHog" }],
+  },
+  {
+    title: "Configuration and IaC",
+    items: [{ name: "Trivy" }, { name: "Checkov" }, { name: "tfsec", optIn: true }, { name: "Hadolint" }, { name: "kube-linter" }],
+  },
+] as const;
+
+export const LAYER_ITEMS = {
+  review: ["Logic", "Performance", "Type safety", "Style"],
+  runtime: [
+    "Injection", "Auth attacks", "API fuzzing", "SSRF", "CORS", "Session hijacking",
+    "Prompt injection", "Rate limits", "Crypto audit", "File upload", "Business logic",
+  ],
+  interaction: ["UI crawl", "Forms", "Auth flows", "XSS payloads", "Multi-tab races"],
+} as const;
 
 export const ZERO_CONFIG = {
   title: "Connect your repo. That’s it.",

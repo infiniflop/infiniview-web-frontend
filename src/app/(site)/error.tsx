@@ -20,6 +20,11 @@ export default function ErrorPage({
 
   return (
     <main id="main" className="status wrap">
+      <p className="status-code">
+        <span className="chip chip--high">
+          <i /> Error
+        </span>
+      </p>
       <h1 className="t-display status-title">That one’s on us.</h1>
       <p className="t-lede status-lede">
         The page hit an unexpected error. Trying again usually clears it.
@@ -30,7 +35,7 @@ export default function ErrorPage({
           Try again
           <RotateCcw size={16} strokeWidth={2.4} />
         </button>
-        <Link href="/" className="btn btn--glass">
+        <Link href="/" className="btn btn--line">
           Back to the start
         </Link>
       </div>

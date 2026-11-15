@@ -4,15 +4,16 @@ import { useEffect, useRef, useState } from "react";
 import { gsap } from "@/lib/site/gsap";
 import { scene } from "@/lib/site/scene";
 import { markReady } from "@/lib/site/ready";
-import { FRAG, VERT } from "@/components/site/corridor-shader";
+import { FRAG, VERT } from "@/components/site/wall-shader";
 
 /**
- * Full-bleed WebGL background. One fullscreen triangle, one fragment shader,
- * driven by the shared GSAP ticker so it never fights the scroll engine.
- * Resolution is scaled adaptively: the scene is soft light behind glass, so we
- * trade pixels for a steady frame rate before we ever trade motion.
+ * The wall of fluted glass behind the page. One fullscreen triangle, one fragment shader, driven by
+ * the shared GSAP ticker so it never fights the scroll engine. Resolution is scaled adaptively: the
+ * scene is soft light behind glass, so we trade pixels for a steady frame rate before we ever trade
+ * motion. Lazy: context creation and compilation start after the first paint, and the canvas fades
+ * in over the CSS ground (.wall-fallback) once its first frame is drawn.
  */
-export function Corridor() {
+export function Wall() {
   const hostRef = useRef<HTMLDivElement>(null);
   // bumped to rebuild the canvas (and a fresh GL context) after a lost context
   const [generation, setGeneration] = useState(0);
@@ -26,7 +27,7 @@ export function Corridor() {
     // the canvas has to live exactly as long as this effect run (StrictMode
     // remounts and route changes included).
     const canvas = document.createElement("canvas");
-    canvas.className = "corridor";
+    canvas.className = "wall";
     canvas.setAttribute("aria-hidden", "true");
     host.appendChild(canvas);
 
@@ -65,7 +66,7 @@ export function Corridor() {
         powerPreference: "high-performance",
       });
       if (!gl) {
-        markReady("corridor"); // the CSS backdrop underneath carries the page
+        markReady("wall"); // the CSS ground underneath carries the page
         return;
       }
       cleanups.push(() => gl.getExtension("WEBGL_lose_context")?.loseContext());
@@ -95,8 +96,8 @@ export function Corridor() {
           return;
         }
         if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
-          console.warn("[corridor] shader error", gl.getShaderInfoLog(fs), gl.getProgramInfoLog(prog));
-          markReady("corridor");
+          console.warn("[wall] shader error", gl.getShaderInfoLog(fs), gl.getProgramInfoLog(prog));
+          markReady("wall");
           return;
         }
         run(gl, prog);
@@ -122,11 +123,11 @@ export function Corridor() {
     const U = {
       res: gl.getUniformLocation(prog, "uRes"),
       time: gl.getUniformLocation(prog, "uTime"),
-      depth: gl.getUniformLocation(prog, "uDepth"),
       ptr: gl.getUniformLocation(prog, "uPtr"),
       vel: gl.getUniformLocation(prog, "uVel"),
+      light: gl.getUniformLocation(prog, "uLight"),
       mood: gl.getUniformLocation(prog, "uMood"),
-      vp: gl.getUniformLocation(prog, "uVP"),
+      flute: gl.getUniformLocation(prog, "uFlute"),
       still: gl.getUniformLocation(prog, "uStill"),
     };
 
@@ -134,9 +135,10 @@ export function Corridor() {
     let reduced = mqReduce.matches;
 
     // adaptive resolution
-    const maxScale = Math.min(window.devicePixelRatio || 1, 1.5) * 0.72;
-    let scale = window.innerWidth < 760 ? maxScale * 0.8 : maxScale;
-    const minScale = 0.34;
+    // soft light needs few pixels, but the flute edges are fine lines: full CSS resolution at most
+    const maxScale = Math.min(window.devicePixelRatio || 1, 1.25) * 0.8;
+    let scale = window.innerWidth < 760 ? maxScale * 0.85 : maxScale;
+    const minScale = 0.4;
     let frameCount = 0;
     let slow = 0;
     let ema = 16; // smoothed frame time (ms)
@@ -182,39 +184,35 @@ export function Corridor() {
       }
       const now = performance.now();
       const t = (now - t0) / 1000;
-      const aspect = window.innerWidth / window.innerHeight;
+      const cssW = window.innerWidth;
+      const portrait = cssW / window.innerHeight < 1.05;
+      const m = scene.mood;
 
-      // vanishing point: right of centre on wide screens, high centre on phones
-      const vpx = aspect > 1.15 ? 0.17 * Math.min(aspect, 2) : 0;
-      const vpy = aspect > 1.15 ? 0.015 : 0.1;
-
+      // The flutes are the page's column rhythm: about 56 CSS px wide on a desktop, narrower on a
+      // phone, always a whole number of them across the screen.
+      const count = Math.max(9, Math.min(34, Math.round(cssW / (cssW < 760 ? 34 : 56))));
       gl.uniform2f(U.res, canvas.width, canvas.height);
-      gl.uniform1f(U.time, reduced ? 4.2 : t);
-      gl.uniform1f(
-        U.depth,
-        reduced ? 0.35 : scene.depth + scene.intro + t * 0.045,
-      );
-      gl.uniform2f(U.ptr, scene.px, scene.py);
-      gl.uniform1f(U.vel, scene.velocity);
-      // Stacked layouts (phones, portrait tablets) put the copy right over the vanishing point, so
-      // the portal is a soft glow there; the finale's peak (> 0.8) still comes through in full.
-      const p = scene.mood.portal;
-      const portal = aspect > 1.15 ? p : p * 0.5 + Math.max(0, p - 0.8);
+      gl.uniform1f(U.time, reduced ? 7.3 : t);
+      gl.uniform2f(U.ptr, reduced ? 0 : scene.px, reduced ? 0 : scene.py);
+      gl.uniform1f(U.vel, reduced ? 0 : scene.velocity);
+      // Stacked layouts (phones, portrait tablets) put the copy over the middle of the screen: the
+      // light sits centred and near the bottom edge there, and is dimmer, so copy never sits on it.
       gl.uniform4f(
-        U.mood,
-        scene.mood.alert,
-        scene.mood.energy,
-        portal,
-        scene.mood.width,
+        U.light,
+        portrait ? 0.5 + (m.x - 0.5) * 0.35 : m.x,
+        portrait ? m.y * 0.5 : m.y,
+        m.energy * (portrait ? 0.6 : 1),
+        m.spread * (portrait ? 1.2 : 1),
       );
-      gl.uniform2f(U.vp, vpx, vpy);
+      gl.uniform3f(U.mood, m.alert, m.proof, reduced ? 0 : scene.depth);
+      gl.uniform1f(U.flute, canvas.width / count);
       gl.uniform1f(U.still, reduced ? 1 : 0);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
       if (!drawn) {
         // the first frame is on the canvas: fade it in over the CSS backdrop and let the page's entrance begin
         drawn = true;
         canvas.classList.add("is-live");
-        markReady("corridor");
+        markReady("wall");
       }
 
       // frame-time governor: shed pixels if we are consistently slow — but verify it helps. If a
@@ -245,7 +243,7 @@ export function Corridor() {
               pendingResize = true;
               slow = 0;
             } else if (document.documentElement.dataset.perf !== "low") {
-              // pixels are already minimal and frames are still slow: shed the glass blur too
+              // pixels are already minimal and frames are still slow: shed the refraction filters and blur too
               document.documentElement.dataset.perf = "low";
               slow = 0;
             }
@@ -279,7 +277,7 @@ export function Corridor() {
     mqReduce.addEventListener("change", apply);
 
     // Debounced; and a height-only change of under 20% (the mobile URL bar collapsing while you
-    // scroll) is ignored so the drawing buffer is not reallocated mid-scroll. The corridor is soft
+    // scroll) is ignored so the drawing buffer is not reallocated mid-scroll. The wall is soft
     // light, so a slightly stretched buffer is invisible.
     let resizeTimer: number | undefined;
     const onResize = () => {
@@ -328,8 +326,8 @@ export function Corridor() {
 
   return (
     <>
-      <div className="corridor-fallback" aria-hidden />
-      <div ref={hostRef} className="corridor-host" aria-hidden />
+      <div className="wall-fallback" aria-hidden />
+      <div ref={hostRef} className="wall-host" aria-hidden />
     </>
   );
 }

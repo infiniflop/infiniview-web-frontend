@@ -13,18 +13,17 @@ import {
 } from "@/lib/site/gsap";
 import { scene } from "@/lib/site/scene";
 import { whenFirstScreen } from "@/lib/site/ready";
+import { DUR, EASE, RISE } from "@/lib/site/motion";
 import { setLenis, scrollToTarget, settleScroll, dropInflight, focusWhenReady, anchorPlan, documentTop, hasInflight } from "@/lib/site/scroll";
-import { Corridor } from "@/components/site/corridor";
+import { Wall } from "@/components/site/wall";
+import { GlassDefs } from "@/components/site/glass-defs";
 
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
 
-// the header's entrance plays once per page load, however many times the shell remounts
-let navIntroPlayed = false;
-
 /**
- * SiteShell — the single owner of time on this site.
+ * SiteShell: the single owner of time on this site.
  *   · Lenis smooth scroll, driven from GSAP's ticker (one clock for everything)
- *   · scroll → corridor depth, pointer → light
+ *   · scroll and pointer → the light behind the wall, and the glint on the glass
  *   · scroll reveals + split-text headings
  */
 export function SiteShell({ children }: { children: ReactNode }) {
@@ -34,11 +33,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
   useEffect(() => {
     const reduced = prefersReducedMotion();
     const coarse = isCoarsePointer();
-    // The motion layer arrived after the 5s failsafe had already shown everything (a slow connection):
-    // hiding that content again to play its entrance would make readable text vanish and reappear.
-    const late = document.documentElement.classList.contains("reveal-failsafe");
     let lenis: Lenis | null = null;
-    let intro: gsap.core.Tween | null = null;
 
     if (!reduced) {
       lenis = new Lenis({
@@ -50,7 +45,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
       setLenis(lenis);
       lenis.on("scroll", ScrollTrigger.update);
       lenis.on("scroll", (l: Lenis) => {
-        scene.target = (l.scroll / window.innerHeight) * 0.82;
+        scene.target = l.scroll / window.innerHeight;
         scene.velocity = clamp(l.velocity / 70, -1, 1);
       });
     }
@@ -64,7 +59,16 @@ export function SiteShell({ children }: { children: ReactNode }) {
       const kp = 1 - Math.exp(-dt * 5);
       scene.px += (scene.tx - scene.px) * kp;
       scene.py += (scene.ty - scene.py) * kp;
+      // the rim of the nav glass answers the pointer and the scroll: its highlight turns a few degrees
+      // (written on the bar itself; a custom property on an ancestor would restyle the whole page)
+      const g = scene.px * 16 + scene.velocity * 26;
+      if (Math.abs(g - glint) > 0.35) {
+        glint = g;
+        (navBar ??= document.querySelector<HTMLElement>(".nav-bar"))?.style.setProperty("--glint", `${g.toFixed(1)}deg`);
+      }
     };
+    let glint = 0;
+    let navBar: HTMLElement | null = null;
     gsap.ticker.add(tick);
     gsap.ticker.lagSmoothing(0);
 
@@ -225,33 +229,13 @@ export function SiteShell({ children }: { children: ReactNode }) {
     window.addEventListener("wheel", dropInflight, { passive: true });
     window.addEventListener("touchstart", dropInflight, { passive: true });
 
-    // pointer → corridor light
+    // pointer → the light behind the wall
     const onMove = (e: PointerEvent) => {
       if (mqReduce.matches) return;
       scene.tx = (e.clientX / window.innerWidth) * 2 - 1;
       scene.ty = -((e.clientY / window.innerHeight) * 2 - 1);
     };
     if (!coarse) window.addEventListener("pointermove", onMove, { passive: true });
-
-    // the header arrives with the opening shot, once per page load (not on every client-side return)
-    let navIntro: gsap.core.Tween | null = null;
-    const navEl = document.querySelector(".site-nav");
-    // The opening shot (nav, camera fly-in, and the hero's own entrance) starts together, once the
-    // corridor has drawn its first frame and the font is in (lib/site/ready.ts; capped).
-    let cancelOpening = () => {};
-    if (!reduced && !late) {
-      scene.intro = -6; // the first frame is drawn from far away
-      if (navEl && !navIntroPlayed) gsap.set(navEl, { opacity: 0, y: -36 });
-      cancelOpening = whenFirstScreen(() => {
-        if (navEl && !navIntroPlayed) {
-          navIntroPlayed = true;
-          navIntro = gsap.to(navEl, { opacity: 1, y: 0, duration: 1.2, ease: "expo.out", delay: 0.2, clearProps: "transform" });
-        }
-        intro = gsap.fromTo(scene, { intro: -6 }, { intro: 0, duration: 3.4, ease: "expo.out" });
-      });
-    } else {
-      scene.intro = 0;
-    }
 
     // in-page anchors share Lenis' feel, and still move keyboard focus like a native jump
     const FOCUSABLE = "a[href],button,input,select,textarea,[tabindex]";
@@ -287,7 +271,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
     const onPop = () => lenis?.scrollTo(window.scrollY, { immediate: true, force: true });
     window.addEventListener("popstate", onPop);
 
-    // the motion layer is up: if the 5s failsafe already un-hid the page because hydration was slow,
+    // the motion layer is up: if the failsafe already un-hid the page because hydration was slow,
     // hand control back to the reveal system (the reveal batch handles items already above the fold)
     document.documentElement.dataset.motion = "ready";
     document.documentElement.classList.remove("reveal-failsafe");
@@ -295,11 +279,6 @@ export function SiteShell({ children }: { children: ReactNode }) {
 
     return () => {
       document.documentElement.classList.remove("surface-dark");
-      if (navIntro && navIntro.progress() < 1) navIntroPlayed = false; // an interrupted entrance (StrictMode) plays again
-      navIntro?.kill();
-      if (navEl?.isConnected) gsap.set(navEl, { clearProps: "opacity,transform" });
-      cancelOpening();
-      intro?.kill();
       gsap.ticker.lagSmoothing(500, 33); // GSAP's defaults, which this effect overrode
       gsap.ticker.remove(tick);
       window.removeEventListener("pointermove", onMove);
@@ -332,8 +311,8 @@ export function SiteShell({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (lastPath.current === pathname) return;
     lastPath.current = pathname;
-    // the corridor lurches with the page change (forward to Pricing, back to Home): the roll and the
-    // colour fringing the shader ties to scroll velocity, decaying on its own
+    // the wall answers the page change (forward to Pricing, back to Home): the colour fringing the
+    // shader ties to scroll velocity, decaying on its own
     if (!prefersReducedMotion()) scene.velocity = pathname === "/" ? -1 : 1;
     const main = document.getElementById("main");
     if (!main) return;
@@ -388,7 +367,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
         if (document.documentElement.classList.contains("reveal-failsafe")) {
           // late boot (see the engine): what the failsafe showed stays shown, with no entrance replay
           document.querySelectorAll("[data-reveal],[data-cta]").forEach((el) => el.setAttribute("data-revealed", ""));
-          gsap.set("[data-split],[data-intro],[data-hero-title]", { opacity: 1 });
+          gsap.set("[data-split]", { opacity: 1 });
           return;
         }
         // Keyboard focus lands inside something that has not scrolled in yet (Tab, skip links, find in
@@ -403,10 +382,11 @@ export function SiteShell({ children }: { children: ReactNode }) {
         };
         document.addEventListener("focusin", onFocusIn);
 
-        // Reveals and split headings are set up once the first screen is ready (lib/site/ready.ts), so
-        // nothing in the opening view moves before the corridor is there to sit in front of. On later
-        // route changes the gate is already open and this runs on the next frame. The triggers are
-        // created asynchronously, so they are added to this media context explicitly.
+        // The first screen is not part of this: it is server-rendered and enters with CSS at first
+        // paint. Reveals and split headings (further down the page) are set up once the web font is in
+        // (lib/site/ready.ts, capped), so headings are split at their real metrics. On later route
+        // changes the gate is already open and this runs on the next frame. The triggers are created
+        // asynchronously, so they are added to this media context explicitly.
         const splits: SplitText[] = [];
         let cancelled = false;
         const setup = () => {
@@ -428,16 +408,16 @@ export function SiteShell({ children }: { children: ReactNode }) {
               els,
               {
                 opacity: 0,
-                y: (_i, el: HTMLElement) => (el.dataset.reveal === "fade" ? 0 : 40),
-                scale: (_i, el: HTMLElement) => (el.dataset.reveal === "scale" ? 0.94 : 1),
+                y: (_i, el: HTMLElement) => (el.dataset.reveal === "fade" ? 0 : RISE),
+                scale: (_i, el: HTMLElement) => (el.dataset.reveal === "scale" ? 0.96 : 1),
               },
               {
                 opacity: 1,
                 y: 0,
                 scale: 1,
-                duration: 1.1,
-                ease: "expo.out",
-                stagger: 0.09,
+                duration: DUR.enter,
+                ease: EASE.out,
+                stagger: DUR.stagger,
                 overwrite: true,
                 clearProps: "transform",
               },
@@ -462,12 +442,12 @@ export function SiteShell({ children }: { children: ReactNode }) {
                 if (cancelled) return;
                 gsap.set(el, { visibility: "visible", opacity: 1 });
                 return gsap.from(self.lines, {
-                  yPercent: 190, // clear of the mask's descender padding (see hero.tsx)
+                  yPercent: 190, // clear of the mask's descender padding (see site.css)
                   rotate: 2.5,
                   transformOrigin: "0% 100%",
-                  duration: 1.25,
-                  ease: "expo.out",
-                  stagger: 0.1,
+                  duration: 1.05,
+                  ease: EASE.out,
+                  stagger: 0.08,
                   scrollTrigger: { trigger: el, start: "top 88%", once: true },
                 });
               },
@@ -478,7 +458,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
         };
         const cancelGate = whenFirstScreen(() => {
           if (!cancelled) ctx.add(setup);
-        });
+        }, 900);
 
         return () => {
           cancelled = true;
@@ -489,7 +469,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
       });
 
       mm.add("(prefers-reduced-motion: reduce)", () => {
-        gsap.set("[data-reveal], [data-split], [data-intro], [data-cta]", { opacity: 1, clearProps: "transform" });
+        gsap.set("[data-reveal], [data-split], [data-cta]", { opacity: 1, clearProps: "transform" });
       });
 
       const onLoad = () => ScrollTrigger.refresh();
@@ -504,7 +484,8 @@ export function SiteShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="site-root">
-      <Corridor />
+      <Wall />
+      <GlassDefs />
       <div className="site-content">{children}</div>
     </div>
   );

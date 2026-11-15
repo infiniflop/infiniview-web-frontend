@@ -5,6 +5,7 @@ import { ArrowRight, Check } from "lucide-react";
 import { gsap, prefersReducedMotion } from "@/lib/site/gsap";
 import { cn } from "@/lib/utils";
 import { EMAIL_RE } from "@/lib/site/email";
+import { DUR, EASE } from "@/lib/site/motion";
 
 type Status = "idle" | "loading" | "success" | "already" | "error" | "invalid" | "limited";
 
@@ -33,7 +34,7 @@ export function WaitlistForm({
     gsap.fromTo(
       formRef.current,
       { x: 0 },
-      { keyframes: [{ x: -8 }, { x: 7 }, { x: -4 }, { x: 0 }], duration: 0.4, ease: "power2.out" },
+      { keyframes: [{ x: -7 }, { x: 6 }, { x: -3 }, { x: 0 }], duration: 0.36, ease: "power2.out", clearProps: "transform" },
     );
   };
 
@@ -83,7 +84,7 @@ export function WaitlistForm({
     el.focus({ preventScroll: true });
     if (prefersReducedMotion()) return;
     // opacity, not autoAlpha: visibility:hidden would make the browser drop focus from the element
-    const tween = gsap.fromTo(el, { opacity: 0, y: 14, scale: 0.97 }, { opacity: 1, y: 0, scale: 1, duration: 0.7, ease: "expo.out" });
+    const tween = gsap.fromTo(el, { opacity: 0, y: 12, scale: 0.97 }, { opacity: 1, y: 0, scale: 1, duration: DUR.enter, ease: EASE.out, clearProps: "transform" });
     return () => {
       tween.kill();
     };
@@ -96,13 +97,12 @@ export function WaitlistForm({
         ref={doneRef}
         role="status"
         tabIndex={-1}
-        className={cn("waitlist-done glass glass--lime mb-8 flex w-full items-center gap-4 px-6 py-4", size === "lg" ? "waitlist--lg" : "waitlist--md", className)}
-        style={{ ["--r" as string]: "999px" }}
+        className={cn("waitlist-done", size === "lg" ? "waitlist--lg" : "waitlist--md", className)}
       >
-        <span className="grid h-9 w-9 flex-none place-items-center rounded-full bg-[var(--iv-lime)] text-[#070a02]">
+        <span className="waitlist-tick">
           <Check size={18} strokeWidth={3} />
         </span>
-        <span className="text-[1.02rem] font-medium leading-snug [text-wrap:balance]">
+        <span>
           {status === "already"
             ? "You’re already on the list. We’ll be in touch."
             : "You’re on the list. We’ll be in touch."}
@@ -124,12 +124,8 @@ export function WaitlistForm({
       className={cn("w-full", className)}
     >
       <div
-        className={cn(
-          "waitlist glass glass--thin flex items-center gap-2 p-[7px]",
-          size === "lg" ? "waitlist--lg" : "waitlist--md",
-        )}
+        className={cn("waitlist", size === "lg" ? "waitlist--lg" : "waitlist--md")}
         data-status={status}
-        style={{ ["--r" as string]: "999px" }}
       >
         <label htmlFor={id ? `${id}-email` : undefined} className="sr-only">
           Work email
@@ -168,7 +164,7 @@ export function WaitlistForm({
       <p
         id={`${id ?? "wl"}-msg`}
         aria-live="polite"
-        className="waitlist-msg mt-3 min-h-[1.25rem] pl-5 text-sm"
+        className="waitlist-msg"
       >
         {status === "loading" && <span className="sr-only">Joining the waitlist…</span>}
         {status === "invalid" && "Enter a valid email address."}
